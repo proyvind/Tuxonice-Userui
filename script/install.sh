@@ -3,7 +3,7 @@
 CONFIG_DIR=/etc/suspend
 CONFIG_FILE=$CONFIG_DIR/suspend.conf
 SCRIPTLET_DIR=$CONFIG_DIR/scriptlets.d
-SCRIPT_DEST=/usr/local/sbin/suspend
+SCRIPT_DEST=/usr/local/sbin/hibernate
 
 # Test if the script is already installed.
 if [ -d $CONFIG_DIR -o -f $SCRIPT_DEST ] ; then
