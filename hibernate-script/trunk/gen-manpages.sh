@@ -104,13 +104,13 @@ use the default directories as described in the
 Probably lots!
 .PP
 If you have problems with the suspend script or Software Suspend, the best
-place to ask is on the mailing list - swsusp-devel@lists.sourceforge.net. You
-will need to subscribe to post. See http://swsusp.sourceforge.net/lists.html
+place to ask is on the mailing list - softwaresuspend-help@lists.berlios.de. You
+will need to subscribe to post. See http://softwaresuspend.berlios.de/lists.html
 for details.
 .PP
 If the suspend process itself crashes (while "Writing caches", "Reading
 caches", or "Copying original kernel back", etc), then the problem lies with
-Software Suspend 2 itself. See the FAQ at http://swsusp.sourceforge.net/ for
+Software Suspend 2 itself. See the FAQ at http://softwaresuspend.berlios.de/ for
 help on debugging.
 .SH AUTHOR
 .PP
