@@ -227,6 +227,8 @@ ChangeToSwsuspVT() {
 	fi
 	vecho 3 "swsusp2_15: changing console from $SWSUSP_ORIGINAL_VT to 63"
 	chvt 63
+	# Turn off unicode on this VT, as it makes swsusp output ugly.
+	echo -ne '\033%@' > /dev/tty63
     fi
     return 0
 }
