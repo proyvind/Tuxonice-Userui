@@ -14,7 +14,7 @@ EXE=`basename $0`
 VERSION="0.2"
 
 vecho() {
-    [ $VERBOSITY -ge $1 ] || return 0
+    [ $VERBOSITY -ge "$1" ] || return 0
     shift
     echo "$@" | $LOGPIPE
 }
@@ -392,7 +392,7 @@ AddConfigHelp "Verbosity N" "Determines how verbose the output from the suspend 
    4: print out every command executed (uses -x)"
 AddConfigHelp "AlwaysForce <boolean>" "If set to yes, the script will always run as if --force had been passed."
 AddConfigHelp "AlwaysKill <boolean>" "If set to yes, the script will always run as if --kill had been passed."
-AddConfigHelp "Distribution <debian|fedora|mandrake|redhat|gentoo|suse>" "If specified, tweaks some scriptlets to be more integrated with the given distribution."
+AddConfigHelp "Distribution <debian|fedora|mandrake|redhat|gentoo|suse|slackware>" "If specified, tweaks some scriptlets to be more integrated with the given distribution."
 
 EnsureHaveRoot() {
     if [ x"`id -u`" != "x0" ] ; then
