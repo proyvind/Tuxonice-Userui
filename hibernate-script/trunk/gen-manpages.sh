@@ -36,7 +36,7 @@ ProgramManHeader() {
 cat <<EOT
 .\" Author: Cameron Patrick <cameron@patrick.wattle.id.au>
 .\" Information on the command line options is automatically generated
-.\" from the suspend scripts themselves.
+.\" from the hibernate scripts themselves.
 .TH HIBERNATE 8 "$THE_DATE" "Linux Software Suspend" ""
 .SH NAME
 hibernate \- save your computer's state to disk, and then switch it off
@@ -46,7 +46,7 @@ hibernate \- save your computer's state to disk, and then switch it off
 .SH DESCRIPTION
 .PP
 The hibernate script (or "suspend script") is used to invoke the Linux
-kernel's software suspend functionality.
+kernel's Software Suspend functionality.
 .PP
 When you hibernate your machine, the contents of your computer's
 memory will be saved to disc, and your computer will switch off.  When
@@ -62,11 +62,11 @@ including unloading and reloading drivers which don't suspend
 properly, setting the system clock after resuming, taking down and
 bringing up network interfaces and various other hacks that may be
 required on some hardware.  By default, all it does is restore the
-system clock after suspend; see
+system clock after suspending; see
 .BR hibernate.conf (5)
 for information on configuring the rest of its functionality.
 .PP
-The suspend script accepts the following command-line options:
+The hibernate script accepts the following command-line options:
 .SH OPTIONS
 EOT
 }
@@ -76,7 +76,7 @@ ProgramManFooter() {
 .SH FILES
 .TP 10
 .B /etc/hibernate/hibernate.conf
-Contains options which influence the suspend script's behaviour.  See
+Contains options which influence the hibernate script's behaviour.  See
 .BR hibernate.conf (5)
 for more information.
 .TP 10
@@ -91,19 +91,11 @@ when suspending and resuming.  See the
 file included with the distribution (which can be found in
 .B /usr/share/doc/hibernate
 on Debian systems) for information on how these work.
-.SH ENVIRONMENT
-.PP
-.TP 10
-.B SCRIPTLET_DIRS
-Contains a space-separated list of directories to search for
-scriptlets in.  If it is not set, or empty, the suspend script will
-use the default directories as described in the
-.
 .SH BUGS
 .PP
 Probably lots!
 .PP
-If you have problems with the suspend script or Software Suspend, the best
+If you have problems with the hibernate script or Software Suspend, the best
 place to ask is on the mailing list - softwaresuspend-help@lists.berlios.de. You
 will need to subscribe to post. See http://softwaresuspend.berlios.de/lists.html
 for details.
@@ -132,15 +124,15 @@ ConfigManHeader() {
 .\"
 .\" Author: Cameron Patrick <cameron@patrick.wattle.id.au>
 .\" Information on the various options is automatically generated
-.\" from the suspend scripts themselves.
+.\" from the hibernate scripts themselves.
 .TH HIBERNATE.CONF 5 "$THE_DATE" "Linux Software Suspend" ""
 .SH NAME
-hibernate.conf \- configuration file for the suspend script
+hibernate.conf \- configuration file for the hibernate script
 .SH SYNOPSIS
 .I /etc/hibernate/hibernate.conf
 .SH DESCRIPTION
 .PP
-The suspend script
+The hibernate script
 .BR hibernate (8)
 reads its configuration from the
 .I /etc/hibernate/hibernate.conf
@@ -155,13 +147,13 @@ ConfigManFooter() {
 .SH FILES
 .TP 10
 .B /etc/hibernate/hibernate.conf
-Contains options which influence the suspend script's behaviour.
+Contains options which influence the hibernate script's behaviour.
 .SH AUTHOR
 .PP
 This manual page was written by Cameron Patrick <cameron@patrick.wattle.id.au>.
 .PP
 The information about various options was automatically generated from
-the suspend script itself.
+the hibernate script itself.
 .SH SEE ALSO
 .PP
 .BR hibernate (8)

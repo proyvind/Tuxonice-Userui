@@ -1,4 +1,4 @@
-This package contains a new suspend script, designed for Software Suspend 2.
+This package contains a new hibernate script, designed for Software Suspend 2.
 
 PREREQUISITES
 -------------
@@ -28,8 +28,8 @@ You will have to merge your changes manually.
 
 CONFIGURATION
 -------------
-Since v0.90 of the suspend script, the configuration file syntax is completely
-different (and much more readable!).
+Since v0.90 of the hibernate script, the configuration file syntax is
+completely different (and much more readable!).
 
 The default configuration does nothing but save and restore your clock. If you
 have kernel modules that need to be unloaded, filesystems unmounted, network
@@ -41,7 +41,7 @@ itself.
 RUNNING
 -------
 Simply calling "hibernate" as root will do everything mentioned in the
-configuration file to suspend, and activate Software Suspend. Upon resuming,
+configuration file to hibernate, and activate Software Suspend. Upon resuming,
 any tasks for resuming the machine are run and the script exits.
 
 If you want users other than root to be able to run the script, check out the
@@ -52,7 +52,7 @@ your machine to hibernate.
 
 HELP
 ----
-If you have problems with the suspend script or Software Suspend, the best
+If you have problems with the hibernate script or Software Suspend, the best
 place to ask is on the mailing list - softwaresuspend-help@lists.berlios.de.
 You will need to subscribe to post. See
 http://softwaresuspend.berlios.de/lists.html for details.
