@@ -76,24 +76,24 @@ def isLowerVersion(a, b):
 # testVersion("2.1.5.7C", "2.1.5.6", False)
 # sys.exit(3)
 
-def indexUpdateSnippet(release_ver, kernel_ver, url):
-	parts = string.count(release_ver, '.')+1
+def indexUpdateSnippet(release_ver, kernel_ver, url, section):
 	part = None
-	if parts >= 4: # we have a dev version
-		part = 'dev'
+	parts = string.count(release_ver, '.')+1
 	if kernel_ver[0:3] in ['2.4', '2.6']:
 		part = kernel_ver[0:3]
+	if section == 'Development Patches':
+		part = 'dev'
 	if part == None:
 		return
 
-	if latest[part][0] == '' or isLowerVersion(release_ver, latest[part][0]):
+	if latest[part][0] == '' or isLowerVersion(latest[part][0], release_ver):
 		latest[part][0] = release_ver
 		latest[part][1] = ''
 
 	if latest[part][0] == release_ver:
 		latest[part][1] += '<li><a href="%s">Software Suspend %s for kernel %s</a>\n'%(url, release_ver, kernel_ver)
 
-def parseKernel(kernel, release_name):
+def parseKernel(kernel, release_name, section):
 	version = kernel.prop('name')
 
 	filename = kernel.children
@@ -111,7 +111,7 @@ def parseKernel(kernel, release_name):
 
 	(date, size) = getFileInfo(filename)
 
-	indexUpdateSnippet(release_name, version, download_url_prefix+filename)
+	indexUpdateSnippet(release_name, version, download_url_prefix+filename, section)
 
 	return '''
 <tr class="download_kernel"><td class="download_kernel" colspan="3">%s</td></tr>
@@ -122,7 +122,7 @@ def parseKernel(kernel, release_name):
 </tr>
 '''%(version, link, date, size)
 
-def parseRelease(release):
+def parseRelease(release, section):
 	date = None
 	part = release.children
 	release_name = release.prop('name')
@@ -134,7 +134,7 @@ def parseRelease(release):
 		if part.name == 'date':
 			date = part.content
 		elif part.name == 'kernel':
-			release_text += parseKernel(part, release_name)
+			release_text += parseKernel(part, release_name, section)
 		part = part.next
 
 	return release_text
@@ -146,7 +146,7 @@ def parseSection(section):
 		if release.name != 'release':
 			release = release.next
 			continue
-		release_text += parseRelease(release)
+		release_text += parseRelease(release, section.prop('name'))
 		release = release.next
 
 	section_text = '''
