@@ -188,7 +188,9 @@ FindXServer() {
     export DISPLAY
 
     # See if we need to authenticate to this X server.
-    xhost=`PATH=/usr/bin/X11:/usr/X11R6/bin:$PATH command -v xhost 2>/dev/null`
+    PATH=$PATH:/usr/bin/X11:/usr/X11R6/bin
+    export PATH
+    xhost=`command -v xhost 2>/dev/null`
     if [ $? -ne 0 ] ; then
 	vecho 0 "$EXE: Could not find xhost program. Disabling X scriptlets."
 	FIND_X_SERVER_RESULT=1
