@@ -29,7 +29,7 @@ highlight link hibernate_boolean Constant
 syntax match hibernate_integer /\d\+/ contained nextgroup=hibernate_error
 highlight link hibernate_integer Constant
 
-syntax match hibernate_powerdown_method /[345]/ contained nextgroup=hibernate_error
+syntax match hibernate_powerdown_method /([345]|shutdown|platform|firmware)/ contained nextgroup=hibernate_error
 highlight link hibernate_powerdown_method Constant
 
 syntax match hibernate_procsetting /[a-zA-Z0-9_]\+/ contained nextgroup=hibernate_procvalue
