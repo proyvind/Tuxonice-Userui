@@ -50,7 +50,7 @@ static int update_cursor_pos(void) {
 	return 1;
 }
 
-/* text_prepare
+/* text_prepare_status
  * Description:	Prepare the 'nice display', drawing the header and version,
  * 		along with the current action and perhaps also resetting the
  * 		progress bar.
@@ -78,8 +78,6 @@ static void text_prepare_status_real(int printalways, int clearbar, const char *
 	/* Remember where the cursor was */
 	if (cur_x != -1)
 		update_cursor_pos();
-
-	barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
 
 	/* Print version */
 	move_cursor_to(0, video_num_lines);
@@ -154,12 +152,6 @@ static void text_prepare_status(int printalways, int clearbar, const char *fmt, 
 
 static void text_loglevel_change(int loglevel)
 {
-	/* Calculate progress bar width. Note that whether the
-	 * splash screen is on might have changed (this might be
-	 * the first call in a new cycle), so we can't take it
-	 * for granted that the width is the same as last time
-	 * we came in here */
-	barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
 	barposn = 0;
 
 	/* Only reset the display if we're switching between nice display
@@ -203,9 +195,6 @@ void text_update_progress(unsigned long value, unsigned long maximum,
 	unsigned long next_update = 0;
 	int bitshift = generic_fls(maximum) - 16;
 	int message_len = 0;
-
-	if (!barwidth)
-		barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
 
 	if (!maximum)
 		return /* maximum */;
@@ -306,6 +295,15 @@ static void text_prepare() {
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz);
 	video_num_lines = winsz.ws_row;
 	video_num_columns = winsz.ws_col;
+
+	/* Calculate progress bar width. Note that whether the
+	 * splash screen is on might have changed (this might be
+	 * the first call in a new cycle), so we can't take it
+	 * for granted that the width is the same as last time
+	 * we came in here */
+	barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
+
+	set_progress_granularity(barwidth);
 
 	/* Open /dev/vcsa0 so we can find out the cursor position when we need to */
 	vcsa_fd = open("/dev/vcsa0", O_RDONLY);
