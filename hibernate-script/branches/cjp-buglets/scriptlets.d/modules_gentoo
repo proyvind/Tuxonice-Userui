@@ -14,7 +14,7 @@ GentooModulesAutoload() {
 
     . /sbin/functions.sh
     # taken from gentoo's /etc/init.d/modules
-    if [ -f /etc/modules.autoload -a ! -L /etc/modules.autoload ] ; then
+    if [ -f /etc/modules.autoload ] && [ ! -L /etc/modules.autoload ] ; then
 	modules_autoload_file= /etc/modules.autoload
     else
 	local KV="$(uname -r)"
