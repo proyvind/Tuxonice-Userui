@@ -1,19 +1,12 @@
 #include <sys/ioctl.h>
-#include <stdio.h>
 #include <unistd.h>
 #include <termios.h>
-#include <stdarg.h>
 #include <string.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "userui.h"
-
-/* excerpts from include/linux/suspend.h */
-#define SUSPEND_STATUS		0
-#define SUSPEND_ERROR		2
-#define SUSPEND_LOW	 	3
-#define SUSPEND_MEDIUM	 	4
-#define SUSPEND_HIGH	  	5
-#define SUSPEND_VERBOSE		6
 
 /* excerpts from include/linux/bitops.h */
 /*
@@ -80,7 +73,7 @@ static inline void unblank_screen_via_file() { write(1, "\23313]", 4); }
  * 		const char *fmt, ...: The action to be displayed.
  */
 
-static void text_prepare_status(int printalways, int clearbar, const char *msg)
+static void text_prepare_status_real(int printalways, int clearbar, const char *msg)
 {
 	int y;
 
@@ -141,6 +134,16 @@ static void text_prepare_status(int printalways, int clearbar, const char *msg)
 	hide_cursor();
 
 	barposn = 0;
+}
+
+static void text_prepare_status(int printalways, int clearbar, const char *fmt, ...)
+{
+	char buf[1024];
+	va_list va;
+	va_start(va, fmt);
+	vsnprintf(buf, 1024, fmt, va);
+	text_prepare_status_real(printalways, clearbar, buf);
+	va_end(va);
 }
 
 /* text_loglevel_change
@@ -269,7 +272,7 @@ static void text_message(unsigned long section, unsigned long level,
 		return; */
 
 	if (level == SUSPEND_STATUS) {
-		text_prepare_status(1, 0, msg);
+		text_prepare_status_real(1, 0, msg);
 		return;
 	}
 	
@@ -313,7 +316,6 @@ static void text_redraw() {
 }
 
 static void text_keypress(int key) {
-	char buf[128];
 	switch (key) {
 		case 1:
 			send_message(USERUI_MSG_ABORT, NULL, 0);
@@ -334,6 +336,14 @@ static void text_keypress(int key) {
 			console_loglevel = 0;
 			send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
 			break;
+		case 19:
+			/* Toggle reboot */
+			suspend_action ^= (1 << SUSPEND_REBOOT);
+			text_prepare_status(1, 0, "Rebooting %sabled.",
+					(suspend_action&(1<<SUSPEND_REBOOT))?"en":"dis");
+			send_message(USERUI_MSG_SET_STATE, &suspend_action, sizeof(suspend_action));
+			send_message(USERUI_MSG_GET_STATE, NULL, 0);
+			break;
 //		case 112:
 //			/* During suspend, toggle pausing with P */
 //			suspend_action ^= (1 << SUSPEND_PAUSE);
@@ -345,8 +355,7 @@ static void text_keypress(int key) {
 //			suspend2_core_ops->schedule_message(3);
 //			break;
 		default:
-			snprintf(buf, 128, "Got key %d", key);
-			text_prepare_status(1, 0, buf);
+			text_prepare_status(1, 0, "Got key %d", key);
 	}
 }
 

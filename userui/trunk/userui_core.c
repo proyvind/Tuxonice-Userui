@@ -27,6 +27,7 @@ static int test_run = 0;
 char software_suspend_version[32];
 
 int console_loglevel = 1;
+int suspend_action = 0;
 
 extern struct userui_ops userui_text_ops;
 
@@ -99,6 +100,7 @@ static void get_info() {
 	}
 
 	send_message(USERUI_MSG_GET_LOGLEVEL, NULL, 0);
+	send_message(USERUI_MSG_GET_STATE, NULL, 0);
 	/* We'll get the reply in our message loop */
 }
 
@@ -199,6 +201,9 @@ static void message_loop() {
 			case USERUI_MSG_LOGLEVEL_CHANGE:
 				console_loglevel = *(int*)NLMSG_DATA(nlh);
 				userui_ops->log_level_change(console_loglevel);
+				break;
+			case USERUI_MSG_GET_STATE:
+				suspend_action = *(int*)NLMSG_DATA(nlh);
 				break;
 			case USERUI_MSG_CLEANUP:
 				/* Cleanup function is called upon exiting. */
