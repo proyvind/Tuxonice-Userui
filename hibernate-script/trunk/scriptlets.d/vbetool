@@ -16,6 +16,13 @@ VbetoolSuspend() {
     # if we're switched off, don't do nuffin
     [ x"$VBETOOL_ENABLED" = "x1" ] || return 0
 
+    # Make sure we have a vbetool.
+    if ! command -v vbetool > /dev/null 2>&1 ; then
+	VBETOOL_ENABLED=0
+	vecho 1 "'vbetool' utility not found. Vbetool disabled."
+	return 0
+    fi
+
     # save our previous VT and switch to a new one
     VBETOOL_ORIG_VT=`fgconsole 2>/dev/null` || VBETOOL_ORIG_VT=1
     chvt $VBETOOL_VT
