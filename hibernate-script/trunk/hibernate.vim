@@ -74,6 +74,14 @@ syntax keyword hibernate_conf changegrubmenu contained nextgroup=hibernate_boole
 syntax keyword hibernate_conf grubmenufile contained nextgroup=hibernate_filenames skipwhite
 syntax keyword hibernate_conf alternategrubmenufile contained nextgroup=hibernate_filenames skipwhite
 
+" lock
+syntax match hibernate_username /[a-zA-Z0-9\-_]\+/ contained skipwhite
+highlight link hibernate_username Constant
+
+syntax keyword hibernate_conf lockkde contained nextgroup=hibernate_boolean skipwhite
+syntax keyword hibernate_conf lockxscreensaver contained nextgroup=hibernate_filenames skipwhite
+syntax keyword hibernate_conf lockconsoleas contained nextgroup=hibernate_username skipwhite
+
 " misclaunch
 syntax keyword hibernate_conf onsuspend contained nextgroup=hibernate_order_num skipwhite
 syntax keyword hibernate_conf onresume contained nextgroup=hibernate_order_num skipwhite
