@@ -24,13 +24,13 @@ url="mailto:b-swfaq@blackham.com.au" name="me">.
 <sect>Downloading Software Suspend 2
 
 <sect1>How do I get the latest beta Software Suspend 2?
-<p>Visit the <url url="http://developer.berlios.de/project/showfiles.php?group_id=1412" name="Berlios download page">.
-Under the <bf>Current Beta Patches</bf> package, grab the latest full tarball
+<p>Visit the <url url="http://www.suspend2.net/downloads/" name="Download page">.
+Under the <bf>Development Patches</bf> package, grab the latest full tarball
 (called software-suspend-XXX-for-YYY.tar.gz) for the releveant kernel.
 
 <sect1>How do I get the latest stable Software Suspend 2?
-<p>Visit the <url url="http://developer.berlios.de/project/showfiles.php?group_id=1412" name="Berlios download page">.
-Under the <bf>Current Kernel Patches</bf> package, grab the latest core patch
+<p>Visit the <url url="http://www.suspend2.net/downloads/" name="Download page">.
+Under the <bf>Stable Patches</bf> package, grab the latest core patch
 <bf>and</bf> latest version-specific patch for your kernel version.
 
 <sect1>What kernel do I need for the latest Software Suspend 2?

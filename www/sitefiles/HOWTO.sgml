@@ -70,9 +70,9 @@ using software suspension is not straightforward, since it involves recompiling
 the kernel and setting some boot parameters.  Software Suspend's website is
 hosted by Sourceforge. You can visit the mailing list, download scripts and
 updated patches at
-<url url="http://developer.berlios.de/project/showfiles.php?group_id=1412">.
+<url url="http://www.suspend2.net/downloads/">.
 
-<p>You may want to peruse the <url url="http://softwaresuspend.berlios.de/FAQ" name="FAQ"> also.
+<p>You may want to peruse the <url url="http://www.suspend2.net/FAQ" name="FAQ"> also.
 
 
 <sect> Overview
@@ -111,7 +111,7 @@ and add an entry in your lilo.conf file to be able to boot on this one.
 
 <p> You need to choose the kernel source tree you want to use as basis. The
 latest list of supported kernels is on the
-<url url="http://softwaresuspend.berlios.de/" name="home page">.
+<url url="http://www.suspend2.net/" name="home page">.
 You will need to download the tarball specific to your kernel version.
 
 <p> 
