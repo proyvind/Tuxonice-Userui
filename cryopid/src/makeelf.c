@@ -91,7 +91,6 @@ char zeros[0x1000];
 
 int main(int argc, char** argv) {
 	pid_t target_pid;
-    char* output_file = NULL;
 	struct proc_image_t* proc_image;
 	int c;
 	int flags = 0;
@@ -106,7 +105,6 @@ int main(int argc, char** argv) {
 			{"full-image", 0, 0, 'f'},
 			{"file-contents", 0, 0, 'c'},
 			{"stopped", 0, 0, 's'},
-            {"output-file", 1, 0, 'o'},
 			{0, 0, 0, 0},
 		};
 		
@@ -121,9 +119,6 @@ int main(int argc, char** argv) {
 			case 's':
 				flags |= GET_PROC_IS_STOPPED;
 				break;
-            case 'o':
-                output_file = optarg;
-                break;
             case 'c':
                 flags |= GET_OPEN_FILE_CONTENTS;
                 break;
@@ -145,13 +140,8 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-    if (output_file == NULL) {
-        output_file = (char*)malloc(100);
-        snprintf(output_file, 100, "%d.pid", target_pid);
-    }
-
 	memset(zeros, 0, sizeof(zeros));
-	if ((elf_fd = open(output_file, O_CREAT|O_WRONLY|O_TRUNC, 0755))==-1) {
+	if ((elf_fd = open(argv[optind+1], O_CREAT|O_WRONLY|O_TRUNC, 0755))==-1) {
         perror("open");
         exit(1);
     }
