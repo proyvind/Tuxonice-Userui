@@ -9,6 +9,7 @@ XHacksSuspend() {
     if [ x"$XHACK_LEAVE_X" = "x1" ] ; then
 	which fgconsole > /dev/null 2>&1 && XHACK_ORIGINAL_VT=`fgconsole` || XHACK_ORIGINAL_VT=1
 	[ -z "$SWSUSPVT" ] && DEST_VT=15 || DEST_VT="$SWSUSPVT"
+	vecho 2 "xhacks: changing console from $XHACK_ORIGINAL_VT to $DEST_VT"
 	chvt $DEST_VT || return 1
     fi
     return 0
@@ -30,6 +31,28 @@ XHacksResume() {
     [ -n "$XHACK_ORIGINAL_VT" ] && chvt $XHACK_ORIGINAL_VT
 }
 
+# Hook1's called when using bootsplash and chvt needs to be performed earlier on
+XHacksSuspendHook1() {
+    [ x"$USE_BOOTSPLASH" = "x1" ] && XHACKS_USING_BOOTSPLASH=1 && XHacksSuspend
+    return 0
+}
+
+XHacksResumeHook1() {
+    [ -n "$XHACKS_USING_BOOTSPLASH" ] && XHacksResume
+    return 0
+}
+
+# Hook2's called when not using bootsplash and chvt can wait a while.
+XHacksSuspendHook2() {
+    [ -z "$XHACKS_USING_BOOTSPLASH" ] && XHacksSuspend
+    return 0
+}
+
+XHacksResumeHook2() {
+    [ -z "$XHACKS_USING_BOOTSPLASH" ] && XHacksResume
+    return 0
+}
+
 XHacksOptions() {
     case $1 in
 	leavexbeforesuspend)
@@ -43,9 +66,12 @@ XHacksOptions() {
 	*)
 	    return 1
     esac
+
     if [ -z "$XHACKS_HOOKED" ] ; then
-	AddSuspendHook 85 XHacksSuspend
-	AddResumeHook 85 XHacksResume
+	AddSuspendHook 11 XHacksSuspendHook1
+	AddResumeHook  11 XHacksResumeHook1
+	AddSuspendHook 85 XHacksSuspendHook2
+	AddResumeHook  85 XHacksResumeHook2
 	XHACKS_HOOKED=1
     fi
     return 0
