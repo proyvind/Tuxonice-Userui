@@ -1,6 +1,6 @@
 AddConfigHandler MiscLaunchOptions
-AddConfigHelp "OnSuspend NN <program to execute> [parameters for program]" "Executes a given program before suspending. NN is a number between 11 and 98, inclusive - a higher number means the program will be executed later in the suspend process."
-AddConfigHelp "OnResume NN <program to execute> [parameters for program]" "Executes a given program after resuming. NN is a number between 11 and 98, inclusive - a higher number means the program will be executed earlier in the resume process."
+AddConfigHelp "OnSuspend NN <program to execute> [parameters for program]" "Executes a given program before suspending. NN is a two-digit number between 00 and 99, inclusive - a higher number means the program will be executed later in the suspend process. See the ORDERING section in the SCRIPTLET-API for details."
+AddConfigHelp "OnResume NN <program to execute> [parameters for program]" "Executes a given program after resuming. NN is a number between 00 and 99, inclusive - a higher number means the program will be executed earlier in the resume process. See the ORDERING section in the SCRIPTLET-API for details."
 
 MISC_LAUNCH_COUNT=0
 
