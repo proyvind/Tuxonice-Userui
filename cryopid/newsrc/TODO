@@ -5,6 +5,7 @@ Sooner:
 - FPU state
 - file offsets
 - termcaps
+- signal handlers
 
 Later:
 - compressor support
