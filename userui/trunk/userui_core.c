@@ -291,10 +291,10 @@ static void do_test_run() {
 	int i;
 
 	userui_ops->message(0, 0, 1, "Suspending to disk ...");
-	for (i = 0; i <= 800; i++) {
+	for (i = 0; i <= 1024; i+=8) {
 		char buf[128];
-		snprintf(buf, 128, "%d/%d MB", i, 800);
-		userui_ops->update_progress(i, 800, buf);
+		snprintf(buf, 128, "%d/%d MB", i, 1024);
+		userui_ops->update_progress(i, 1024, buf);
 		usleep(5*1000);
 	}
 	usleep(500*1000);
