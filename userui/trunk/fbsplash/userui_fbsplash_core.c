@@ -28,6 +28,7 @@ static void hide_cursor() { write(1, "\033[?1c", 5); }
 static void show_cursor() { write(1, "\033[?0c", 5); }
 
 static void silent_on() {
+	move_cursor_to(0,0);
 	lseek(fb_fd, 0, SEEK_SET);
 	write(fb_fd, pic.data, pic.width * pic.height * (pic.depth >> 3));
 }
