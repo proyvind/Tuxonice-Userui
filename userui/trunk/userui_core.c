@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 
+#include <asm/types.h>
 #include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/mman.h>
@@ -13,7 +14,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <asm/types.h>
 
 #include "userui.h"
 
