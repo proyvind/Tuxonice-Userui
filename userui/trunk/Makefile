@@ -11,13 +11,13 @@ linux:
 	@cat README && false
 
 userui_dummy: $(CORE_OBJECTS) userui_dummy.o
-	gcc $(LDFLAGS) $^ -o $@
+	$(CC) $(LDFLAGS) $^ -o $@
 
 userui_text: $(CORE_OBJECTS) userui_text.o
-	gcc $(LDFLAGS) $^ -o $@
+	$(CC) $(LDFLAGS) $^ -o $@
 
 userui_fbsplash: $(CORE_OBJECTS) splash/userui_fbsplash.o
-	gcc -ljpeg -lpng -lz -lm $(LDFLAGS) $^ -o $@
+	$(CC) -ljpeg -lpng -lz -lm $(LDFLAGS) $^ -o $@
 
 splash/userui_fbsplash.o:
 	make -C splash
