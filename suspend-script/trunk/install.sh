@@ -5,7 +5,7 @@
 [ -z "$SCRIPT_DEST" ]   && SCRIPT_DEST=$BASE_DIR/usr/local/sbin/hibernate
 [ -z "$CONFIG_DIR" ]    && CONFIG_DIR=$BASE_DIR/etc/hibernate
 [ -z "$CONFIG_FILE" ]   && CONFIG_FILE=$CONFIG_DIR/hibernate.conf
-[ -z "$SCRIPTLET_DIR" ] && SCRIPTLET_DIR=$BASE_DIR/usr/share/hibernate/scriptlets.d
+[ -z "$SCRIPTLET_DIR" ] && SCRIPTLET_DIR=$BASE_DIR/usr/local/share/hibernate/scriptlets.d
 [ -z "$OLD_SCRIPTLET_DIR" ] && OLD_SCRIPTLET_DIR=$CONFIG_DIR/scriptlets.d
 
 # Test if the script is already installed.
