@@ -9,7 +9,7 @@ SCRIPT_DEST=/usr/local/sbin/hibernate
 if [ -d $CONFIG_DIR -o -f $SCRIPT_DEST ] ; then
     echo "Config directory $CONFIG_DIR and/or $SCRIPT_DEST already exist."
     echo -n "Are you sure you want to overwrite them? (y/N) "
-    read
+    read REPLY
     case $REPLY in
 	y*|Y*) ;;
 	*) echo "Aborting!" ; exit 1 ;;
@@ -39,4 +39,4 @@ echo "Installed."
 echo "Edit $CONFIG_FILE to taste, and see `basename $SCRIPT_DEST` -h for help."
 
 # vim:ft=sh:ts=8:sw=4:noet
-# $Id: install.sh 71 2004-07-09 05:50:21Z bernard $
+# $Id$
