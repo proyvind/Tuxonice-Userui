@@ -48,18 +48,18 @@ SplashStart() {
 }
 
 SplashResume() {
-    SplashStart
+    SplashStart | $LOGPIPE
     # XXX add text output
 }
 
 SplashSuspend() {
-    SplashStart
+    SplashStart | $LOGPIPE
     # XXX add text output
 }
 
 SplashStop() {
     if [ x"$USE_BOOTSPLASH" = "x1" ] ; then
-	/sbin/splash -s -u 0 -n "$SPLASH_CONFIG_FILE"
+	/sbin/splash -s -u 0 -n "$SPLASH_CONFIG_FILE" | $LOGPIPE
     fi
 }
 
