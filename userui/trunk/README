@@ -36,8 +36,8 @@ Steps:
 3. In your hibernate script, put the path to the userui_text or userui_fbsplash
    binary into /proc/software_suspend/userui_program.
 
-4. [This step is optional - if you omit it, you simply will not have a user
-    interface for the first portion of resuming].
+4. [This step is somewhatoptional - if you omit it, you simply will not have a
+    user interface for the first portion of resuming].
    Add the userui_text or userui_fbsplash binary to your initrd image and set
    your initrd script to set the userui_program path appropriately (if it is
    in a different location in the initrd image).
