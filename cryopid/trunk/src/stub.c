@@ -91,7 +91,7 @@ void put_shell_code(struct user_regs_struct r, char* code) {
     /* jump back to where we were. */
     *cp++=0xea;
     *(unsigned long*)(cp) = r.eip; cp+= 4;
-    asm("mov %%cs,%0": "=m"(r.cs));
+    asm("mov %%cs,%w0": "=q"(r.cs)); /* ensure we use the right CS for the current kernel */
     *(unsigned short*)(cp) = r.cs; cp+= 2; /* jmp cs:foo */
 }
 
@@ -337,8 +337,8 @@ int resume_image_from_file(int fd) {
 	char fn[128];
 	char *p;
 	char **new_argv, **new_envp;
-	new_argv = (char**)malloc(sizeof(char*)*4096);
-	new_envp = (char**)malloc(sizeof(char*)*4096);
+	new_argv = (char**)malloc(sizeof(char*)*4096); /* FIXME */
+	new_envp = (char**)malloc(sizeof(char*)*4096); /* FIXME */
 
 	p = new_cmdline;
 	i = 0;
@@ -368,7 +368,7 @@ int resume_image_from_file(int fd) {
 	close(f);
 	execve(real_argv[0], new_argv, new_envp);
 	printf("execve(%s,0x%p,0x%p) failed. Not restoring cmdline. (error: %s)\n",
-		real_argv[0], new_cmdline, new_environ, strerror(errno));
+		real_argv[0], new_argv, new_envp, strerror(errno));
     }
 
     safe_read(fd, &user_data, sizeof(struct user), "user data");
