@@ -1,24 +1,24 @@
 AddConfigHandler SkeletonOptions
 
 SkeletonSuspend() {
-	return 0
+    return 0
 }
 
 SkeletonResume() {
-	return 0
+    return 0
 }
 
 SkeletonOptions() {
-	case $1 in
-		*)
-			return 1
-	esac
+    case $1 in
+	*)
+	    return 1
+    esac
 
-	if [ -z "$SKELETON_HOOKED" ] ; then
-		AddSuspendHook 20 SkeletonSuspend
-		AddResumeHook 20 SkeletonResume
-		SKELETON_HOOKED=1
-	fi
-	return 0
+    if [ -z "$SKELETON_HOOKED" ] ; then
+	AddSuspendHook 20 SkeletonSuspend
+	AddResumeHook 20 SkeletonResume
+	SKELETON_HOOKED=1
+    fi
+    return 0
 }
-# vim:ft=sh
+# vim:ft=sh:ts=8:sw=4:noet

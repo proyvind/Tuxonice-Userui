@@ -5,70 +5,72 @@
 GRUB_MENU_FILE="/boot/grub/grub.conf"
 
 ChangeGrubMenu() {
-	if [ x"$CHANGE_GRUB_MENU" = "x1" ] ; then
-		vecho 1 "Changing grub menu"
-		if [ -f $GRUB_MENU_FILE ] ;then
-			# given file exists so change menu
-			cp -R "$GRUB_MENU_FILE" "$GRUB_MENU_FILE.suspend.sh_bak"
-			echo  >> "$GRUB_MENU_FILE"
-			echo "title ______________________________________________" >> "$GRUB_MENU_FILE"
-			echo "configfile dummy" >> "$GRUB_MENU_FILE"
-			echo "title WARNING: "`uname -s -r` "is suspended via swsusp!" >> "$GRUB_MENU_FILE"
-			echo "configfile dummy" >> "$GRUB_MENU_FILE"
-		fi
+    if [ x"$CHANGE_GRUB_MENU" = "x1" ] ; then
+	vecho 1 "Changing grub menu"
+	if [ -f $GRUB_MENU_FILE ] ;then
+	    # given file exists so change menu
+	    cp -R "$GRUB_MENU_FILE" "$GRUB_MENU_FILE.suspend.sh_bak"
+	    echo  >> "$GRUB_MENU_FILE"
+	    echo "title ______________________________________________" >> "$GRUB_MENU_FILE"
+	    echo "configfile dummy" >> "$GRUB_MENU_FILE"
+	    echo "title WARNING: "`uname -s -r` "is suspended via swsusp!" >> "$GRUB_MENU_FILE"
+	    echo "configfile dummy" >> "$GRUB_MENU_FILE"
 	fi
+    fi
 }
 
 RestoreGrubMenu() {
-	if [ x"$CHANGE_GRUB_MENU" = "x1" ] ; then
-		vecho 1 "Restore grub menu"
-		if [ -f $GRUB_MENU_FILE.suspend.sh_bak ] ;then
-			mv -f "$GRUB_MENU_FILE.suspend.sh_bak" "$GRUB_MENU_FILE"
-		fi
+    if [ x"$CHANGE_GRUB_MENU" = "x1" ] ; then
+	vecho 1 "Restore grub menu"
+	if [ -f $GRUB_MENU_FILE.suspend.sh_bak ] ;then
+	    mv -f "$GRUB_MENU_FILE.suspend.sh_bak" "$GRUB_MENU_FILE"
 	fi
+    fi
 }
 
 
 GrubOptions() {
-	case $1 in
-		grubmenuchange)
-			BoolIsOn "$1" "$2" && CHANGE_GRUB_MENU=1 || return 0
-			;;
-		grubmenufile)
-			GRUB_MENU_FILE="$2"
-			return 0
-			;;
-		*)
-			return 1
-	esac
-	if [ -z "$GRUB_HOOKED" ] ; then
-		AddSuspendHook 11 ChangeGrubMenu
-		AddResumeHook 11 RestoreGrubMenu
-		GRUB_HOOKED=1
-	fi
-	return 0
+    case $1 in
+	grubmenuchange)
+	    BoolIsOn "$1" "$2" && CHANGE_GRUB_MENU=1 || return 0
+	    ;;
+	grubmenufile)
+	    GRUB_MENU_FILE="$2"
+	    return 0
+	    ;;
+	*)
+	    return 1
+    esac
+    if [ -z "$GRUB_HOOKED" ] ; then
+	AddSuspendHook 11 ChangeGrubMenu
+	AddResumeHook 11 RestoreGrubMenu
+	GRUB_HOOKED=1
+    fi
+    return 0
 }
 
 
 ## Main for standalone ##
 if [ "`basename $0`" = "grub" ] ; then
-	## look at /etc/suspend.d/suspend.conf for GrubMenuFile
-	while read option param ; do
-		[ "`echo $option | tr '[A-Z]' '[a-z]'`" = "grubmenufile" ] || continue
-		GRUB_MENU_FILE=$param
-		break
-	done < /etc/suspend.d/suspend.conf
+    ## look at /etc/suspend.d/suspend.conf for GrubMenuFile
+    while read option param ; do
+	[ "`echo $option | tr '[A-Z]' '[a-z]'`" = "grubmenufile" ] || continue
+	GRUB_MENU_FILE=$param
+	break
+    done < /etc/suspend.d/suspend.conf
 
-	# we want to restore always
-	CHANGE_GRUB_MENU=1
+    # we want to restore always
+    CHANGE_GRUB_MENU=1
 
-	# restore grub and exit
-	echo "Restoring changes from suspend.sh in $GRUB_MENU_FILE."
-	RestoreGrubMenu
-	exit 0
+    # restore grub and exit
+    echo "Restoring changes from suspend.sh in $GRUB_MENU_FILE."
+    RestoreGrubMenu
+    exit 0
 else
-	## called as part of suspend.sh 
-	AddConfigHandler GrubOptions
-	AddConfigHelp "GrubMenuChange <boolean>" "Change grub's config file to show system is suspended before suspending and restore after resume."
-	AddConfigHelp "GrubMenuFile <filename>" "Filename of grub's config file. Default is /boot/grub/grub.conf."
+    ## called as part of suspend.sh 
+    AddConfigHandler GrubOptions
+    AddConfigHelp "GrubMenuChange <boolean>" "Change grub's config file to show system is suspended before suspending and restore after resume."
+    AddConfigHelp "GrubMenuFile <filename>" "Filename of grub's config file. Default is /boot/grub/grub.conf."
 fi
+
+# vim:ft=sh:ts=8:sw=4:noet

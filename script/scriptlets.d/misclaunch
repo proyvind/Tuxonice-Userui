@@ -5,49 +5,49 @@ AddConfigHelp "OnResume NN <program to execute> [parameters for program]" "Execu
 MISC_LAUNCH_COUNT=0
 
 MiscLaunchSuspendProg() {
-	MISC_LAUNCH_COUNT=$(($MISC_LAUNCH_COUNT+1))
-	TMPF=`mktemp`
-	AddSuspendHook $1 MiscLaunchAuxFunc$MISC_LAUNCH_COUNT
-	shift
-	cat <<EOT > $TMPF
+    MISC_LAUNCH_COUNT=$(($MISC_LAUNCH_COUNT+1))
+    TMPF=`mktemp`
+    AddSuspendHook $1 MiscLaunchAuxFunc$MISC_LAUNCH_COUNT
+    shift
+    cat <<EOT > $TMPF
 MiscLaunchAuxFunc${MISC_LAUNCH_COUNT}() {
-	vecho 1 "Executing $@..."
-	$@
+    vecho 1 "Executing $@..."
+    $@
 }
 EOT
-	. $TMPF
-	rm -f $TMPF
+    . $TMPF
+    rm -f $TMPF
 }
 
 MiscLaunchResumeProg() {
-	MISC_LAUNCH_COUNT=$(($MISC_LAUNCH_COUNT+1))
-	TMPF=`mktemp`
-	AddResumeHook $1 MiscLaunchAuxFunc$MISC_LAUNCH_COUNT
-	shift
-	cat <<EOT > $TMPF
+    MISC_LAUNCH_COUNT=$(($MISC_LAUNCH_COUNT+1))
+    TMPF=`mktemp`
+    AddResumeHook $1 MiscLaunchAuxFunc$MISC_LAUNCH_COUNT
+    shift
+    cat <<EOT > $TMPF
 MiscLaunchAuxFunc${MISC_LAUNCH_COUNT}() {
-	vecho 1 "Executing $@..."
-	$@
+    vecho 1 "Executing $@..."
+    $@
 }
 EOT
-	. $TMPF
-	rm -f $TMPF
+    . $TMPF
+    rm -f $TMPF
 }
 
 MiscLaunchOptions() {
-	case $1 in
-		onsuspend)
-			shift
-			MiscLaunchSuspendProg $*
-			;;
-		onresume)
-			shift
-			MiscLaunchResumeProg $*
-			;;
-		*)
-			return 1
-	esac
-	return 0
+    case $1 in
+	onsuspend)
+	    shift
+	    MiscLaunchSuspendProg $*
+	    ;;
+	onresume)
+	    shift
+	    MiscLaunchResumeProg $*
+	    ;;
+	*)
+	    return 1
+    esac
+    return 0
 }
 
-# vim:ft=sh
+# vim:ft=sh:ts=8:sw=4:noet

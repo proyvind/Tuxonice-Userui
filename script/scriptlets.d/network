@@ -3,19 +3,19 @@
 AddConfigHandler NetworkOptions
 
 NetworkStop() {
-	return 0
+    return 0
 }
 
 NetworkStart() {
- 	return 0
+     return 0
 }
 
 NetworkOptions() {
-	case $1 in
-		*)
-			return 1
-	esac
-	return 0
+    case $1 in
+	*)
+	    return 1
+    esac
+    return 0
 }
 
-# vim:ft=sh
+# vim:ft=sh:ts=8:sw=4:noet

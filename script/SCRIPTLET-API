@@ -106,3 +106,22 @@ The following general recommendations apply:
  90-91 kernel modules loaded/unloaded
  99 reserved
 
+POSIX COMPLIANCE
+----------------
+
+In order to keep the script running correctly under not only bash, but ash and
+zsh, some extra care needs to be taken when writing scriptlets. The common
+points to note are:
+ - source: Don't use source. use . instead. You also need to specify a path,
+   even for files in the current directory (./foo).
+ - = not == for string comparisons.
+
+WHITESPACE NAZI
+---------------
+
+Not wanting to be too pedantic, but for consistency, whitespace should be done
+using "tabstop=8, shiftwidth=4, noexpandtab" and softtabs in vimspeak. This
+means that it renders well anywhere (tabstops are universally 8 spaces), and
+tabbing is consistent. Don't worry too much - I'll generally fix the whitespace
+in any code I commit.
+

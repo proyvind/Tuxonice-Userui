@@ -5,52 +5,52 @@ AddConfigHelp "RestartServices <service name> [...]" "The services listed are st
 
 # ExecuteServices <action> <services ...>
 ExecuteServices() {
-	action=$1
-	shift
-	services=$@
-	# XXX FIXME get the "is this service actually running" detection here.
-	ret=0
-	for service in $services ; do
-		CMD="/etc/init.d/$service $action" # XXX MAKE PORTABLE
-		vecho 2 "Executing $CMD"
-		$CMD || ret=$?
-	done
-	return $ret
+    action=$1
+    shift
+    services=$@
+    # XXX FIXME get the "is this service actually running" detection here.
+    ret=0
+    for service in $services ; do
+	CMD="/etc/init.d/$service $action" # XXX MAKE PORTABLE
+	vecho 2 "Executing $CMD"
+	$CMD || ret=$?
+    done
+    return $ret
 }
 
 ServicesStop() {
-	ExecuteServices stop $SERVICES_RESTART $SERVICES_STOP
-	# preserve exit code
+    ExecuteServices stop $SERVICES_RESTART $SERVICES_STOP
+    # preserve exit code
 }
 
 ServicesStart() {
-	ExecuteServices start $SERVICES_RESTART $SERVICES_START
-	# preserve exit code
+    ExecuteServices start $SERVICES_RESTART $SERVICES_START
+    # preserve exit code
 }
 
 ServicesOptions() {
-	case $1 in
-		stopservices)
-			shift
-			SERVICES_STOP="$@"
-			;;
-		startservices)
-			shift
-			SERVICES_START="$@"
-			;;
-		restartservices)
-			shift
-			SERVICES_RESTART="$@"
-			;;
-		*)
-			return 1
-	esac
-	if [ -z "$SERVICES_HOOKED" ] ; then
-		AddSuspendHook 30 ServicesStop
-		AddResumeHook 30 ServicesStart
-		SERVICES_HOOKED=1
-	fi
-	return 0
+    case $1 in
+	stopservices)
+	    shift
+	    SERVICES_STOP="$@"
+	    ;;
+	startservices)
+	    shift
+	    SERVICES_START="$@"
+	    ;;
+	restartservices)
+	    shift
+	    SERVICES_RESTART="$@"
+	    ;;
+	*)
+	    return 1
+    esac
+    if [ -z "$SERVICES_HOOKED" ] ; then
+	AddSuspendHook 30 ServicesStop
+	AddResumeHook 30 ServicesStart
+	SERVICES_HOOKED=1
+    fi
+    return 0
 }
 
-# vim:ft=sh
+# vim:ft=sh:ts=8:sw=4:noet

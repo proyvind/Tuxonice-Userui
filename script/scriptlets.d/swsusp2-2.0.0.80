@@ -13,179 +13,179 @@ AddOptionHelp "--no-suspend" "Disables actually suspending the system. This is u
 
 
 Swsusp2ConfigEnable() {
-	[ "$1" = "useswsusp2" ] && BoolIsOn "$1" "$2" || return 1
+    [ "$1" = "useswsusp2" ] && BoolIsOn "$1" "$2" || return 1
     [ -n "$USING_SWSUSP2" ] && return 0
-	AddConfigHandler Swsusp2ConfigOptions
-	AddSuspendHook 10 EnsureSwsusp2Capable
-	AddSuspendHook 99 ZZZDoSwsusp2
+    AddConfigHandler Swsusp2ConfigOptions
+    AddSuspendHook 10 EnsureSwsusp2Capable
+    AddSuspendHook 99 ZZZDoSwsusp2
     USING_SWSUSP2=1
-	return 0
+    return 0
 }
 
 Swsusp2OptionHandler() {
-	case $1 in
-		-r|--reboot)
-			if [ -z "$2" ] ; then
-				OPT_REBOOT=1
-			else
-				BoolIsOn "-r" "$2" && OPT_REBOOT=1 || OPT_REBOOT=0
-			fi
-			;;
-		--no-suspend)
-			SWSUSP2_NO_SUSPEND=1
-			;;
-		*)
-			return 1
-	esac
-	if [ -z "$SWSUSP2_HOOKED" ] ; then
-		AddSuspendHook 20 Swsusp2ConfigSet
-		AddResumeHook 20 Swsusp2ConfigRestore
-		SWSUSP2_HOOKED=1
-	fi
-	return 0
+    case $1 in
+	-r|--reboot)
+	    if [ -z "$2" ] ; then
+		OPT_REBOOT=1
+	    else
+		BoolIsOn "-r" "$2" && OPT_REBOOT=1 || OPT_REBOOT=0
+	    fi
+	    ;;
+	--no-suspend)
+	    SWSUSP2_NO_SUSPEND=1
+	    ;;
+	*)
+	    return 1
+    esac
+    if [ -z "$SWSUSP2_HOOKED" ] ; then
+	AddSuspendHook 20 Swsusp2ConfigSet
+	AddResumeHook 20 Swsusp2ConfigRestore
+	SWSUSP2_HOOKED=1
+    fi
+    return 0
 }
 
 Swsusp2ConfigOptions() {
-	case $1 in
-		reboot)
-			if [ -z "$OPT_REBOOT" ] ; then
-				BoolIsOn "$1" "$2" && OPT_REBOOT=1 || OPT_REBOOT=0
-			fi
-			;;
-		*)
-			return 1
-	esac
-	if [ -z "$SWSUSP2_HOOKED" ] ; then
-		AddSuspendHook 20 Swsusp2ConfigSet
-		AddResumeHook 20 Swsusp2ConfigRestore
-		SWSUSP2_HOOKED=1
-	fi
-	return 0
+    case $1 in
+	reboot)
+	    if [ -z "$OPT_REBOOT" ] ; then
+		BoolIsOn "$1" "$2" && OPT_REBOOT=1 || OPT_REBOOT=0
+	    fi
+	    ;;
+	*)
+	    return 1
+    esac
+    if [ -z "$SWSUSP2_HOOKED" ] ; then
+	AddSuspendHook 20 Swsusp2ConfigSet
+	AddResumeHook 20 Swsusp2ConfigRestore
+	SWSUSP2_HOOKED=1
+    fi
+    return 0
 }
 
 Swsusp2ConfigSet() {
-	return 0
+    return 0
 }
 
 Swsusp2ConfigRestore() {
-	return 0
+    return 0
 }
 
 ZZZDoSwsusp2() {
-	if [ -z "$SWSUSP2_NO_SUSPEND" ] ; then
-		vecho 1 "$EXE: Activating suspend ..."
-		error=`DoSuspend` && SUSPEND_SUCCESS=1 || SUSPEND_SUCCESS=0
-		PrintErrors $error
-	else
-		vecho 1 "$EXE: Not actually suspending (--no-suspend given)"
-	fi
+    if [ -z "$SWSUSP2_NO_SUSPEND" ] ; then
+	vecho 1 "$EXE: Activating suspend ..."
+	error=`DoSuspend` && SUSPEND_SUCCESS=1 || SUSPEND_SUCCESS=0
+	PrintErrors $error
+    else
+	vecho 1 "$EXE: Not actually suspending (--no-suspend given)"
+    fi
 }
 
 # DoSuspend: activates the suspend and echo's the error code to be processed by
 # PrintErrors. We can't just return it, because error codes may be > 255
 DoSuspend() {
-	echo > $SWSUSP_ROOT/activate
-	read REPLY < $SWSUSP_ROOT/last_result
-	echo $REPLY
-	return 0
+    echo > $SWSUSP_ROOT/activate
+    read REPLY < $SWSUSP_ROOT/last_result
+    echo $REPLY
+    return 0
 }
 
 # PrintAnErrorString <bit value>: prints a string corresponding to the relevant
 # bit in an error code. These match up with the SUSPEND_* values in
 # include/linux/suspend-debug.h
 PrintAnErrorString() {
-	case "$1" in
-		0) echo "Suspend was aborted."
-		;;
-		1) echo "Suspend was aborted by user."
-		;;
-		2) echo "No swapspace was available. Try swapon?"
-		;;
-		3) echo "Not enough swapspace available. Free some memory?"
-		;;
-		4) echo "Freezing processes failed. Wacky driver problems :("
-		;;
-		5) echo "Internal error - an unexpected memory allocation occured. Driver problems?"
-		;;
-		6) echo "Image has been kept as requested."
-		;;
-		7) echo "Suspend would have eaten memory. Yumm...."
-		;;
-		8) echo "Unable to free enough memory."
-		;;
-		*) echo "Unknown error!"
-		;;
-	esac
-	return 0
+    case "$1" in
+	0) echo "Suspend was aborted."
+	;;
+	1) echo "Suspend was aborted by user."
+	;;
+	2) echo "No swapspace was available. Try swapon?"
+	;;
+	3) echo "Not enough swapspace available. Free some memory?"
+	;;
+	4) echo "Freezing processes failed. Wacky driver problems :("
+	;;
+	5) echo "Internal error - an unexpected memory allocation occured. Driver problems?"
+	;;
+	6) echo "Image has been kept as requested."
+	;;
+	7) echo "Suspend would have eaten memory. Yumm...."
+	;;
+	8) echo "Unable to free enough memory."
+	;;
+	*) echo "Unknown error!"
+	;;
+    esac
+    return 0
 }
 
 # PrintErrors <last_result value>: prints the list of errors associated with a
 # given result code
 PrintErrors() {
-	code="$1"
-	[ "$code" -eq 0 ] && return 0
+    code="$1"
+    [ "$code" -eq 0 ] && return 0
 
-	echo "$EXE: Suspend was not completed because:"
+    echo "$EXE: Suspend was not completed because:"
 
-	# A special case for "suspend aborted" and "suspend aborted by user"
-	# because it'd look silly to have both.
-	if [ $(($code&3)) -ne 0 ] ; then
-		echo -n " - " && PrintAnErrorString 1 # aborted by user
-		return 0
-	fi
-
-	bit_num=0
-	while [ "$code" -ne 0 ] ; do
-		[ "$((code&1))" -eq 1 ] && echo -n " - " && PrintAnErrorString "$bit_num"
-
-		bit_num=$(($bit_num+1))
-		code=$(($code>>1))
-	done
+    # A special case for "suspend aborted" and "suspend aborted by user"
+    # because it'd look silly to have both.
+    if [ $(($code&3)) -ne 0 ] ; then
+	echo -n " - " && PrintAnErrorString 1 # aborted by user
 	return 0
+    fi
+
+    bit_num=0
+    while [ "$code" -ne 0 ] ; do
+	[ "$((code&1))" -eq 1 ] && echo -n " - " && PrintAnErrorString "$bit_num"
+
+	bit_num=$(($bit_num+1))
+	code=$(($code>>1))
+    done
+    return 0
 }
 
 # GetInterfaceVersion: returns the interface version of the swsusp
 # implementation in the kernel. This returns 0 if there is no swsusp in the
 # kernel (note, this is interpreted as "true" in shell-speak)
 GetInterfaceVersion() {
-	[ -d "/proc/swsusp" ] || return 0
-	[ -f "/proc/swsusp/interface_version" ] || return 0
-	read REPLY < $SWSUSP_ROOT/interface_version
-	return $REPLY
+    [ -d "/proc/swsusp" ] || return 0
+    [ -f "/proc/swsusp/interface_version" ] || return 0
+    read REPLY < $SWSUSP_ROOT/interface_version
+    return $REPLY
 }
 
 # EnsureSwsusp2Capable: makes sure we have a swsusp-capable kernel. Stops the
 # script with an error message if we don't. Also ensure's we have root -
 # (even though the actual suspend might not need it, everything else will)
 EnsureSwsusp2Capable() {
-	# Test for *any* recent swsusp support
-	if GetInterfaceVersion ; then
-		cat <<EOT
+    # Test for *any* recent swsusp support
+    if GetInterfaceVersion ; then
+	cat <<EOT
 Your kernel does not have any recent Software Suspend 2 support compiled in.
 Please follow the HOWTO linked from http://swsusp.sourceforge.net/ for
 instructions on how compile Software Suspend into your kernel.
 EOT
-		return 2
-	fi
+	return 2
+    fi
 
-	# If we have the resume2 proc entry, we can do some further tests
-	# Otherwise, bail gracefully
-	[ -f $SWSUSP_ROOT/resume2 ] || return 0
+    # If we have the resume2 proc entry, we can do some further tests
+    # Otherwise, bail gracefully
+    [ -f $SWSUSP_ROOT/resume2 ] || return 0
 
-	# See if we have been given a resume2 line
-	read REPLY < $SWSUSP_ROOT/resume2
-	if [ -z "$REPLY" ] ; then
-		cat <<EOT
+    # See if we have been given a resume2 line
+    read REPLY < $SWSUSP_ROOT/resume2
+    if [ -z "$REPLY" ] ; then
+	cat <<EOT
 You haven't specified a resume2= parameter on your kernel command line
 
 Your GRUB or LILO config should have something like resume2=swap:/dev/hdaX
 where /dev/hdaX is your swap partition. You will then need to either reboot
 after doing so or set it manually (this time only) using:
-	echo swap:/dev/hdaX > /proc/swsusp/resume2
+    echo swap:/dev/hdaX > /proc/swsusp/resume2
 EOT
-		return 2
-	fi
-	return 0
+	return 2
+    fi
+    return 0
 }
 
-# vim:ft=sh
+# vim:ft=sh:ts=8:sw=4:noet
