@@ -11,7 +11,10 @@ CORE_OBJECTS = userui_core.o
 
 FBSPLASH_LIBS = -lpng -ljpeg -lz -lm -lfreetype
 
-all: $(TARGETS)
+all: fbsplash fbanim $(TARGETS)
+
+fbsplash fbanim:
+	make -C $@ all
 
 userui_text: $(CORE_OBJECTS) userui_text.o
 	$(CC) $(LDFLAGS) $^ -o $@
@@ -21,12 +24,6 @@ userui_fbsplash: $(CORE_OBJECTS) fbsplash/userui_fbsplash.o
 
 userui_fbanim: $(CORE_OBJECTS) fbanim/userui_fbanim.o
 	$(CC) -ljpeg -lpng -lz -lm -lpthread $(LDFLAGS) $^ -o $@
-
-fbsplash/userui_fbsplash.o:
-	make -C fbsplash
-
-fbanim/userui_fbanim.o:
-	make -C fbanim
 
 clean:
 	rm -f *.o $(TARGETS)
@@ -38,4 +35,4 @@ $(INSTDIR)/%: %
 
 install: all $(patsubst %,$(INSTDIR)/%,$(TARGETS))
 
-.PHONY: all clean install
+.PHONY: all clean install fbsplash fbanim
