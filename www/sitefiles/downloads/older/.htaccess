@@ -1,2 +1,2 @@
-IndexOptions FancyIndexing NameWidth=* SuppressDescription
+IndexOptions FancyIndexing NameWidth=* SuppressDescription SuppressHTMLPreamble 
 IndexIgnore HEADER.html README.html .htaccess *~
