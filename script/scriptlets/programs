@@ -37,7 +37,7 @@ ProgramsStop() {
 ProgramsOptions() {
 	case $1 in
 		incompatibleprograms)
-            [ -z "$INCOMPATIBLE_PROGRAMS" ] && AddSuspendHook 20 ProgramsStop
+			[ -z "$INCOMPATIBLE_PROGRAMS" ] && AddSuspendHook 20 ProgramsStop
 			shift
 			INCOMPATIBLE_PROGRAMS="$@"
 			;;
