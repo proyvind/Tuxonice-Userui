@@ -362,6 +362,7 @@ static void text_cleanup() {
 
 static void text_redraw() {
 	clear_display();
+	cur_x = -1;
 }
 
 static void text_keypress(int key) {
