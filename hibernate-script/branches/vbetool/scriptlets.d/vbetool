@@ -1,0 +1,34 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+# Vbetool scriptlet required Matt J Garrett's vbetool package to be useful.
+#
+# This scriptlet Copyright (C) Cameron Patrick, 2005, and may be
+# used under the same terms as hibernate-script itself.
+
+AddConfigHandler VbetoolOptions
+AddConfigHelp "VbetoolEnable <boolean>" "Save and restore video state using vbetool before and after suspending."
+
+VbetoolSuspend() {
+}
+
+VbetoolResume() {
+}
+
+VbetoolOptions() {
+    case $1 in
+        vbetoolenable)
+            BoolIsOn "$1" "$2" && LOCK_VBETOOL=1 || LOCK_VBETOOL=0
+
+            if [ -z "$KDELOCK_HOOKED" ] ; then
+                AddSuspendHook 97 VbetoolSuspend
+                AddResumeHook 97 VbetoolResume
+                KDELOCK_HOOKED=1
+            fi
+            ;;
+        *)
+            return 1
+    esac
+
+    return 0
+}
+
