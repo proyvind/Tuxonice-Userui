@@ -14,6 +14,7 @@ int translate_ioctl(struct user_regs_struct *r, pid_t oldpid, pid_t newpid, int 
 			if (in) {
                 pid_t ioctlpid;
                 ioctlpid = ptrace(PTRACE_PEEKDATA, newpid, r->edx, 0);
+                //printf("pid is %d, vs oldpid %d\n", ioctlpid, oldpid);
 				if (ioctlpid == oldpid) {
                     //printf("Wooy in: %d -> %d!\n", oldpid, newpid);
                     if (ptrace(PTRACE_POKEDATA, newpid, r->edx, newpid) == -1) {
@@ -58,7 +59,7 @@ void print_status(FILE* f, int status) {
     }
 }
 
-int supervise_me(pid_t oldpid) {
+int start_supervisor(pid_t oldpid) {
 	pid_t pid;
 	int status;
 	pid = fork();
@@ -67,10 +68,19 @@ int supervise_me(pid_t oldpid) {
 			perror("fork");
 			_exit(1);
 		case 0:
-			return 0;
-		default:
 			break;
+		default:
+            wait(NULL);
+			return 0;
 	}
+    pid = getppid();
+    printf("pid is %d\n", pid);
+    setsid();
+    switch (fork()) {
+        case -1: perror("fork()"); exit(1);
+        case 0: break;
+        case 1: _exit(0);
+    }
     sigset_t allmask; /* we don't like signals */
     sigfillset(&allmask);
     sigprocmask(SIG_SETMASK, &allmask, NULL);
@@ -97,8 +107,8 @@ int supervise_me(pid_t oldpid) {
         }
         if (WIFSIGNALED(status)) {
             ptrace(PTRACE_SYSCALL, pid, 0, WTERMSIG(status));
-            //printf("Got signal %d\n", WTERMSIG(status));
-            continue;
+            printf("Child exited on signal %d\n", WTERMSIG(status));
+            _exit(0);
         }
 
 		if (ptrace(PTRACE_GETREGS, pid, 0, &r) == -1) {
