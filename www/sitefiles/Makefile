@@ -74,11 +74,11 @@ fedora: $(patsubst %,$(SITEBASE)/%,$(wildcard fedora/*))
 $(SITEBASE)/fedora/%: fedora/%
 	cp $< $@
 
-downloads/index.html: downloads.xml parse_downloads
-	./parse_downloads > $@
+downloads/index.html index-download-snippet.html: downloads.xml parse_downloads
+	./parse_downloads > downloads/index.html
 
 # HTML files need a bit of processing.
-$(SITEBASE)/index.html: index.html $(PREREQS) downloads/index.html
+$(SITEBASE)/index.html: index.html index-download-snippet.html $(PREREQS) downloads/index.html
 	./Prettify $< > $@
 
 $(SITEBASE)/%.html: %.html $(PREREQS)
