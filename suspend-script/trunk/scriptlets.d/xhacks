@@ -22,7 +22,7 @@ XHacksResume() {
 	else
 	    vecho 2 "Launching fake X server."
 	    unset XAUTHORITY   # Make sure we don't clobber the user's .Xauthority
-	    xinit /bin/true -- `which X` :3 -auth /dev/null -audit 0 -nolisten tcp > /dev/null 2>&1
+	    xinit /bin/true -- `which X` :9 -auth /dev/null -audit 0 -nolisten tcp > /dev/null 2>&1
 	fi
     fi
 

@@ -4,7 +4,9 @@
  - Redirect stderr to stdout so that both get logged. $LOGPIPE is also no
    longer required in scriptlets. New option LogVerbosity.
  - Cause abort if module unloading fails. (Cameron Patrick)
- - Lots of speed improvements!
+ - New (cleaner) method of launching fake X server.
+ - Lots of speed improvements for faster start up time! (Bash scripts shouldn't
+   *have* a startup time :)
 
 0.91 (9 July 2004 (later that day))
  - Multiple fixes for grub - restoring the grub menu is now achieved by using
