@@ -1,4 +1,4 @@
-OBJECTS = freeze defrost
+OBJECTS = freeze defrost makeelf
 
 CFLAGS = -g
 
