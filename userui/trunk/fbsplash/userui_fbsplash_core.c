@@ -123,14 +123,24 @@ static void fbsplash_put_message_silent() {
 static void fbsplash_message(unsigned long type, unsigned long level, int normally_logged, char *msg) {
 	strncpy(lastheader, msg, 512);
 	if (console_loglevel >= SUSPEND_ERROR)
-		printf("** %s\n", msg);
+		printf("\n** %s\n", msg);
 	else
 		fbsplash_put_message_silent();
 }
 
 static void fbsplash_redraw() {
-	silent_on();
-	fbsplash_put_message_silent();
+	if (console_loglevel < SUSPEND_ERROR) {
+		silent_on();
+		fbsplash_put_message_silent();
+	} else {
+		printf("\n** %s\n", lastheader);
+	}
+	arg_progress = PROGRESS_MAX;
+	arg_task = paint;
+	draw_boxes((u8*)pic.data, (console_loglevel < SUSPEND_ERROR)?'s':'v', FB_SPLASH_IO_ORIG_USER);
+	arg_progress = 0;
+	arg_task = paint;
+	draw_boxes((u8*)pic.data, (console_loglevel < SUSPEND_ERROR)?'s':'v', FB_SPLASH_IO_ORIG_USER);
 }
 
 static void fbsplash_update_progress(unsigned long value, unsigned long maximum, char *msg) {
