@@ -12,7 +12,7 @@ To get things going, you'll need the following:
      svn checkout http://svn.ucc.asn.au:8080/dagobah/userui userui
    As this matures, there may be tarballs made available at some point which
    will be downloadable from the Berlios download page.
- - For userui_fbsplash - some images. One sample is at
+ - For userui_fbsplash - some images. One sample animation is at
    http://dagobah.ucc.asn.au/swsusp/penguin-images.tgz - this tarball extracts
    over your root filesystem and will place the images into
    /etc/suspend_userui/images/ . These will only work on a 1024x768
