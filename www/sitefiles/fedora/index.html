@@ -5,13 +5,14 @@
  </HEAD>
  <BODY BGCOLOR="#ffffff">
    <H1>Using Software Suspend 2 on a Fedora Core 3 Kernel</H1>
+Older patches for the 2.6.9 kernel <a href="2.6.9-1.667.html">can be found here</a>.
 <H3>Patches:</H3>
 <ul>
-<li><a href="010-2.6.9-fc3-1.667-to-2.1.5-pre">010-2.6.9-fc3-1.667-to-2.1.5-pre</a></li>
-<li><a href="990-2.6.9-fc3-1.667-to-2.1.5-post">990-2.6.9-fc3-1.667-to-2.1.5-post</a></li>
+<li><a href="010-2.6.10-1.741-to-2.1.5.15-pre">010-2.6.10-1.741-to-2.1.5.15-pre</a></li>
+<li><a href="990-2.6.10-1.741-to-2.1.5.15-post">990-2.6.10-1.741-to-2.1.5.15-post</a></li>
 </ul>
 <H3>Instructions:</H3>
-<p><i><a href="http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/2004-November/021248.html">From a post on the linux-thinkpad list:</a></i></p>
+<p><i>Based on posts<a href="http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/2004-November/021248.html">[1]</a><a href="http://mailman.linux-thinkpad.org/pipermail/linux-thinkpad/2005-January/023541.html">[2]</a> to the <a href="http://mailman.linux-thinkpad.org/mailman/listinfo/linux-thinkpad">linux-thinkpad list</a></i></p>
 <hr>
 <!--beginarticle-->
 <PRE>OK, a couple of patches to apply to the Fedora Core 3 kernel to allow
@@ -27,7 +28,7 @@ for the standard swsusp2 patches.  These don't remove any of the
 Fedora patches, they just do some jiggling so that the swsusp2 patches
 apply cleanly.
 
-Then download the standard swsusp2 2.6.9 kernel patches, version 2.1.5
+Then download the standard swsusp2 2.6.10 kernel patches, version 2.1.5.15
 (the latest) from:
 
 <A HREF="http://softwaresuspend.berlios.de/">http://softwaresuspend.berlios.de/</A>
@@ -56,7 +57,7 @@ kernel.
 
 Finally you need to do a little magic to your initrd image to make it
 work with initramfs in FC3 - see:
-<A HREF="http://softwaresuspend.berlios.de/FAQ-6.html#ss6.8">http://softwaresuspend.berlios.de/FAQ-6.html#ss6.8</A>
+<A HREF="http://softwaresuspend.berlios.de/FAQ-6.html#ss6.4">http://softwaresuspend.berlios.de/FAQ-6.html#ss6.4</A>
 I found I needed to add this line after mounting /proc and /sys in init.
 Download the hibernate script from the swsusp site, and try it out.
 Then you can tie this to a key combination with ibm-acpi, etc.
@@ -68,18 +69,11 @@ by default and it seems to stop the machine properly resuming.
 As mentioned before, FC3 contains enhanced 3D support for some
 thinkpad ATI cards, and they'll stop resume unless you turn on a
 couple of options in /etc/hibernate/hibernate.conf:
-LeaveXBeforeSuspend yes
-nVidiaHack yes
+SwitchToTextMode yes
+UseDummyXServer yes
 
-Bernard has some confidence that these patches will last some time,
-or need only a little tweaking for future FC3 kernel release and
-swsusp2 releases - they're quite simple.  They might even work with
-the FC2 2.6.9 kernel - I've not tried.  Remember swsusp2 is a work in
-progress, so you may want to test mounting / readonly at first from
-singleuser for safety first.  Works for me.
-
-Hope this helps someone.
-Honey
+Remember swsusp2 is a work in progress, so you may want to test mounting /
+readonly at first from singleuser for safety first.
 
 </PRE>
 </body></html>

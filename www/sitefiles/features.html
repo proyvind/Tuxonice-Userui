@@ -3,7 +3,7 @@ TITLE=Software Suspend - Features
 
 <p>Software Suspend's features include:
 <ul>
-<li>Image compression (LZF and GZIP - the former is very fast and highly recommended)</li>
+<li>Image compression (LZF - very fast and highly recommended)</li>
 <li>Full asynchronous I/O and readahead for synchronous I/O for maximum throughput</li>
 <li>Support for any number of swap partitions and/or files.</li>
 <li>The ability to cancel a suspend cycle (during suspending) by pressing escape</li>
@@ -11,7 +11,7 @@ TITLE=Software Suspend - Features
 <li>Support for saving a full image of your memory, resulting in a fast, responsive system after resuming</li>
 <li>Support for plugins: data transformers (compression, encryption) and new storage backends (NFS support is planned).</li>
 <li>Nice user interface (<a href="http://www.bootsplash.org">Bootsplash</a> compatible).</li>
-<li>Support for Highmem (up to 4GB), SMP (on 2.4, 2.6 soon) and preemptive kernels.</li>
+<li>Support for Highmem (up to 4GB), SMP and preemptive kernels.</li>
 <li>The ability to build Software Suspend 2 as modules, allowing it to be called from an initrd.</li>
 <li>Speed and reliability - Software Suspend has been extensively tested in a variety of configurations over many months. It is not guaranteed to be perfect, but bugs found will be hunted and fixed quickly.
 </ul>
@@ -51,7 +51,7 @@ longer listed here.  The second column refers to what is now commonly called
 </tr>
 <tr>
 <td><b>PM subsystem required</b></td>
-<td>ACPI</td>
+<td>none</td>
 <td>none</td>
 </tr>
 <tr>
@@ -73,7 +73,7 @@ or<br>
 </tr>
 <tr>
 <td><b>Highmem support</b></td>
-<td>No</td>
+<td>Yes (up to 4GB?)</td>
 <td>Yes (up to 4GB)</td>
 </tr>
 <tr>
@@ -83,18 +83,18 @@ or<br>
 </tr>
 <tr>
  <td><b>SMP support</b></td>
- <td>No</td>
+ <td>Yes?</td>
  <td>Yes</td>
 </tr>
 <tr>
  <td><b>Preemption support</b></td>
- <td>Yes?</td>
+ <td>Yes</td>
  <td>Yes</td>
 </tr>
 <tr>
  <td><b>Compression</b></td>
  <td>No</td>
- <td>LZF and GZIP (LZF recommended!)</td>
+ <td>LZF (recommended!)</td>
 </tr>
 <tr>
  <td><b>Suspend-to-swapfile support</b></td>

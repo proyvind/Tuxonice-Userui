@@ -100,29 +100,7 @@ defined earlier in that file.
 
 <sect>Configure/compile problems
 
-<sect1>I applied the ACPI patch but I can't actually select any of the ACPI options (eg buttons, fan, ac adapter, etc).
-<p>This is a known bug with the 20030619 ACPI release. This small patch resolves
-the issue
-<quote><verb>
---- linux-2.4.21/drivers/acpi/Config.in  2003-06-22 15:36:07.000000000 +0100
-+++ linux-2.4.21-new/drivers/acpi/Config.in  2003-06-22 15:36:35.000000000 +0100
-@@ -8,9 +8,9 @@
-   comment 'ACPI Support'
-   bool         'ACPI Support' CONFIG_ACPI
-   if [ "$CONFIG_ACPI" = "y" ]; then
--    if [ "$CONFIG_X86_LOCAL_APIC" = "y" ]; then
-+    #if [ "$CONFIG_X86_LOCAL_APIC" = "y" ]; then
-       bool         'CPU Enumeration Only' CONFIG_ACPI_HT_ONLY
--    fi
-+    #fi
-
-     if [ "$CONFIG_ACPI_HT_ONLY" = "n" ]; then
-       define_bool CONFIG_ACPI_BOOT             y
-</verb></quote>
-
-
-
-
+<p>No FAQs presently.
 
 <sect>Compatibility issues
 
@@ -145,86 +123,35 @@ this space, or the mailing list for updates!
 suspension. This is why you can't have an SCSI root or swap partition with
 Software Suspend until SCSI is properly supported.
 
-<sect1>Why isn't software suspend a kernel module ?
-<p>It can be! Since 2.0.0.102. See <ref id="modular" name="Modular Software Suspend">.
+<sect1>Can Software Suspend be compiled as modules?
+<p>Yes, since 2.0.0.102. See <ref id="modular" name="Modular Software Suspend">.
 
 <sect1>nVidia video cards
-<p>(See also the next 2 FAQs). Many people have had success getting Software Suspend 2 to
-work with nVidia's 4496 driver on 2.4.x kernels (downloadable from <url url="http://www.nvidia.com/object/linux_display_archive.html" name="http://www.nvidia.com/object/linux_display_archive.html">). Newer versions of nVidia's
-driver, or using a 2.6 kernel causes Software Suspend 2 to fail.
-<p>nVidia are aware of the issue are believe their next release should play
-nicely with power management under 2.6.x and hence with Software Suspend 2. (Thanks to
-Jonathan Sambrook for this answer. May 2004)
+<p>(See also the next 2 FAQs).
+
+Many people have had success getting Software Suspend 2 to work with nVidia's
+4496 driver on 2.4.x kernels (downloadable from <url
+url="http://www.nvidia.com/object/linux_display_archive.html"
+name="http://www.nvidia.com/object/linux_display_archive.html">), and more
+recently, the 6629 driver on 2.6 kernels. <tt>agpgart</tt> must be removed
+from the kernel (either disable the module loading, or don't compile it in
+the first place).
 
 <sect1>nVidia GeForce4 card: black screen after resuming, amongst other symptoms
-<p>The solution below has worked for some people. (Thanks again to Jonathan Sambrook for this answer)
-<enum>
-<item>Make sure SWSUSP_LEAVE_X_BEFORE_SUSPEND is <em>NOT</em> set to
-<tt>nvidia</tt> in /etc/suspend.conf (or LeaveXBeforeSuspend is not set if using /etc/hibernate/hibernate.conf). Use either <tt>yes</tt> or <tt>no</tt>.
-<item>Add the following <tt>Option</tt> line to your XF86Config:
-<verb>
-Section "Device"
-  # Your normal card settings here
-  # .
-  # .
-  # .
-  # .
-
-  Option "NvAgp" "0"
-EndSection
-</verb>
-<item>Stop X and rmmod nvidia.
-<item>Either:
-<itemize>
-<item>Make sure CONFIG_APM is enabled in your kernel (ACPI will safely override
-APM) and run the nvidia driver installation. Or;
-<item>Run the nvidia driver installer with the unpack only option (see it's
---help option) and then find and comment out the following conditional
-compilation directives in usr/src/nv/nv.c (marked below with a <tt>***</tt>):
-<verb>
-*** #if defined(CONFIG_APM)
-    // for now, only APM is supported. once ACPI is fully supported by the
-    // core kernel (looks like 2.6 timeframe), we'll be able to finish up
-    // ACPI support. Unfortunately, this means only older laptops will work
-    // with power management (any laptop that supports win9x has an APM
-    // capable SBIOS/VBIOS and will work).
-    // Attempting to suspend/hibernate on an ACPI-only system is likely to
-    // hang the system, so we continue to try to avoid that case. this check
-    // of the kernel config is a weak attempt really, if the end user loaded
-    // an APM enabled kernel on an ACPI-only system, they're still probably
-    // going to hang here. we'll keep working on better ways of handling
-    // this.
-    case PM_RESUME:
-      nv_printf(NV_DBG_INFO, "NVRM: received PM resume event\n");
-      rm_power_management(NV_STATE_PTR(lnv), 0, rqst);
-      break;
-
-    case PM_SUSPEND:
-      nv_printf(NV_DBG_INFO, "NVRM: received PM suspend event\n");
-      rm_power_management(NV_STATE_PTR(lnv), 0, rqst);
-      break;
-*** #endif
-    default:
-      nv_printf(NV_DBG_INFO, "NVRM: received unknown PM event: 0x%x\n", rqst);
-      return 1;
-    }
-</verb>
-The compile & install this nvidia driver.
-</itemize>
-<item>Start X
-<item><tt>hibernate</tt>
-</enum>
+<p>Upgrading to the latest nVidia driver (6629 confirmed working), disabling
+agpgart in the kernel, and setting "SwitchToTextVT no" and "UseDummyXServer no"
+in hibernate.conf should resolve this problem.
 
 <sect1>3D: Suspension occurs correctly, but when I resume my Xserver has lost 3D acceleration.
-<p>This seems to happen for some hardware configurations, for instance Nvidia
-GEforce and ATI radeon cards. Launching a fake xserver just after resume may
-solve the problem. This can be done by adding
+<p>This seems to happen for some hardware configurations under certain versions
+of XFree86 and Xorg (notably Radeons and Xorg 6.8.0).  Launching a fake xserver
+just after resume may solve the problem. This can be done by adding
 <verb>
 xinit /bin/false -- :1
 </verb>
-at the end of resume script. If you use suspend script, try the
-<tt>UseDummyXServer</tt> option (formerly known as <tt>nVidiaHack</tt>) in the
-hibernate script configuration. Also have a look at the previous FAQ, above.
+at the end of resume script. If you use the hibernate script, try the
+<tt>UseDummyXServer</tt> option (formerly known as <tt>nVidiaHack</tt>) in
+hibernate.conf.
 
 <sect1>PCMCIA: It hangs upon resume when restarting pcmcia!
 <p>This has been reported on some hardware when using the kernel pcmcia support
@@ -246,11 +173,11 @@ suspending.
 
 <sect>Using Software Suspend
 
-<sect1> Swsusp doesn't seem to do anything (or: I upgraded to the latest Software Suspend 2 and my machine no longer suspends! Instead, it shuts down all drivers, etc and then starts resuming.)
-<p> Earlier versions of Software Suspend 2 used the file /proc/swsusp/activate. Earlier
-versions still used /proc/sys/kernel/swsusp to. These has been deprecated in
-the latest version. Now to activate suspension, you will either need to use one
-of the following methods:
+<sect1> Software Suspend doesn't seem to do anything (or: I upgraded to the latest Software Suspend 2 and my machine no longer suspends! Instead, it shuts down all drivers, etc and then starts resuming.)
+<p> Earlier versions of Software Suspend 2 used the file /proc/swsusp/activate.
+Earlier versions still used /proc/sys/kernel/swsusp to. These has been
+deprecated in the latest version. Now to activate suspension, you will either
+need to use one of the following methods:
 <itemize>
 <item> Get an updated suspend script (eg v1.02) - an updated one is available on the download page.
 <item> <tt>echo anything > /proc/software_suspend/do_suspend</tt>
@@ -263,14 +190,12 @@ And if you are still having little or no success...
 <item> Check you have a <tt>resume2=swap:/dev/hdXX</tt> option on your kernel commandline in your bootloader (eg, LILO or GRUB).
 <item> Grep through <tt>dmesg</tt> for 'Software Suspend' to see if it is giving any error messages on boot.
 <item> Check that in your .config you have the following lines:
-<quote><verb># CONFIG_SMP is not set
-CONFIG_PM=y
+<quote><verb>CONFIG_PM=y
 CONFIG_SOFTWARE_SUSPEND2=y
 CONFIG_SOFTWARE_SUSPEND_SWAPWRITER=y
 ...
 CONFIG_PROC_FS=y
 ...
-# CONFIG_APM_IGNORE_USER_SUSPEND is not set (if you are using APM)
 </verb></quote>
 <item>Did you really patch your kernel source?
 <p><tt>bzcat &lt;your patch.bz2&gt; | patch --dry-run -p1 -R |more</tt><p> should not return any failures after patching.
@@ -291,7 +216,8 @@ power down</tt> the suspend is complete and you can manually power off.
 <p>You have to tell kernel to ignore the resume partition using the noresume2
 option. On the lilo prompt, type something like "linux noresume2".  You may find
 useful to have one of your lilo choices launch your kernel with the noresume2
-option.  You now have to figure out why it didn't work ;-)
+option.  You now have to figure out why it didn't work ;-) See the
+<url url="HOWTO-5.html" name="Troubleshooting"> section of the HOWTO.
 
 <sect1>Suspending and resuming takes ages, what can I do?
 <p>Using the suspend script, most of the delay is due to the necessity of
@@ -539,9 +465,12 @@ events). You can tell acpid only to react to one event my editing your
 <tt>event=</tt> line. This tells it to only respond to every second power
 button event.
 
+<sect1>It hangs when "Copying original kernel back"
+<p>See <url url="HOWTO-5.html#ss5.2" name="the HOWTO">.
+
 <sect>Modular Software Suspend<label id="modular">
 
-<p>The "HOWTO" part of this section has been moved to the <url url="HOWTO-6.html#modular" name="HOWTO">
+<p>The "HOWTO" part of this section has been moved to the <url url="HOWTO-7.html#modular" name="HOWTO">
 
 <sect1> I get messages about the size of struct module not agreeing when the initrd tries to insert my suspend modules.
 
@@ -616,7 +545,7 @@ cat /etc/suspend_settings > /proc/software_suspend/all_settings
 <sect>Miscellaneous
 
 <sect1>What's left to do?
-<p>Plenty! SCSI is not supported if used on root/swap partitions, only IDE. A
+<p>Plenty! SCSI is not well tested if used on root/swap partitions, only IDE. A
 lot of hardware is not restored properly, including some graphic chipsets. This
 means that this hardware is in a different state upon resume than the kernel
 thinks it is. For the kernel, the hardware is reinitialized although it has
@@ -624,10 +553,41 @@ been reset by BIOS. Sometimes, this may be solved by setting the BIOS option
 (if it exists) to non PnP OS.
 
 <sect1>Software Suspend seems nice, but can I use it for doing snapshots?
-<p>No you can't because the image you save is linked to your filesystem state,
-including root. You can only do that if the two systems are completely
-independent. It may be possible (but not guaranteed) that you could do that if
-your root partition is mounted read-only and you unmount all other read-write
-devices before suspending, but that would have absolutely no interest IMHO.
+
+<p>You can use the "Keep Image" mode to perform a snapshot. With this enabled,
+the suspend image is not removed after resuming. This allows you to suspend
+once, but resume from the image multiple times. You must be very careful, as
+the image you save is linked to your filesystem state, including root, so all
+filesystems must be mounted read-only and left in an identical state to when
+the suspend image was created.
+
+<!--<sect1>I can't capture the oops easily, what should I do?
+
+<p>If your laptop does not have a serial console that you can capture kernel
+panics over, and you don't have a digital camera to capture it either, the
+only method left really is to transcribe it by hand. This can be a rather
+painful process, unless you know what you're looking for. The most useful
+things, in order of importance are:
+<itemize>
+
+<item> A BUG line, if one is displayed. This will normally appear as "<tt>kernel BUG
+at kernel/power/swsusp.c:1234</tt>". The filename and the line-number are the
+useful things here, along with at least the first few lines of the call trace.
+
+<item> The call trace (aka stack trace). This is outlined in the large red box
+in the middle of the image below. The list of functions (from top to bottom) are 
+The numbers along the left-hand side aren't
+too much help for people who don't have your exact kernel image as they are
+specific to your exact kernel compilation.
+
+<item> The code dump. This is the string of two-digit hex numbers along the
+bottom.
+
+<item> Registers & stack.
+
+</itemize>
+
+<graphic fileref="sample-oops.png" format="png"></graphic>
+-->
 
 </article>

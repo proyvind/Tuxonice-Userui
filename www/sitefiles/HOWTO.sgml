@@ -202,7 +202,7 @@ options.
 suspendable kernel. It should boot and run the same way as your original
 kernel. The only difference you should see immediately is that the boot
 messages (dmesg | less) should contain a note that Software Suspend has
-started (eg, "<tt>Software Suspend 2.1.5.10: Suspending enabled.</tt>").
+started (eg, "<tt>Software Suspend 2.1.5.15: Suspending enabled.</tt>").
 
 <sect> Testing software suspend
 <sect1> Installing the suspend script
@@ -261,7 +261,7 @@ Red Hat/Mandrake users, <tt>/etc/init.d/xdm start</tt> or similar for Debian
 users). Log in under X. Try <tt>sudo /usr/local/sbin/hibernate</tt> and see if
 suspension works correctly.
 
-<sect> Tweaking and Troubleshooting
+<sect> Tweaking
 
 <sect1> Suspend script configuration
 <p> The hibernate.conf file has several options that may help you to get swsusp
@@ -325,21 +325,19 @@ lead your clock becoming increasingly wrong.
 <sect1>Enabling debugging and tuning the system (the /proc interface)
 
 <p>Software Suspend includes a /proc/software_suspend/ interface which allows
-you to tune & configure software suspend according to your needs. Note that
-the directory was formerly /proc/swsusp/ until 2.0.0.102. The settings you
-apply here can also be read & written through a bit vector in
-/proc/software_suspend/all_settings (/proc/sys/kernel/swsusp interface is
-identical but being deprecated). This latter interface is handy for storing
-your settings. Eg, you could add the line <tt>Swsusp2AllSettings N N N ...</tt>
-to your /etc/hibernate/hibernate.conf (where <tt>N N N ...</tt> is taken
-directly from /proc/software_suspend/all_settings). Alternately, you might do:
+you to tune & configure software suspend according to your needs.  The settings
+you apply here can also be read & written through a bit vector in
+/proc/software_suspend/all_settings. This interface is handy for storing your
+settings. Eg, you could add the line <tt>Swsusp2AllSettings N N N ...</tt> to
+your /etc/hibernate/hibernate.conf (where <tt>N N N ...</tt> is taken directly
+from /proc/software_suspend/all_settings). Alternately, you might do:
 
 <verb>
-cat /proc/sys/kernel/swsusp > /etc/swsusp.conf
+cat /proc/software_suspend/all_settings > /etc/swsusp.conf
 </verb>
 And then add to the bottom of your /etc/rc.d/rc.sysinit (or equivalent):
 <verb>
-cat /etc/swsusp.conf > /proc/sys/kernel/swsusp
+cat /etc/swsusp.conf > /proc/software_suspend/all_settings
 </verb>
 
 <sect2>/proc entry descriptions
@@ -349,7 +347,7 @@ cat /etc/swsusp.conf > /proc/sys/kernel/swsusp
 <tag><tt>all_settings</tt></tag> This replaces the old <tt>/proc/sys/kernels/swsusp</tt> - all the settings can be saved or restored at once by reading or writing the contents of this entry. Some of the data may be binary, so writing and restoring this data from a file is advised.
 <tag><tt>async_io_limit</tt></tag> Maximum number of asynchronous I/O transactions
 at once.
-<tag><tt>debug_info</tt></tag> (Test versions only) Debug information that should be included with any debugging reports.
+<tag><tt>debug_info</tt></tag> (Requires debug enabled) Debug information that should be included with any debugging reports.
 <tag><tt>debug_sections</tt></tag> Which sections to show when viewing debug info.
 Only available if debugging is compiled in (see include/linux/suspend-debug.h
 in the kernel source for what each bit controls).
@@ -357,8 +355,6 @@ in the kernel source for what each bit controls).
 level. (see <ref id="debugging-info" name="Obtaining debugging information"> below)
 <tag><tt>disable_lzf_compression</tt></tag> Disables LZF compression if it was
 compiled into the kernel (LZF compression is on by default when compiled in).
-<tag><tt>disable_gzip_compression</tt></tag> Disables GZIP compression if it was
-compiled into the kernel (GZIP compression is on by default when compiled in).
 <tag><tt>do_suspend</tt></tag> Echo anything into this to start a suspend.
 <tag><tt>do_resume</tt></tag> Echo anything into this to start resuming.
 <tag><tt>enable_escape</tt></tag> Enables the possibility of aborting a suspend
@@ -367,9 +363,6 @@ security breach if, for example, you activate a suspend, walk away and a
 malicious person aborts the suspend).
 <tag><tt>expected_lzf_compression</tt></tag> A guesstimate of the compression
 achieved by the LZF compressor, in order to suspend when there is less swap
-available than memory to be written.
-<tag><tt>expected_gzip_compression</tt></tag> A guesstimate of the compression
-achieved by the GZIP compressor, in order to suspend when there is less swap
 available than memory to be written.
 <tag><tt>headerlocations</tt></tag> Having made a swapfile and turned it on,
 this file will tell you what to place on your kernel command line (eg something
@@ -433,16 +426,95 @@ view all the information swsusp prints. In this case, you can set the
 debug_sections parameter to control what portions of output are printed (see
 include/linux/suspend-debug.h in the kernel source for what each bit controls).
 
+<sect1>Software suspend hotkeys
+
+<p>When a suspend is in progress there are a number of keys that can be used to
+toggle various settings.
+
+<itemize>
+<item> <bf>Esc</bf> - if the <tt>enable_escape</tt> entry is set to 1, pressing 
+Escape will abort a suspend and restore the machine back to the previous state.
+Perfect for those "Oh, but I just forgot to ..." situations.
+
+<item> <bf>R</bf> - toggles rebooting (same as the <tt>reboot</tt> /proc
+entry). This requires that debugging be enabled (compiled in).
+
+<item> <bf>P</bf> (Requires debug enabled) - toggles pausing between major steps when log level > 1.
+
+<item> <bf>S</bf> (Requires debug enabled) - toggles pausing between minor steps.
+
+<item> <bf>`</bf> (Requires debug enabled) - toggles slowing down the suspend process.
+
+<item> <bf>Space</bf> - continue when paused.
+
+<item> <bf>L</bf> - toggles logging all messages to syslog (same as the
+<tt>log_everything</tt> /proc entry). This requires that debugging be enabled (compiled in).
+
+<item> <bf>0</bf>-<bf>7</bf> - sets the console log level during suspend and
+resume. This requires that debugging be enabled (compiled in).
+</itemize>
+
+
+
+<sect>Troubleshooting<label id="trouble">
+
+<sect1>It panics!
+
+<p>D'oh. If you can capture the panic somehow (either over a serial console, or
+digital camera if need be), and send it to the list, somebody might hopefully
+be able to do something about it. Before you send it to the list, try
+suspending from single user mode (described below) and see if the same thing
+happens.
+
+<p>Panics captured on 2.4 must be run through the <tt>ksymoops</tt> program
+before any useful information can be obtained from them.
+
+<sect1>It hangs!
+
+<p>The most common symptom of a non-functioning Software Suspend is a hang
+either during suspending or resuming. Hangs while resuming have two sources:
+<enum>
+<item>Foul ups by Nigel in the kernel code
+<item>Driver issues
+</enum>
+
+<p>Type 1 issues will generally affect areas other than the point where you see
+"<tt>Copying original kernel back</tt>". There are known issues with Software
+Suspend itself (type 1 issues) in the 2.1.5 series which should be fixed in
+2.1.5.15.
+
+<p>Type 2 issues are more common, and affect particular hardware (and therefore
+some computers/configurations, but not others). There are usually workarounds
+for these issues, and the workarounds generally involve building functionality
+as modules and stopping related userpace daemons and unloading the modules prior
+to suspend, and reloading/restarting afterwards. Particularly common here are
+issues with USB and DRI/DRM. In the latter case, you can't simply disable
+DRI/DRM prior to resuming, so people (unfortunately) have to choose between
+3D performance and the ability to suspend (unless you're willing to stop X
+prior to suspending and restart it afterwards). As driver writers improve
+their support for suspending and resuming, it is expected that these issues
+will ultimately go away.
+
+<p>Finding which driver is causing suspend to hang is sometimes less than
+obvious.  In these cases, we recommend starting with a minimal environment
+(init S) and seeing if you can suspend from there, or failing that with
+init=/bin/sh. If you have success, add more and more components of your normal
+configuration until you find something that breaks suspending. If you can't
+even suspend from init S, it may be that you've compiled the driver that's
+causing problems into the kernel. In this case, look at your kernel
+configuration and seek to compile as modules as much as possible. Then try with
+a minimal configuration again.
+
 <sect1>Suspending in a minimalist environment
 <p>To eliminate problems with drivers, people will often recommend to suspend
 from single user mode or use init=/bin/sh.
 
-<sect2>Single user mode
+<sect2>Single user mode (init S)
 <p>Linux distributions where many services are not enabled, and ideally, many
-modules are not enabled.  It can be entered by adding the word
-"<tt>single</tt>" to the kernel command line when you boot. Unfortunately some
-distributions will still load many modules in this runlevel, so if suspend still
-fails here, you might need to try using init=/bin/sh.
+modules are not enabled.  It can be entered by adding the letter "<tt>S</tt>"
+to the kernel command line when you boot. Unfortunately some distributions will
+still load many modules in this runlevel, so if suspend still fails here, you
+might need to try using init=/bin/sh.
 
 <sect2>init=/bin/sh
 <p>In this mode, absolutely nothing else is done afer loading the kernel. It
@@ -482,88 +554,18 @@ hibernation breaks.
 </itemize>
 </itemize>
 
-<sect1>Software suspend hotkeys
+<sect1>Asking for help
+<p>People on the softwaresuspend-help and softwaresuspend-devel
+<url url="lists.html" name="mailing lists"> are generally pretty helpful, but
+they'll be better able to help you if you can provide more information. In
+particular, it will help if you provide information regaring what make/model of
+computer you have, what modules you have loaded while trying to suspend, and a
+copy of your kernel configuration.  Most of details can be quickly and easily
+gathered using the 1.03 or later hibernate script with the --bug-report option.
 
-<p>When a suspend is in progress there are a number of keys that can be used to
-toggle various settings.
-
-<itemize>
-<item> <bf>Esc</bf> - if the <tt>enable_escape</tt> entry is set to 1, pressing 
-Escape will abort a suspend and restore the machine back to the previous state.
-Perfect for those "Oh, but I just forgot to ..." situations.
-
-<item> <bf>R</bf> - toggles rebooting (same as the <tt>reboot</tt> /proc
-entry). This requires that debugging be enabled (compiled in).
-
-<item> <bf>Pause/Break</bf> (&lt;= 2.0 only) - toggles pausing between each
-step of suspension (same as the <tt>pause_between_steps</tt> /proc entry). This
-requires that debugging be enabled (compiled in).
-
-<item> <bf>P</bf> (Test versions only) - toggles pausing between major steps when log level > 1.
-
-<item> <bf>S</bf> (Test versions only) - toggles pausing between minor steps.
-
-<item> <bf>`</bf> (Test versions only) - toggles slowing down the suspend process.
-
-<item> <bf>Space</bf> - continue when paused.
-
-<item> <bf>L</bf> - toggles logging all messages to syslog (same as the
-<tt>log_everything</tt> /proc entry). This requires that debugging be enabled (compiled in).
-
-<item> <bf>0</bf>-<bf>7</bf> - sets the console log level during suspend and
-resume. This requires that debugging be enabled (compiled in).
-</itemize>
-
-<sect1>Using Variation Analysis
-<p>Variation Analysis is only available in the latest development versions 
-of the patches (as of April 10, 2004) starting at around 2.0.0.56.
-
-<sect2>Purpose
-<p>Variation Analysis lets you examine the differences between the contents
-of memory at two points in time. It shows byte by byte comparisons for
-locations that are different and (when KDB is also compiled in) can
-decode addresses into symbols. This information can be used to check
-suspend is working correctly and should be helpful in diagnosing
-inconsistencies. It is not recommended for normal use.
-
-<sect2>Method of operation
-<p>When the compile time option is selected and a suspend cycle is started
-with the Variation Analysis bit of debug_sections (value 65536) turned
-on, Variation Analysis is enabled. In this case, memory for analysing
-differences is allocated irrespective of whether the analysis is used or
-not.
-
-<p>Once the image is prepared, the user may press C at any time to indicate
-the benchmark point, against which comparisons should be done. At this
-point, simple checksums (hence C) are calculated for all pages in the
-image and saved in previously allocated pages. Checksums are unsigned
-longs, calculated as the sum of (index-within-page * (*position)).
-
-<p>When the user presses D at a later stage, checksums are again calculated
-for each page and compared with the original values. Where a variation
-is found, an atomic copy of the current contents of the page is made,
-again into preallocated memory and the metadata stored. Once restoration
-of the image is nearly complete, but before the image is invalidated,
-the original copies of the pages are reloaded and variations displayed.
-Note that inherent in this is the assumption that 'C' is pressed prior
-to making the atomic copy of pageset1 when saving the image.
-
-<p>The functionality could be used to compare memory differences between
-when the image is prepared and when restoration is completed, or between
-the points immediately before the atomic copy of pageset1 is saved and
-after it is restored. In the former case, greater differences would be
-expected. In the later, difference should be minimal and inconsequential
-(there will always be some difference, because suspend changes some of
-its own variables, time values change, debugging information is printed
-and the console restored).
-Since all working memory has to be preallocated, it is possible that all
-differences might not be able to be stored. In this case, the user might
-want to adjust number of pages allocated. Look for the call to
-suspend_allocate_reload_data in kernel/power/suspend2.c.
-
-<p>Decoding of symbols is only enabled if KDB is compiled into the kernel
-(so that KALLSYMS is enabled and the KDB function to locate symbols is
-usable).
+<p>If you are sending a kernel panic from a 2.4 kernel, be sure to run the
+output through ksymoops and send the result. Otherwise the panic is of
+very little use to anybody.
 
 <sect>How it works
 <p> For the more curious users, briefly listed here are the steps of the kernel part
@@ -775,5 +777,21 @@ have support for this. Since you're using one anyway, you might like to compile
         </itemize>
     </itemize>
 </enum>
+
+<sect1>Using an initrd/initramfs but Software Suspend compiled in
+
+<p>If you are using an initrd, you <bf>MUST</bf> edit the linuxrc script to
+attempt to resume before filesystems are mounted. Do this by inserting the line:
+<verb>
+echo > /proc/software_suspend/do_resume
+</verb>
+somewhere after mount /proc but before mounting filesystems in your linuxrc
+script.
+
+<p>If you are using an initramfs, you will need to do the same thing to your
+/sbin/init script, else you will never be able to resume.
+
+<p>See the <url url="FAQ-6.html#ss6.4" name="Modules FAQ"> for some
+distribution-specific tips.
 
 </article>

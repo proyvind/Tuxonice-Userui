@@ -9,7 +9,8 @@ HOWTO_TARGET = $(HOWTO_BASENAME).html\
 			$(HOWTO_BASENAME)-3.html \
 			$(HOWTO_BASENAME)-4.html \
 			$(HOWTO_BASENAME)-5.html \
-			$(HOWTO_BASENAME)-6.html
+			$(HOWTO_BASENAME)-6.html \
+			$(HOWTO_BASENAME)-7.html
 
 FAQ_FILES = $(FAQ_SRC) $(FAQ_TARGET)
 FAQ_BASENAME = FAQ
@@ -44,7 +45,9 @@ PAGES = style.css \
 		LAC.png \
 		osdl_logo.png \
 		epfl.png \
+		cyclades.png \
 		linuxfund.gif \
+        sample-oops.png \
 		contrib/Swsusp2_and_Bootsplash_on_FC2.doc \
 		$(HOWTO_FILES) \
 		$(FAQ_FILES) \
@@ -103,6 +106,9 @@ olddownloads-epfl.html:
 		print "</PRE>\n"' > $@
 
 # HTML files need a bit of processing.
+$(SITEBASE)/index.html: index.html olddownloads-berl.html $(PREREQS)
+	./Prettify $< > $@
+
 $(SITEBASE)/%.html: %.html $(PREREQS)
 	./Prettify $< > $@
 
@@ -132,7 +138,7 @@ sf:
 	cd .. && rsync -azve ssh --exclude=.svn sitefiles bernardb@shell.sf.net:swsusp/ && ssh sf make -C swsusp/sitefiles
 
 demo: 
-	cd .. && rsync -azve ssh --exclude=.svn sitefiles mussel-w:public-html/swsusp/ && ssh mussel-w make -C public-html/swsusp/sitefiles
+	cd .. && rsync -azve ssh --exclude=.svn sitefiles ucc-charged:public-html/swsusp/ && ssh ucc-charged make -C public-html/swsusp/sitefiles
 
 berlios: all
 	cd .. && rsync -azve ssh --exclude=.svn htdocs/* berlios:softwaresuspend/htdocs/

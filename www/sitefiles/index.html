@@ -16,7 +16,7 @@ the contents and the user can continue from where they left off. No
 documents need to be reloaded or applications reopened and the process
 is much faster than a normal shutdown and start up.</p>
 
-<p class="Note"><a href="#2.1.5">Software Suspend 2.1.5 for Linux 2.6 is out!</a></p>
+<p class="Note"><a href="#2.1.6">Software Suspend 2.1.6 for Linux 2.6 is out!</a></p>
 
 <p>Software Suspend 2 has a long <a href="features.html">feature list</a>,
 including the ability to cancel a suspend by pressing Escape, image compression
@@ -28,42 +28,52 @@ list</a> provide support for dealing with issues arising. An IRC channel
 <tt>#swsusp</tt> has been created on irc.freenode.net, where people may be able
 to help you with problems.</p>
 
-<p>A huge thanks must go to Nigel Cunningham, Florent Chabaud, Pavel Machek,
-Gabor Kuti, and Michael Frank along with many others who have tested and
-contributed to the development of Software Suspend.</p>
+<p>The primary author of Software Suspend 2 is Nigel Cunningham. A huge thanks
+must also go to Florent Chabaud, Pavel Machek, Gabor Kuti, and Michael Frank
+along with many others who have tested and contributed to the development of
+Software Suspend.</p>
 
-<h2>Current Status</h2>
+<h2>Current Versions</h2>
 
 <p>You will always find the latest version of Software Suspend on the
 <a href="http://developer.berlios.de/project/showfiles.php?group_id=1412">Berlios download page</a>.
 This holds the latest patches against both the 2.4 kernel series and the 2.6
-kernel series. If you have having problems, you may want to look at the <a
-href="http://swsusp.sourceforge.net/wiki/KnownIssues">KnownIssues</a> page on the wiki.</p>
+kernel series. Note that patches for the 2.4 kernel series are no longer being
+actively developed and will only be updated for bugfixes and forward ports.</p>
+
+<p>If you have having problems, you may want to look at the
+<a href="http://swsusp.sourceforge.net/wiki/KnownIssues">KnownIssues</a> page
+on the wiki.</p>
 
 <table border="0">
 <tr><td colspan="2"><hr/></td></tr>
-<tr><td colspan="2" align="left"><b>Latest stable version for 2.6 <!--<i>AND</i> 2.4 -->kernels:</b> 2.1.5</td></tr>
+<tr><td colspan="2" align="left"><b>Latest stable version for 2.6 kernels:</b> 2.1.6</td></tr>
 <tr><td colspan="2">
 <ul>
-<li><a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.5-for-2.6.9.tar.bz2">Software Suspend 2.1.5 for kernel 2.6.9</a>
-<li>Patches for 2.4 kernels coming soon.
+<li><a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.6-for-2.6.11-rc3.tar.bz2">Software Suspend 2.1.6 for kernel 2.6.11-rc3</a>
+<li>A backport to 2.6.10 is coming soon.
 </ul></td></tr>
-<tr><td colspan="2" align="left"><b>Latest version for 2.4 kernels:</b> 2.1.5.7</td></tr>
+<tr><td colspan="2" align="left"><b>Latest stable version for 2.4 kernels</b><sup><a href="#final24release">Note</a></sup>: 2.1.5.7B</td></tr>
 <tr><td colspan="2">
 <ul>
-<li><a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.5.7-for-2.4.27.tar.bz2">Software Suspend 2.1.5.7 for kernel 2.4.27</a>
-<li><a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.5.7-for-2.4.28.tar.bz2">Software Suspend 2.1.5.7 for kernel 2.4.28</a>
+<li><a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.5.7B-for-2.4.29.tar.bz2">Software Suspend 2.1.5.7B for kernel 2.4.29</a>
+<li><a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.5.7B-for-2.4.28.tar.bz2">Software Suspend 2.1.5.7B for kernel 2.4.28</a>
 </ul></td></tr>
 <tr><td colspan="2"><hr/></td></tr>
 <tr><td colspan="2"><b>Latest development version:</b>
 <ul>
-###LATEST_DEV_PATCHES###
+<li> <i>There have not yet been any development patches since the last stable release.</i>
+<!-- ##
+#LATEST_DEV_PATCHES###
+-->
+<p><b>Note:</b> See the <a href="http://swsusp.sourceforge.net/wiki/KnownIssues">KnownIssues</a>
+page on the Wiki for known issues with these patches.
 </ul>
 
-<p>These patches are
-released against the current kernel version, and regularly updated. They may
-contain bugs, and you are encouraged to report them to the mailing list. It is
-recommended that you follow the list if you use these. They are available at
+<p>These patches are released against the current kernel version, and regularly
+updated. They may contain bugs, and you are encouraged to report them to the
+mailing list. It is recommended that you follow the list if you use these. They
+are available at
 <a href="http://developer.berlios.de/project/showfiles.php?group_id=1412">Berlios download page</a>,
 under "Current Beta Patches".</td></tr>
 <tr><td colspan="2"><hr /></td></tr>
@@ -91,6 +101,31 @@ but again be warned that nobody will be likely to help you.</td></tr>
 
 
 <h2>Latest News</h2>
+
+<a name="2.1.6"></a><b>4 February 2005: Software Suspend 2.1.6</b>
+<p>Much work has gone into this release since 2.1.5. Amongst many internal
+changes, some visible changes include:
+<ul>
+<li> Fewer hang-causing bugs.
+<li> Checking for mounted filesystems before resuming (prevents faulty initrds from corrupting your data).
+<li> Added timeouts to early-boot prompts (BIG FAT WARNINGs).
+<li> GZIP support has been deprecated.
+</ul>
+</p>
+<p>[<a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.6-for-2.6.11-rc3.tar.bz2">Download for 2.6.11-rc3</a>] [Download for 2.6.10 coming soon]</p>
+
+<a name="cyclades_sponsor"></a><b>2 February 2005: Cyclades to support Software Suspend 2 and PM development</b>
+<p><a href="http://www.cyclades.com">Cyclades Corporation</a> has agreed to
+allow Nigel to spend a significant part of his paid hours each week working on
+issues related to the Suspend2 patches and Power Management in general (in
+addition to my own time spent on these projects).<br>
+
+<a href="http:///">Full announcement here.</a>
+</p>
+
+<a name="final24release"></a><b>26 January 2005: Final Release of Software Suspend for 2.4 kernels</b>
+<p><a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.5.7B-for-2.4.28.tar.bz2">Software Suspend 2.1.5.7B for kernel 2.4.28</a> is now available. It is intended to be the last release of Software Suspend for the 2.4 kernel series (except for forward porting and bugfixes).
+</p>
 
 <a name="epflmirror"></a><b>4 January 2005: Software Suspend Mirror at softwaresuspend.epfl.ch</b>
 <p>Thanks to Michel Mengis and the <a href="http://www.epfl.ch">The Swiss
@@ -156,7 +191,7 @@ time quite happily!).</p>
 
 <p>This version includes tons of changes since 2.0, possibly most importantly,
 the ability to build Software Suspend 2 as modules. This allows it to be loaded
-from an initrd, opening up <a href="FAQ-6.html#ss6.1">all sorts of
+from an initrd, opening up <a href="HOWTO-7.html#ss7.1">all sorts of
 possibilities</a>.</p>
 
 <p><a href="http://lists.berlios.de/pipermail/softwaresuspend-announce/2004-October/000003.html">Nigel's announcement</a> &nbsp;&nbsp;&nbsp; 
