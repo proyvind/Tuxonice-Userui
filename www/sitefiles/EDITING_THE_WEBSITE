@@ -3,24 +3,24 @@ places:
  /var/web/stage/sitefiles/  <- the staging site available at stage.suspend2.net
  /var/web/www/sitefiles/    <- the real website available at www.suspend2.net
 
-Making edits to the website is probably best done in the stage site first so you
-can see changes before pushing them live. Almost all of the HTML files in
-/var/web/stage/sitefiles/ are taken by the Prettify script, added a header and
-footer to and put into the actual website in ../htdocs/ .
+Making edits to the website is probably best done in the stage site first so
+you can see changes before pushing them live. Almost all of the HTML files in
+/var/web/stage/sitefiles/ are processed by the Prettify script to add a header
+and footer to and put into the actual website in ../htdocs/ .
 
 Steps to edit the website:
 
-  Become the webslave user (resolves all sorts of permissions issues)
+  1. Become the webslave user (resolves all sorts of permissions issues)
     $ sudo su - webslave
 
-  Enter the stage web site
+  2. Enter the stage web site
     $ cd /var/web/stage/sitefiles
 
-  Update the working copy from the subversion repository, just in case
+  3. Update the working copy from the subversion repository, just in case
     $ svn update
 
-  Edit the files in this directory. Note there are some special files, or parts
-  of files that are generated from other sources:
+  4. Edit the files in this directory. Note there are some special files, or
+  parts of files that are generated from other sources:
 
     downloads/index.html -- generated from download.xml using the
         parse_downloads script
@@ -29,7 +29,7 @@ Steps to edit the website:
         latest downloads
 
     All the FAQ-*.html and HOWTO-*.html files -- generated from FAQ.sgml and
-        HOWTO.sgml respectively.
+        HOWTO.sgml respectively by linuxdoc.
 
   New files must be added to the subversion repository:
     $ svn add newfile.html
@@ -38,13 +38,13 @@ Steps to edit the website:
   Similarly new directories must also be added under subversion, and added to
   the DIRS = line in the Makefile.
 
-  Try out your changes
+  5. Try out your changes
     $ make
 
-  Once you are happy, commit them to the repository
+  6. Once you are happy, commit them to the repository
     $ svn commit -m "some changelog message"
 
-  To update the live site, run
+  7. To update the live site, run
     $ update-live-site
   This cd's into /var/web/www/sitefiles, runs "svn update" and "make"
 
