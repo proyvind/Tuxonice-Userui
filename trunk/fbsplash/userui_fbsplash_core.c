@@ -47,7 +47,6 @@ static void reset_silent_img() {
 
 static void silent_off() {
 	show_cursor();
-	clear_display();
 }
 
 static int get_active_vt() {
@@ -274,7 +273,6 @@ static void fbsplash_log_level_change() {
 	
 	} else if (lastloglevel >= SUSPEND_ERROR) {
 		/* Get the nice display or last action [re]drawn */
-		move_cursor_to(0,0);
 		fbsplash_redraw();
 		hide_cursor();
 	}
