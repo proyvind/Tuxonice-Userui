@@ -3,86 +3,350 @@
 #include <unistd.h>
 #include <termios.h>
 #include <stdarg.h>
+#include <string.h>
 
 #include "userui.h"
 
-static struct termios termios_save, termios;
-static int num_rows, num_cols;
+/* excerpts from include/linux/suspend.h */
+#define SUSPEND_STATUS		0
+#define SUSPEND_ERROR		2
+#define SUSPEND_LOW	 	3
+#define SUSPEND_MEDIUM	 	4
+#define SUSPEND_HIGH	  	5
+#define SUSPEND_VERBOSE		6
+
+/* excerpts from include/linux/bitops.h */
+/*
+ * fls: find last bit set.
+ */
+
+static __inline__ int generic_fls(int x)
+{
+	int r = 32;
+
+	if (!x)
+		return 0;
+	if (!(x & 0xffff0000u)) {
+		x <<= 16;
+		r -= 16;
+	}
+	if (!(x & 0xff000000u)) {
+		x <<= 8;
+		r -= 8;
+	}
+	if (!(x & 0xf0000000u)) {
+		x <<= 4;
+		r -= 4;
+	}
+	if (!(x & 0xc0000000u)) {
+		x <<= 2;
+		r -= 2;
+	}
+	if (!(x & 0x80000000u)) {
+		x <<= 1;
+		r -= 1;
+	}
+	return r;
+}
+
+/* Now we essentially cut and paste the suspend_text plugin */
+
+static int barwidth = 0, barposn = -1, newbarposn = 0;
+static int draw_progress_bar = 1;
+
+/* We remember the last header that was (or could have been) displayed for
+ * use during log level switches */
+static char lastheader[512];
+static int lastheader_message_len = 0;
+
+static struct termios termios;
+static int lastloglevel = -1;
+static int video_num_lines, video_num_columns;
 
 static inline void clear_display() { write(1, "\2332J", 3); }
 static inline void clear_to_eol() { write(1, "\233K", 2); }
 static inline void hide_cursor() { write(1, "\233?1c", 4); }
-static inline void show_cursor() { write(1, "\233?0c", 4); }
-static inline void move_to(int c, int r) { printf("\233%d;%dH", r, c); }
+static inline void restore_cursor() { write(1, "\233?0c", 4); }
+static inline void move_cursor_to(int c, int r) { printf("\233%d;%dH", r, c); }
+static inline void unblank_screen_via_file() { write(1, "\23313]", 4); }
 
-static void print_header() {
-	move_to((num_cols - 31) / 2, (num_rows / 3) - 3);
-	printf("S O F T W A R E   S U S P E N D");
-	move_to(0, num_rows);
+/* text_prepare
+ * Description:	Prepare the 'nice display', drawing the header and version,
+ * 		along with the current action and perhaps also resetting the
+ * 		progress bar.
+ * Arguments:	int printalways: Whether to print the action when debugging
+ * 		is on
+ * 		int clearbar: Whether to reset the progress bar.
+ * 		const char *fmt, ...: The action to be displayed.
+ */
+
+static void text_prepare_status(int printalways, int clearbar, const char *msg)
+{
+	int y;
+
+	if (msg) {
+		strncpy(lastheader, msg, 512);
+		lastheader_message_len = strlen(lastheader);
+	}
+
+	if (console_loglevel >= SUSPEND_ERROR) {
+		if (printalways)
+			printf("\n** %s\n", lastheader);
+		return;
+	}
+
+	barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
+
+	/* Print version */
+	move_cursor_to(0, video_num_lines);
 	printf("%s", software_suspend_version);
+
+	/* Print header */
+	move_cursor_to((video_num_columns - 31) / 2, (video_num_lines / 3) - 3);
+	printf("S O F T W A R E   S U S P E N D");
+
+	/* Print action */
+	y = video_num_lines / 3;
+	move_cursor_to(0, y);
+	
+	/* Clear old message */
+	for (barposn = 0; barposn < video_num_columns; barposn++) 
+		printf(" ");
+
+	move_cursor_to((video_num_columns - lastheader_message_len) / 2, y);
+	printf("%s", lastheader);
+	
+	if (draw_progress_bar) {
+		/* Draw left bracket of progress bar. */
+		y++;
+		move_cursor_to(video_num_columns / 4, y);
+		printf("[");
+
+		/* Draw right bracket of progress bar. */
+		move_cursor_to(video_num_columns - (video_num_columns / 4) - 1, y);
+		printf("]");
+
+		if (clearbar) {
+			/* Position at start of progress */
+			move_cursor_to(video_num_columns / 4 + 1, y);
+
+			/* Clear bar */
+			for (barposn = 0; barposn < barwidth; barposn++)
+				printf(" ");
+
+			move_cursor_to(video_num_columns / 4 + 1, y);
+		}
+	}
+	
+	hide_cursor();
+
+	barposn = 0;
 }
 
-static void set_status(char *s, ...) {
-	va_list ap;
+/* text_loglevel_change
+ *
+ * Description:	Update the display when the user changes the log level.
+ * Returns:	Boolean indicating whether the level was changed.
+ */
 
-	move_to(0, num_rows-5);
-	clear_to_eol();
-	va_start(ap, s);
-	vprintf(s, ap);
-	va_end(ap);
+static void text_loglevel_change(int loglevel)
+{
+	/* Calculate progress bar width. Note that whether the
+	 * splash screen is on might have changed (this might be
+	 * the first call in a new cycle), so we can't take it
+	 * for granted that the width is the same as last time
+	 * we came in here */
+	barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
+	barposn = 0;
+
+	/* Only reset the display if we're switching between nice display
+	 * and displaying debugging output */
+	
+	if (console_loglevel >= SUSPEND_ERROR) {
+		if (lastloglevel < SUSPEND_ERROR)
+			clear_display();
+
+		printf("Switched to console loglevel %d.\n", console_loglevel);
+
+		if (lastloglevel < SUSPEND_ERROR) {
+			printf("%s\n", lastheader);
+		}
+	
+	} else if (lastloglevel >= SUSPEND_ERROR) {
+		clear_display();
+	
+		/* Get the nice display or last action [re]drawn */
+		text_prepare_status(1, 0, NULL);
+	}
+	
+	lastloglevel = console_loglevel;
+}
+
+/* text_update_progress
+ *
+ * Description: Update the progress bar and (if on) in-bar message.
+ * Arguments:	UL value, maximum: Current progress percentage (value/max).
+ * 		const char *fmt, ...: Message to be displayed in the middle
+ * 		of the progress bar.
+ * 		Note that a NULL message does not mean that any previous
+ * 		message is erased! For that, you need prepare_status with
+ * 		clearbar on.
+ * Returns:	Unsigned long: The next value where status needs to be updated.
+ * 		This is to reduce unnecessary calls to text_update_progress.
+ */
+void text_update_progress(unsigned long value, unsigned long maximum,
+		char *msg)
+{
+	unsigned long next_update = 0;
+	int bitshift = generic_fls(maximum) - 16;
+	int message_len = 0;
+
+	if (!barwidth)
+		barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
+
+	if (!maximum)
+		return /* maximum */;
+
+	if (value < 0)
+		value = 0;
+
+	if (value > maximum)
+		value = maximum;
+
+	/* Try to avoid math problems - we can't do 64 bit math here
+	 * (and shouldn't need it - anyone got screen resolution
+	 * of 65536 pixels or more?) */
+	if (bitshift > 0) {
+		unsigned long temp_maximum = maximum >> bitshift;
+		unsigned long temp_value = value >> bitshift;
+		newbarposn = (int) (temp_value * barwidth / temp_maximum);
+	} else
+		newbarposn = (int) (value * barwidth / maximum);
+	
+	if (newbarposn < barposn)
+		barposn = 0;
+
+	next_update = ((newbarposn + 1) * maximum / barwidth) + 1;
+
+	if ((console_loglevel >= SUSPEND_ERROR) || (!draw_progress_bar))
+		return /* next_update */;
+
+	/* Update bar */
+	if (draw_progress_bar) {
+		/* Clear bar if at start */
+		if (!barposn) {
+			move_cursor_to(video_num_columns / 4 + 1, (video_num_lines / 3) + 1);
+			for (; barposn < barwidth; barposn++)
+				printf(" ");
+			barposn = 0;
+		}
+		move_cursor_to(video_num_columns / 4 + 1 + barposn, (video_num_lines / 3) + 1);
+
+		for (; barposn < newbarposn; barposn++)
+			printf("-");
+	}
+
+	/* Print string in progress bar on loglevel 1 */
+	if ((msg) && (console_loglevel)) {
+		message_len = strlen(msg);
+		move_cursor_to((video_num_columns - message_len) / 2,
+				(video_num_lines / 3) + 1);
+		printf(" %s ", msg);
+	}
+
+	barposn = newbarposn;
+	hide_cursor();
+	
+	/* return next_update; */
+}
+
+static void text_message(unsigned long section, unsigned long level,
+		int normally_logged,
+		char *msg)
+{
+	/* FIXME - should we get at these somehow? */
+	/* if ((section) && (!TEST_DEBUG_STATE(section)))
+		return; */
+
+	if (level == SUSPEND_STATUS) {
+		text_prepare_status(1, 0, msg);
+		return;
+	}
+	
+	if (level > console_loglevel)
+		return;
+
+	printf("%s\n", msg);
 }
 
 static void text_prepare() {
 	struct winsize winsz;
+	struct termios new_termios;
 	/* chvt here? */
 
 	setvbuf(stdout, NULL, _IONBF, 0);
 
+	/* Turn off canonical mode */
 	ioctl(STDOUT_FILENO, TCGETS, (long)&termios);
-	termios_save = termios;
-	termios.c_lflag &= ~ICANON;
-	ioctl(STDOUT_FILENO, TCSETSF, (long)&termios);
+	new_termios = termios;
+	new_termios.c_lflag &= ~ICANON;
+	ioctl(STDOUT_FILENO, TCSETSF, (long)&new_termios);
 
+	/* Find out the screen size */
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz);
+	video_num_lines = winsz.ws_row;
+	video_num_columns = winsz.ws_col;
 
-	num_rows = winsz.ws_row;
-	num_cols = winsz.ws_col;
-
-	hide_cursor();
 	clear_display();
-	print_header();
 }
 
 static void text_cleanup() {
-	ioctl(STDOUT_FILENO, TCSETSF, (long)&termios_save);
-	set_status("Cleaning up userui...");
+	ioctl(STDOUT_FILENO, TCSETSF, (long)&termios);
 
-	show_cursor();
+	restore_cursor();
 	clear_display();
-	move_to(0, 0);
+	move_cursor_to(0, 0);
 	/* chvt back? */
 }
 
-static void text_message(unsigned long type, unsigned long level, int normally_logged, char *text) {
-	set_status("%lu, %lu, \t%s", type, level, text?text:"");
-}
-
-static void text_update_progress(unsigned long value, unsigned long maximum, char *text) {
-	set_status("%lu/%lu,  \t%s", value, maximum, text?text:"");
-}
-
-static void text_log_level_change(int loglevel) {
-	set_status("Loglevel changed to %d", loglevel);
-}
-
 static void text_redraw() {
-	set_status("Redraw");
 }
 
 static void text_keypress(int key) {
-	set_status("Got key %d", key);
-	if (key == 1) { /* Escape */
-		send_message(USERUI_MSG_ABORT, NULL, 0);
+	char buf[128];
+	switch (key) {
+		case 1:
+			send_message(USERUI_MSG_ABORT, NULL, 0);
+			break;
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+			console_loglevel = key - 1;
+			send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
+			break;
+		case 11:
+			console_loglevel = 0;
+			send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
+			break;
+//		case 112:
+//			/* During suspend, toggle pausing with P */
+//			suspend_action ^= (1 << SUSPEND_PAUSE);
+//			suspend2_core_ops->schedule_message(1);
+//			break;
+//		case 115:
+//			/* Otherwise, if S pressed, toggle single step */
+//			suspend_action ^= (1 << SUSPEND_SINGLESTEP);
+//			suspend2_core_ops->schedule_message(3);
+//			break;
+		default:
+			snprintf(buf, 128, "Got key %d", key);
+			text_prepare_status(1, 0, buf);
 	}
 }
 
@@ -92,7 +356,7 @@ struct userui_ops userui_text_ops = {
 	.cleanup = text_cleanup,
 	.message = text_message,
 	.update_progress = text_update_progress,
-	.log_level_change = text_log_level_change,
+	.log_level_change = text_loglevel_change,
 	.redraw = text_redraw,
 	.keypress = text_keypress,
 };
