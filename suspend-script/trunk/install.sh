@@ -53,8 +53,9 @@ echo "Installed."
 echo
 [ -z "$EXISTING_CONFIG" ] && \
     echo "Edit $CONFIG_FILE to taste, and see `basename $SCRIPT_DEST` -h for help." ||
-    echo -e "You may want to merge $CONFIG_FILE with\n$CONFIG_FILE.dist.\nSee `basename $SCRIPT_DEST` -h for help on any extra options."
-
+    echo "You may want to merge $CONFIG_FILE with"
+    echo "$CONFIG_FILE.dist"
+    echo "See `basename $SCRIPT_DEST` -h for help on any extra options."
 )
 
 [ $? -ne 0 ] && echo "Install aborted due to errors."
