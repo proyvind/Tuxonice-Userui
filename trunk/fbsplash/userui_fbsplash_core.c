@@ -14,8 +14,6 @@
 #include "splash.h"
 #include "../userui.h"
 
-#define PROGRESS_BAR_GRANULARITY (PROGRESS_MAX/800)
-
 int fb_fd;
 static char lastheader[512];
 static int lastloglevel;
@@ -180,9 +178,6 @@ static void fbsplash_update_progress(unsigned long value, unsigned long maximum,
 
 	cur_value = value;
 	cur_maximum = maximum;
-
-	if (last_pos < tmp && tmp < last_pos + PROGRESS_BAR_GRANULARITY)
-		return;
 
 	if (tmp < last_pos)
 		fbsplash_redraw();
