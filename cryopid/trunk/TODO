@@ -2,7 +2,6 @@ Sooner:
 - tid?
 - debug registers
 - FPU state
-- file offsets
 - termcaps
 - signal handlers
 - check all thread entry_nums ?
