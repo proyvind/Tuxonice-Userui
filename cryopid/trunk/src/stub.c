@@ -126,10 +126,17 @@ int resume_image_from_file(int fd) {
         int happy = 0;
         switch(fork()) {
             case 0: break;
-            case -1: perror("wait"); exit(1);
+            case -1: perror("fork"); exit(1);
             default:
-                     pause();
-                     _exit(0);
+                     {
+                         sigset_t mask;
+                        //printf("myppid() = %d\n", getpid());
+                         sigfillset(&mask);
+                         sigdelset(&mask, SIGUSR1);
+                         sigsuspend(&mask);
+                         wait(NULL);
+                         _exit(0);
+                     }
         }
         while (!happy) {
             switch(fork()) {
@@ -145,6 +152,8 @@ int resume_image_from_file(int fd) {
                     _exit(0);
             }
         }
+        //printf("getppid() = %d\n", getppid());
+        kill(getppid(),SIGUSR1);
     }
 
 	safe_read(fd, &user_data, sizeof(struct user), "user data");

@@ -15,13 +15,15 @@ int translate_ioctl(struct user_regs_struct *r, pid_t oldpid, pid_t newpid, int 
                 pid_t ioctlpid;
                 ioctlpid = ptrace(PTRACE_PEEKDATA, newpid, r->edx, 0);
 				if (ioctlpid == oldpid) {
-                    //printf("Wooy in:%d edx:0x%lx %d -> %d!\n", in, r->edx, oldpid, newpid);
+                    //printf("Wooy in: %d -> %d!\n", oldpid, newpid);
                     if (ptrace(PTRACE_POKEDATA, newpid, r->edx, newpid) == -1) {
                         perror("ptrace(POKEDATA)");
                     }
                     return 0; /* registers not actually modified */
                 }
-			}
+			} else {
+                //printf("newpid was %d returned %d\n", ptrace(PTRACE_PEEKDATA, newpid, r->edx, 0), r->eax);
+            }
 			break;
 		default:
 			return 0;
