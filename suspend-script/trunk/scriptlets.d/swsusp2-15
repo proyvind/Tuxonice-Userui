@@ -89,7 +89,12 @@ Swsusp2ConfigOptions() {
 }
 
 Swsusp2ConfigSet() {
-    [ -n "$OPT_REBOOT" ] && echo $OPT_REBOOT > $SWSUSP_ROOT/reboot
+    # In earlier versions, /proc/swsusp/reboot was only available when
+    # compiled with debugging. Unfortunately the interface version didn't
+    # change when this was made available always :(
+    [ -n "$OPT_REBOOT" ] && [ -f "/proc/swsusp/reboot" ] && \
+	echo $OPT_REBOOT > $SWSUSP_ROOT/reboot
+
     [ -n "$OPT_ESCAPE" ] && echo $OPT_ESCAPE > $SWSUSP_ROOT/enable_escape
     [ -n "$OPT_CONSOLELEVEL" ] && echo $OPT_CONSOLELEVEL > $SWSUSP_ROOT/default_console_level
     [ -n "$OPT_ALLSETTINGS" ] && echo $OPT_ALLSETTINGS > $SWSUSP_ROOT/all_settings
