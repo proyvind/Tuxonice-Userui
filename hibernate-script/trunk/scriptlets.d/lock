@@ -40,10 +40,11 @@ LockXScreensaver() {
     fi
 
     local avail_sessions
+    local displays
     local display
 
     # find a list of running X servers
-    displays=$(find /tmp -name '.X*-lock' -maxdepth 1 -print | sed -e 's/.*X\([0-9]\)\+-lock/\1/g')
+    displays=$(find /tmp -name '.X*-lock' -maxdepth 1 -print | sed -e 's/.*X\([0-9]\+\)-lock/\1/g')
 
     for display in $displays; do
 	local xpid xauth
@@ -105,7 +106,7 @@ LockOptions() {
 	    
 	    if [ -z "$KDELOCK_HOOKED" ] ; then
 		# do it before switching out of X
-		AddSuspendHook 10 LockKDE
+		AddSuspendHook 95 LockKDE
 		KDELOCK_HOOKED=1
 	    fi
 	    ;;
@@ -113,7 +114,7 @@ LockOptions() {
 	lockxscreensaver)
 	    BoolIsOn "$1" "$2" && LOCK_XSCREENSAVER=1 || LOCK_XSCREENSAVER=0
 	    if [ -z "$XSCREENSAVERLOCK_HOOKED" ]; then
-		AddSuspendHook 10 LockXScreensaver
+		AddSuspendHook 95 LockXScreensaver
 		XSCREENSAVERLOCK_HOOKED=1
 	    fi
 	    ;;
