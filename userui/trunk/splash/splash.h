@@ -55,6 +55,12 @@ struct splash_config
 	
 } __attribute__ ((packed));
 
+struct png_data {
+	u8* data;
+	int len;
+	int cur_pos;
+};
+
 extern struct splash_config cf;
 
 /* splash_common.c */
@@ -90,7 +96,7 @@ int remove_dev(char *fn, int flag);
 void draw_box(u8* data, struct splash_box box, int fd);
 
 #ifdef CONFIG_PNG
-int load_png(char *filename, struct fb_image *img, char mode);
+int load_png(struct png_data *data, struct fb_image *img, char mode);
 int is_png(char *filename);
 #endif
 
