@@ -1,4 +1,4 @@
-CFLAGS := -Wall -O0 -g -I. -I/usr/include/freetype2/ -DCONFIG_TTF
+CFLAGS := -Wall -O0 -g -I. -I/usr/include/freetype2/
 LDFLAGS := -r -nostdlib -nostartfiles
 
 TARGET = userui_fbsplash.o
