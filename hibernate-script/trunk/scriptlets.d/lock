@@ -2,20 +2,25 @@
 # vim:ft=sh:ts=8:sw=4:noet
 
 AddConfigHandler LockOptions
-AddConfigHelp "LockKDE <boolean> [...]" "Lock all local KDE sessions running before suspending."
-AddConfigHelp "LockXScreenSaver <boolean> [...]" "Lock all local X11 sessions with xscreensaver running before suspending."
-AddConfigHelp "LockConsole <boolean> [...]" "Lock all consoles just after resuming via vlock."
+AddConfigHelp "LockKDE <boolean>" "Lock all local KDE sessions before suspending."
+AddConfigHelp "LockXScreenSaver <boolean>" "Lock all local X11 sessions with xscreensaver running before suspending."
+AddConfigHelp "LockConsoleAs <username>" "Locks the entire system after resuming, requiring you to enter either <username>'s or root's password to unlock it. (Requires vlock)."
 
 LockKDE() {
+    [ x"$LOCK_KDE" != "x1" ] && return 0
+
+    if ! which dcop > /dev/null 2>&1 ; then
+	vecho 0 'Cannot lock KDE. `dcop` program not found.'
+	return 1 # abort, unless forced
+    fi
+
     local avail_sessions
     local session
-
-    [ x"$LOCK_KDE" = "x1" ] || return 1
 
     # get all sessions (ignore non local ones!)
     avail_sessions=`dcop --all-users --list-sessions | grep .DCOP | grep __0`
 
-    #send to all sessions the lock command
+    # send the lock command to all sessions
     for session in $avail_sessions; do
 	vecho 1 "Locking $session"
 	# dev/null because dcop warns if it can't connect to X (this is normal!)
@@ -28,6 +33,12 @@ LockKDE() {
 
 LockXScreensaver() {
     [ x"$LOCK_XSCREENSAVER" != "x1" ] && return 0
+
+    if ! which xscreensaver-command > /dev/null 2>&1 ; then
+	vecho 0 'Cannot lock xscreensaver. `xscreensaver-command` not found.'
+	return 1 # abort, unless forced
+    fi
+
     local avail_sessions
     local display
 
@@ -45,28 +56,46 @@ LockXScreensaver() {
     # it takes a while for xscreensaver to actually lock
     # FIXME is this ideal behaviour? it slows down suspending :(
     sleep 2
+
+    return 0
 }
 
 LockConsole() {
-    [ x"$LOCK_CONSOLE" = "x1" ] || return 1
-  
-    # use vlock to lock all consoles
-    vecho 1 "Locking all consoles"
-    vlock -a || return 1
+    # Prerequistes are tested for in SwitchToLockConsole
 
-    # switch back to console before locking
-    [ -n "$LOCK_ORIGINAL_VT" ] && chvt $LOCK_ORIGINAL_VT
-	
+    [ -z "$LOCK_CONSOLE_USER" ] && return 0
+  
+    # Use vlock to lock all consoles. We must already be at the given console.
+    vecho 1 "Locking all consoles"
+    openvt -wfc $LOCK_DEST_VT su - "$LOCK_CONSOLE_USER" -c "vlock -a"
+
+    # This will hang until the root password is entered.
+
+    # Switch back to original console
+    chvt $LOCK_ORIGINAL_VT
 }
 
 SwitchToLockConsole() {
+    [ -z "$LOCK_CONSOLE_USER" ] && return 0
 
-    # stolen from xhacks
+    if ! which openvt > /dev/null 2>&1 ; then
+	vecho 0 'Cannot lock console. `openvt` program not found.'
+	LOCK_CONSOLE_USER=
+	return 1 # abort, unless forced
+    fi
+
+    if ! which vlock > /dev/null 2>&1 ; then
+	vecho 0 'Cannot lock console. `vlock` program not found.'
+	LOCK_CONSOLE_USER=
+	return 1 # abort, unless forced
+    fi
+
     which fgconsole > /dev/null 2>&1 && LOCK_ORIGINAL_VT=`fgconsole` || LOCK_ORIGINAL_VT=1
     [ -z "$SWSUSPVT" ] && LOCK_DEST_VT=15 || LOCK_DEST_VT="$SWSUSPVT"
     vecho 2 "lock: changing console from $LOCK_ORIGINAL_VT to $LOCK_DEST_VT"
-    chvt $DEST_VT || return 1
-				
+    chvt $LOCK_DEST_VT || return 1
+
+    return 0
 }
 
 LockOptions() {
@@ -89,17 +118,17 @@ LockOptions() {
 	    fi
 	    ;;
 
-        lockconsole)
-	    BoolIsOn "$1" "$2" && LOCK_CONSOLE=1 || LOCK_CONSOLE=0
+        lockconsoleas)
+	    LOCK_CONSOLE_USER="$2"
 
 	    if [ -z "$CONSOLELOCK_HOOKED" ] ; then
+		# call vlock just after resuming to avoid switching consoles
+		# and ask for password
+		AddResumeHook 98 LockConsole
 
-		# call vlock just after beeing back from resuming system call
-		# to avoid switching consoles and ask for password
-		AddResumeHook 99 LockConsole
-
-		# force switching to an VT to see the question for the password :)
-		AddSuspendHook 99 SwitchToLockConsole
+		# This ensures the console we switch back to will have vlock on
+		# it. (and not go via X first, or something)
+		AddSuspendHook 98 SwitchToLockConsole
 
 		CONSOLELOCK_HOOKED=1
 	    fi
