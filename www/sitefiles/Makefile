@@ -47,12 +47,12 @@ PAGES = style.css \
 		$(HOWTO_FILES) \
 		$(FAQ_FILES) \
 
-DIRS = contrib
+DIRS = contrib fedora
 
 # changing these rebuilds everything html
 PREREQS = Prettify top.html bottom.html
 
-all: directories htmlfiles rawfiles
+all: directories htmlfiles rawfiles fedora
 	find $(SITEBASE) -type d -exec chmod 2775 {} \;
 	find $(SITEBASE) -type f -exec chmod 664 {} \;
 
@@ -61,6 +61,11 @@ htmlfiles: $(patsubst %,$(SITEBASE)/%,$(filter %.html,$(PAGES)))
 rawfiles: $(patsubst %,$(SITEBASE)/%,$(filter-out %.html,$(PAGES)))
 directories:
 	mkdir -p $(patsubst %,$(SITEBASE)/%,$(DIRS))
+
+# fedora stuff just gets copied:
+fedora: $(patsubst %,$(SITEBASE)/%,$(wildcard fedora/*))
+$(SITEBASE)/fedora/%: fedora/%
+	cp $< $@
 
 olddownloads.html:
 	@#cat /tmp/index.html | perl -e 
