@@ -21,6 +21,30 @@ sub dumpfile {
 	close DUMPEE;
 }
 
+sub get_latest_dev_patches {
+	# Assume olddownloads-berl.html is up to date.
+	open (OLDD, "olddownloads-berl.html") or die "Can't open olddownloads-berl.html";
+	my $topver = 0;
+	my $vertext = "";
+	while (<OLDD>) {
+		chomp;
+		s#^[^>]+> <A HREF="[^"]+">(software-suspend-.*-for-.*\.tar\.bz2)</A>.*#$1# or next;
+		m#^software-suspend-(\d+)\.(\d+)\.(\d+)\.(\d+)-for-(2(\.\d+){2,}.*)\.tar\.bz2$# or next;
+		my $ver = $1 << 24 | $2 << 16 | $3 << 8 | $4;
+		my $kver = $5;
+		my $sver = "$1.$2.$3.$4";
+		if ($ver > $topver) {
+			$topver = $ver;
+			$vertext = "";
+		}
+		if ($ver == $topver) {
+			$vertext .= sprintf '<li><a href="http://download.berlios.de/softwaresuspend/%s">Software Suspend %s for kernel %s</a>'."\n", $_, $sver, $kver;
+		}
+	}
+	close (OLDD);
+	return $vertext;
+}
+
 # other magic words:
 # if we're reading from a file, use the date on the file.
 # if we're reading from stdin, use the current date.
@@ -29,6 +53,7 @@ $DATEFILE = " -r ".$ARGV[0] if $#ARGV >= 0;
 $ENV{"TZ"} = "AWST-8";
 $SUBSTS{"DATE"} = `date -R$DATEFILE`;
 chop $SUBSTS{"DATE"};
+$SUBSTS{"LATEST_DEV_PATCHES"} = get_latest_dev_patches;
 
 $_=<>; # first line contains magic directives
 chop $_;
