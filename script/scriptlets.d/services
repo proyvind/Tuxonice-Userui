@@ -13,6 +13,7 @@ ExecuteServices() {
     services=$@
     ret=0
     for service in $services ; do
+	[ -x "$INITDIR/$service" ] || continue
 	CMD="$INITDIR/$service $action"
 	vecho 2 "Executing $CMD"
 	$CMD || ret=$?
