@@ -354,6 +354,7 @@ LoadScriptlets() {
     local scriptlet
     local scriptlet_name
     local scriptlet_dir
+    local prev_path
     CURRENT_SOURCED_SCRIPTLET=""
     for scriptlet_dir in $SCRIPTLET_PATH ; do
 	[ -d "$scriptlet_dir" ] || continue
@@ -365,7 +366,6 @@ LoadScriptlets() {
 	    # Don't source a scriptlet by name more than once.
 	    scriptlet_name="`basename $scriptlet`"
 
-	    local prev_path
 	    eval "prev_path=\"\${HAVE_SOURCED_SCRIPTLET_$scriptlet_name}\""
 
 	    if [ -n "$prev_path" ] ; then
