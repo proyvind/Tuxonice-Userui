@@ -155,7 +155,7 @@ ModulesUnloadBlacklist() {
 
     local mod vers failedmods kver
 
-    kver=`awk 'BEGIN{FS="[^0-9]"}{print($1*65536)+($2*8)+$3}' /proc/sys/kernel/osrelease`
+    kver=`awk 'BEGIN{FS="[^0-9]"}{print($1*0x10000)+($2*0x100)+$3}' /proc/sys/kernel/osrelease`
 
     # Loop over every line in given file.
     vecho 2 "Unloading blacklisted modules listed $MODULES_BLACKLIST_FILE" 
