@@ -103,7 +103,7 @@ ModulesUnloadAll() {
 	modbefore="$modafter"
 
 	# Some sleep implementations might not support decimal sleep values:
-	sleep 0.2 > /dev/null 2>&1 ; [ $? -ne 130 ] && sleep 1
+	sleep 0.2 > /dev/null 2>&1 ; [ $? -ne 0 -a $? -ne 130 ] && sleep 1
 
 	ModulesUnloadAllOnce
 	modafter="`awk '($3==0){print $1}' /proc/modules`"
