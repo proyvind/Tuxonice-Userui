@@ -1,5 +1,4 @@
 - Implement config options in swsusp2
 - Write networking scriptlet
 - Fix services scriptlets for other distros
-- Allow changing of config file on command line
 - Cmd-line option to write a default config file
