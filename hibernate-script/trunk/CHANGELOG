@@ -1,5 +1,7 @@
-0.95.2 (23 July 2004)
- - Make the --config-file= option work once again.
+0.96 (24 July 2004)
+ - Make the --config-file= option work once again (oops!)
+ - Added the lock scriptlet for locking KDE, XScreensaver or the entire system
+   via vlock.
 
 0.95.1 (23 July 2004)
  - Fixed misclaunch scripts always failing bug.
