@@ -18,7 +18,7 @@ fi
 
 echo "Installing suspend script to $SCRIPT_DEST ..."
 mkdir -p `dirname $SCRIPT_DEST`
-cp -a suspend.sh /usr/local/sbin
+cp -a suspend.sh $SCRIPT_DEST
 
 echo "Installing configuration file to $CONFIG_DIR ..."
 mkdir -p $CONFIG_DIR
