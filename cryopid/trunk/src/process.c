@@ -752,9 +752,9 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
             }
 		}
         if (!get_fcntl_data(target_pid, proc_image->fds[fd_count].fd, &proc_image->fds[fd_count].fcntl_data)) {
-            printf("Couldn't get fcntl data :(\n");
+            printf("    Couldn't get fcntl data :(\n");
         } else {
-            printf("fcntl: close-on-exec:%d\n", proc_image->fds[fd_count].fcntl_data.close_on_exec);
+            printf("    fcntl: close-on-exec:%d\n", proc_image->fds[fd_count].fcntl_data.close_on_exec);
         }
 
 		/* Locate the offset of the file */
