@@ -9,7 +9,7 @@ static int mng_readfile(mng_handle mngh, char *filename) {
 	int fd, len;
 	char *data;
 	struct stat sb;
-	struct fbsplash_mng_data *mng_data = mng_get_userdata(mngh);
+	fbsplash_mng_data *mng_data = mng_get_userdata(mngh);
 
 	if ((fd = open(filename, O_RDONLY)) < 0) {
 		perror("mng_readfile: open");
@@ -54,14 +54,14 @@ close_fail:
 
 mng_handle mng_load(char* filename, int fb_bytes_pp) {
 	mng_handle mngh;
-	struct fbsplash_mng_data *mng_data;
+	fbsplash_mng_data *mng_data;
 
 	if (fb_bytes_pp < 3 || fb_bytes_pp > 4) {
 		fprintf(stderr, "%s: Invalid colour depth!", __FUNCTION__);
 		return MNG_NULL;
 	}
 
-	mng_data = (struct fbsplash_mng_data*)malloc(sizeof(struct fbsplash_mng_data));
+	mng_data = (fbsplash_mng_data*)malloc(sizeof(fbsplash_mng_data));
 	if (!mng_data) {
 		fprintf(stderr, "%s: Unable to allocate memory for MNG data\n",
 				__FUNCTION__);
@@ -108,7 +108,7 @@ void mng_done(mng_handle mngh) {
 }
 
 mng_retcode mng_render_next(mng_handle mngh) {
-	struct fbsplash_mng_data *data = mng_get_userdata(mngh);
+	fbsplash_mng_data *data = mng_get_userdata(mngh);
 	mng_retcode ret;
 
 	if (!data->displayed_first) {
@@ -129,7 +129,7 @@ mng_retcode mng_render_next(mng_handle mngh) {
 int mng_display_next(mng_handle mngh, char* dest, int x, int y, int width, int height) {
 	char *src;
 	int line;
-	struct fbsplash_mng_data *mng_data = mng_get_userdata(mngh);
+	fbsplash_mng_data *mng_data = mng_get_userdata(mngh);
 	int bpp = mng_data->canvas_bytes_pp;
 
 	dest += y * width * bpp;

@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-struct fbsplash_mng_data {
+typedef struct {
 	void *data;
 	int len, ptr, open;
 
@@ -14,13 +14,14 @@ struct fbsplash_mng_data {
 	int wait_msecs;
 	struct timeval start_time;
 	int displayed_first;
-};
+} fbsplash_mng_data;
 
 /* mng_render.c */
 extern mng_handle mng_load(char *filename, int fb_bytes_pp);
 extern void mng_done(mng_handle mngh);
 extern mng_retcode mng_render_next(mng_handle mngh);
-extern int mng_display_next(mng_handle mngh, char* dest, int x, int y, int width, int height);
+extern int mng_display_next(mng_handle mngh, char* dest, int x, int y,
+	int width, int height);
 
 /* mng_callbacks.c */
 extern mng_ptr fbsplash_mng_memalloc(mng_size_t len);

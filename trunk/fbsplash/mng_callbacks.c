@@ -12,7 +12,7 @@ void fbsplash_mng_memfree(mng_ptr p, mng_size_t len) {
 }
 
 static mng_bool fbsplash_mng_openstream(mng_handle handle) {
-	struct fbsplash_mng_data *data = mng_get_userdata(handle);
+	fbsplash_mng_data *data = mng_get_userdata(handle);
 
 	if (data->data == NULL || data->len == 0)
 		return MNG_FALSE;
@@ -24,7 +24,7 @@ static mng_bool fbsplash_mng_openstream(mng_handle handle) {
 }
 
 static mng_bool fbsplash_mng_closestream(mng_handle handle) {
-	struct fbsplash_mng_data *data = mng_get_userdata(handle);
+	fbsplash_mng_data *data = mng_get_userdata(handle);
 
 	data->open = 0;
 	return MNG_TRUE;
@@ -32,7 +32,7 @@ static mng_bool fbsplash_mng_closestream(mng_handle handle) {
 
 static mng_bool fbsplash_mng_readdata(mng_handle handle, mng_ptr buf, 
 		mng_uint32 len, mng_uint32p pread) {
-	struct fbsplash_mng_data *data = mng_get_userdata(handle);
+	fbsplash_mng_data *data = mng_get_userdata(handle);
 	char *src_buf;
 	
 	if (data->data == NULL || !data->open)
@@ -53,7 +53,7 @@ static mng_bool fbsplash_mng_readdata(mng_handle handle, mng_ptr buf,
 }
 
 static mng_ptr fbsplash_mng_getcanvasline(mng_handle handle, mng_uint32 line_num) {
-	struct fbsplash_mng_data *data = mng_get_userdata(handle);
+	fbsplash_mng_data *data = mng_get_userdata(handle);
 
 	if (data->canvas == NULL || line_num >= data->canvas_h) {
 		fprintf(stderr, "%s(mngh, %d): Requested invalid line or canvas was NULL.\n",
@@ -73,7 +73,7 @@ static mng_bool fbsplash_mng_refresh(mng_handle handle, mng_uint32 x, mng_uint32
 
 static mng_uint32 fbsplash_mng_gettickcount(mng_handle handle) {
 	struct timeval tv;
-	struct fbsplash_mng_data *data = mng_get_userdata(handle);
+	fbsplash_mng_data *data = mng_get_userdata(handle);
 
 	if (gettimeofday(&tv, NULL) < 0) {
 		perror("fbsplash_mng_gettickcount: gettimeofday");
@@ -90,7 +90,7 @@ static mng_uint32 fbsplash_mng_gettickcount(mng_handle handle) {
 }
 
 static mng_bool fbsplash_mng_settimer(mng_handle handle, mng_uint32 msecs) {
-	struct fbsplash_mng_data *data = mng_get_userdata(handle);
+	fbsplash_mng_data *data = mng_get_userdata(handle);
 
 	data->wait_msecs = msecs;
 	return MNG_TRUE;
@@ -98,7 +98,7 @@ static mng_bool fbsplash_mng_settimer(mng_handle handle, mng_uint32 msecs) {
 
 static mng_bool fbsplash_mng_processheader(mng_handle handle, mng_uint32 width,
 		mng_uint32 height) {
-	struct fbsplash_mng_data *data = mng_get_userdata(handle);
+	fbsplash_mng_data *data = mng_get_userdata(handle);
 
 	free(data->canvas);
 
