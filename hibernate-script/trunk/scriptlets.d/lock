@@ -81,6 +81,7 @@ LockConsole() {
     # This will hang until the root password is entered.
 
     # Switch back to original console
+    vecho 3 "lock: changing console back to $LOCK_ORIGINAL_VT"
     chvt $LOCK_ORIGINAL_VT
 }
 
@@ -99,7 +100,12 @@ SwitchToLockConsole() {
 	return 1 # abort, unless forced
     fi
 
-    which fgconsole > /dev/null 2>&1 && LOCK_ORIGINAL_VT=`fgconsole` || LOCK_ORIGINAL_VT=1
+    if which fgconsole > /dev/null 2>&1 ; then
+	LOCK_ORIGINAL_VT=`fgconsole`
+    else
+	LOCK_ORIGINAL_VT=1
+    fi
+
     LOCK_DEST_VT=61 # Choose something different - can't afford to have silent bootsplash there
     vecho 2 "lock: changing console from $LOCK_ORIGINAL_VT to $LOCK_DEST_VT"
     chvt $LOCK_DEST_VT || return 1
@@ -113,8 +119,7 @@ LockOptions() {
 	    BoolIsOn "$1" "$2" && LOCK_KDE=1 || LOCK_KDE=0
 	    
 	    if [ -z "$KDELOCK_HOOKED" ] ; then
-		# do it before switching out of X
-		AddSuspendHook 95 LockKDE
+		AddSuspendHook 91 LockKDE
 		KDELOCK_HOOKED=1
 	    fi
 	    ;;
@@ -122,7 +127,7 @@ LockOptions() {
 	lockxscreensaver)
 	    BoolIsOn "$1" "$2" && LOCK_XSCREENSAVER=1 || LOCK_XSCREENSAVER=0
 	    if [ -z "$XSCREENSAVERLOCK_HOOKED" ]; then
-		AddSuspendHook 95 LockXScreensaver
+		AddSuspendHook 91 LockXScreensaver
 		XSCREENSAVERLOCK_HOOKED=1
 	    fi
 	    ;;
@@ -133,11 +138,11 @@ LockOptions() {
 	    if [ -z "$CONSOLELOCK_HOOKED" ] ; then
 		# call vlock just after resuming to avoid switching consoles
 		# and ask for password
-		AddResumeHook 98 LockConsole
+		AddResumeHook 96 LockConsole
 
 		# This ensures the console we switch back to will have vlock on
 		# it. (and not go via X first, or something)
-		AddSuspendHook 98 SwitchToLockConsole
+		AddSuspendHook 96 SwitchToLockConsole
 
 		CONSOLELOCK_HOOKED=1
 	    fi
