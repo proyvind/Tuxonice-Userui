@@ -5,7 +5,7 @@ AddConfigHelp "GrubMenuFile <filename>" "Filename of grub's config file. Default
 AddOptionHandler GrubCmdlineOptions
 AddShortOption 'g'
 AddLongOption 'restore-grub'
-AddOptionHelp '-g, --restore-grub' 'Restores the grub menu to normal (use if a suspend was not completed sucessfully) and exits the script. Does not hibernate.'
+AddOptionHelp '-g, --restore-grub' 'Restores the grub menu to normal (use if a suspend was not completed sucessfully) and exits the script. A suspend is not performed.'
 
 GRUB_MENU_FILE="/boot/grub/grub.conf"
 
