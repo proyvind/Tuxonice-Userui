@@ -123,7 +123,7 @@ static long my_vm_size() {
 	if (!(f = fopen(s, "r")))
 		goto out;
 
-	if (fscanf(f, "%d", &ret) == 1)
+	if (fscanf(f, "%ld", &ret) == 1)
 		ret *= PAGE_SIZE;
 
 out:
@@ -156,13 +156,16 @@ static void reserve_memory(unsigned long bytes) {
 static void enforce_lifesavers() {
 	struct rlimit r;
 
-	/* Set RLIMIT_NOFILE to prevent files being opened */
 	r.rlim_cur = r.rlim_max = 0;
+
+	/* Set RLIMIT_NOFILE to prevent files being opened. */
 	setrlimit(RLIMIT_NOFILE, &r);
 
-	/* Set RLIMIT_NPROC to prevent process forks */
-	r.rlim_cur = r.rlim_max = 0;
+	/* Set RLIMIT_NPROC to prevent process forks. */
 	setrlimit(RLIMIT_NPROC, &r);
+
+	/* Never core dump - that's bad too. */
+	setrlimit(RLIMIT_CORE, &r);
 }
 
 /* A generic signal handler to ensure we don't quit in times of desperation,
