@@ -9,111 +9,16 @@
 #include <unistd.h>
 #include <linux/fb.h>
 #include <linux/kd.h>
+#include <linux/vt.h>
 
 #include "splash.h"
 #include "../userui.h"
 
-#define FB_IMAGE_DIR "/etc/suspend_userui/images/"
+int fb_fd, fbsplash_fd;
+static char lastheader[512];
+static int lastloglevel;
 
-static struct fb_image cur_fb_pic;
-static struct png_data **pngs; /* Array of (struct png_datas *)'s */
-static int fb_fd;
-static int num_pngs, cur_png;
-
-static void make_pic_cur(int png_num) {
-	int data_len = fb_var.xres * fb_var.yres * (fb_var.bits_per_pixel >> 3);
-
-	if (load_png(pngs[png_num], &cur_fb_pic, 's')) {
-	}
-
-	if (cur_fb_pic.data && fb_fd >= 0) {
-		lseek(fb_fd, 0, SEEK_SET);
-		write(fb_fd, cur_fb_pic.data, data_len);
-	}
-}
-
-static int read_pics(int for_real, int max_to_load) {
-	struct dirent **namelist;
-	int n, i, usable = 0;
-
-	n = scandir(FB_IMAGE_DIR, &namelist, 0, alphasort);
-	if (n < 0)
-		return -1;
-
-	for (i = 0; i < n; i++) {
-		char *s = NULL;
-		struct png_data *png_data = NULL;
-		struct stat sb;
-		int fd = -1, bytes_to_go;
-		char* p;
-
-		s = (char*) malloc(strlen(namelist[i]->d_name)+strlen(FB_IMAGE_DIR)+2);
-		if (!s)
-			goto next;
-		sprintf(s, "%s/%s", FB_IMAGE_DIR, namelist[i]->d_name);
-		if (strcmp(s+strlen(s)-4, ".png") != 0)
-			goto next;
-
-		if (stat(s, &sb) == -1)
-			goto next;
-
-		if (!S_ISREG(sb.st_mode))
-			goto next;
-
-		usable++;
-
-		if (!for_real)
-			goto next;
-
-		if (num_pngs >= max_to_load)
-			goto next;
-
-		if (!(png_data = (struct png_data *)malloc(sizeof(struct png_data))))
-			goto next;
-
-		png_data->data = NULL;
-
-		if ((fd = open(s, O_RDONLY)) == -1)
-			goto next_bail;
-
-		if (!(png_data->data = (u8*)malloc(sb.st_size)))
-			goto next_bail;
-
-		bytes_to_go = sb.st_size;
-		p = png_data->data;
-		while (bytes_to_go > 0) {
-			int res;
-			res = read(fd, p, bytes_to_go);
-			if (res == -1)
-				goto next_bail;
-			if (res == 0) /* Unexpected EOF */
-				goto next_bail;
-			p += res;
-			bytes_to_go -= res;
-		}
-
-		png_data->len = sb.st_size;
-
-		pngs[num_pngs++] = png_data;
-
-		goto next;
-
-next_bail:
-		if (png_data && png_data->data)
-			free(png_data->data);
-		if (png_data)
-			free(png_data);
-
-next:
-		if (fd >= 0)
-			close(fd);
-		if (s)
-			free(s);
-		free(namelist[i]);
-	}
-	free(namelist);
-	return usable;
-}
+static inline void clear_display() { write(1, "\2332J", 3); }
 
 static void hide_cursor() {
 	//ioctl(STDOUT_FILENO, KDSETMODE, KD_GRAPHICS);
@@ -125,103 +30,144 @@ static void show_cursor() {
 	write(1, "\033[?0c", 5);
 }
 
-static void fbsplash_prepare() {
-	int n;
+static void silent_on() {
+	printf("Putting it on\n");
+	lseek(fb_fd, 0, SEEK_SET);
+	write(fb_fd, pic.data, pic.width * pic.height * (pic.depth >> 3));
+}
 
+static void silent_off() {
+	clear_display();
+}
+
+static int get_active_vt() {
+	int vt, fd;
+	struct vt_stat vt_stat;
+
+	vt = 62; /* default */
+
+	if ((fd = open("/dev/tty0", O_RDONLY)) == -1)
+		goto out;
+
+	if (ioctl(fd, VT_GETSTATE, &vt_stat) == -1)
+		goto out;
+
+	vt = vt_stat.v_active - 1;
+
+out:
+	if (fd >= 0)
+		close(fd);
+
+	return vt;
+}
+
+static void fbsplash_prepare() {
 	hide_cursor();
 
-	num_pngs = 0;
-	cur_png = -1;
-
 	fb_fd = -1;
+	fbsplash_fd = -1;
+	lastloglevel = SUSPEND_ERROR; /* start in verbose mode */
 
 	if (get_fb_settings(0))
 		return;
 
-	cur_fb_pic.width = fb_var.xres;
-	cur_fb_pic.height = fb_var.yres;
-	cur_fb_pic.depth = fb_var.bits_per_pixel;
-	cur_fb_pic.data = malloc(fb_var.xres * fb_var.yres * (fb_var.bits_per_pixel >> 3));
-	if (!cur_fb_pic.data)
+	/* Read theme config file */
+	arg_theme = "suspend2";
+	config_file = get_cfg_file(arg_theme);
+	if (config_file)
+		parse_cfg(config_file);
+	else
 		return;
 
-	n = read_pics(0, 0);
-	if (n < 0)
-		return;
-
-	if (!(pngs = (struct png_data**)malloc(n*sizeof(struct png_data*))))
-		return;
-	read_pics(1, n);
+	arg_vc = get_active_vt();
 
 	fb_fd = open("/dev/fb0", O_WRONLY);
 	if (fb_fd == -1)
 		perror("open(\"/dev/fb0\")");
+
+	fbsplash_fd = open(SPLASH_DEV, O_WRONLY);
+	if (fbsplash_fd == -1)
+		perror("open(\""SPLASH_DEV"\"");
+
+	do_config(FB_SPLASH_IO_ORIG_USER);
+	do_getpic(FB_SPLASH_IO_ORIG_USER, 1, 'v');
+	cmd_setstate(1, FB_SPLASH_IO_ORIG_USER);
+
+	do_getpic(FB_SPLASH_IO_ORIG_USER, 0, 's');
 }
 
 static void fbsplash_cleanup() {
-	int i;
-	for (i = 0; i < num_pngs; i++) {
-		if (!pngs[i])
-			continue;
-
-		if (pngs[i]->data)
-			free(pngs[i]->data);
-
-		free(pngs[i]);
-	}
-	free(pngs);
-
+	cmd_setstate(0, FB_SPLASH_IO_ORIG_USER);
 	show_cursor();
 
+	if (fbsplash_fd >= 0)
+		close(fbsplash_fd);
 	if (fb_fd >= 0)
 		close(fb_fd);
 }
 
-static void fbsplash_message(unsigned long type, unsigned long level, int normally_logged, char *fbsplash) {
+static void fbsplash_message(unsigned long type, unsigned long level, int normally_logged, char *msg) {
+	printf("** %s\n", msg);
+	strncpy(lastheader, msg, 512);
 }
 
 static void fbsplash_update_progress(unsigned long value, unsigned long maximum, char *fbsplash) {
-	struct splash_box box;
-	int image_num;
+	arg_progress = value * PROGRESS_MAX / maximum;
+	arg_task = paint;
 
-	if (!cur_fb_pic.data)
-		return;
-
-	if (maximum <= 0)
-		maximum = 1;
-	if (value < 0)
-		value = 0;
-	if (value > maximum)
-		value = maximum;
-
-	image_num = value * num_pngs / maximum;
-
-	if (image_num < 0)
-		image_num = 0;
-	if (image_num >= num_pngs)
-		image_num = num_pngs-1;
-
-	if (cur_png != image_num) {
-		make_pic_cur(image_num);
-		cur_png = image_num;
-	}
-
-	box.x1 = fb_var.xres/10;
-	box.x2 = (fb_var.xres/10)+((fb_var.xres*8/10)*value/maximum);
-	box.y1 = fb_var.yres*17/20;
-	box.y2 = fb_var.yres*18/20;
-	box.c_ul = box.c_ur = box.c_ll = box.c_lr = ({struct color c = { 255, 0, 0, 255 }; c;});
-
-	draw_box((u8*)cur_fb_pic.data, box, fb_fd);
+	if (console_loglevel < SUSPEND_ERROR)
+		draw_boxes((u8*)pic.data, 's', FB_SPLASH_IO_ORIG_USER);
 }
 
 static void fbsplash_log_level_change(int loglevel) {
+	/* Only reset the display if we're switching between nice display
+	 * and displaying debugging output */
+	
+	if (console_loglevel >= SUSPEND_ERROR) {
+		if (lastloglevel < SUSPEND_ERROR)
+			silent_off();
+
+		printf("\nSwitched to console loglevel %d.\n", console_loglevel);
+
+		if (lastloglevel < SUSPEND_ERROR) {
+			printf("\n** %s\n", lastheader);
+		}
+	
+	} else if (lastloglevel >= SUSPEND_ERROR) {
+		silent_on();
+	
+		/* Get the nice display or last action [re]drawn */
+		/* redraw_progress(); FIXME */
+	}
+	
+	lastloglevel = console_loglevel;
 }
 
 static void fbsplash_redraw() {
 }
 
 static void fbsplash_keypress(int key) {
+	switch (key) {
+		case 1:
+			send_message(USERUI_MSG_ABORT, NULL, 0);
+			break;
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+			console_loglevel = key - 1;
+			send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
+			break;
+		case 11:
+			console_loglevel = 0;
+			send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
+			break;
+	}
 }
 
 static unsigned long fbsplash_memory_required() {
