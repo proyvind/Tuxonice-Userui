@@ -78,7 +78,7 @@ downloads/index.html: downloads.xml parse_downloads
 	./parse_downloads > $@
 
 # HTML files need a bit of processing.
-$(SITEBASE)/index.html: index.html $(PREREQS)
+$(SITEBASE)/index.html: index.html $(PREREQS) downloads/index.html
 	./Prettify $< > $@
 
 $(SITEBASE)/%.html: %.html $(PREREQS)
@@ -103,18 +103,4 @@ clean:
 backup: clean
 	cd .. && tar czf sitefiles-`date +"%Y%m%d"`.tar.gz sitefiles/
 
-live: berlios demo
-
-sf: 
-	#cd .. && tar cz sitefiles/ | ssh bernardb@shell.sf.net 'cd swsusp && tar xzv && make -C sitefiles'
-	cd .. && rsync -azve ssh --exclude=.svn sitefiles bernardb@shell.sf.net:swsusp/ && ssh sf make -C swsusp/sitefiles
-
-demo: 
-	cd .. && rsync -azve ssh --exclude=.svn sitefiles ucc-charged:public-html/swsusp/ && ssh ucc-charged make -C public-html/swsusp/sitefiles
-
-berlios: all
-	cd .. && rsync -azve ssh --exclude=.svn htdocs/* berlios:softwaresuspend/htdocs/
-	ssh berlios 'set -x ; cd softwaresuspend/htdocs ; ln -sf olddownloads-epfl.html olddownloads.html ; tar --exclude-from=$$HOME/softwaresuspend/exclusions -vvzcf website-epfl.tgz * ; ln -sf olddownloads-berl.html olddownloads.html'
-	#cd .. && rsync -azve ssh --exclude=.svn sitefiles berlios:softwaresuspend/ && ssh berlios make -C softwaresuspend/sitefiles
-
-.PHONY: directories htmlfiles rawfiles howto clean backup push demo
+.PHONY: directories htmlfiles rawfiles howto clean backup

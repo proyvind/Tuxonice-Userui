@@ -7,6 +7,11 @@ download_dir = '/var/web/www/htdocs/downloads/'
 download_url_prefix = '/downloads/'
 download_info_file = 'downloads.xml'
 
+# For our external HTML snippets
+first_stable26 = 0
+first_stable24 = 0
+first_dev = 0
+
 def getFileInfo(filename):
 	try:
 		sb = os.stat('%s/%s'%(download_dir, filename))
@@ -28,7 +33,7 @@ def parseKernel(kernel, release_name):
 		filename = filename.next
 	if filename is None:
 		filename = 'software-suspend-%s-for-%s.tar.bz2' % \
-			(version, release_name)
+			(release_name, version)
 	elif filename.name == 'filename':
 		filename = filename.content.strip()
 	else:
