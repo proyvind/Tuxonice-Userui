@@ -19,7 +19,7 @@
 
  <section name="Stable Patches">
 
-  <release name="2.1.8">
+  <release name="2.1.8.1">
    <kernel name="2.6.11"></kernel>
   </release>
 

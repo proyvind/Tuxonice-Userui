@@ -9,7 +9,7 @@ the contents and the user can continue from where they left off. No
 documents need to be reloaded or applications reopened and the process
 is much faster than a normal shutdown and start up.</p>
 
-<p class="Note"><a href="#2.1.8">Software Suspend 2.1.8 for Linux 2.6 is out!</a></p>
+<p class="Note"><a href="#2.1.8.1">Software Suspend 2.1.8.1 for Linux 2.6 is out!</a></p>
 
 <p>Software Suspend 2 has a long <a href="###BASE###features">feature list</a>,
 including the ability to cancel a suspend by pressing Escape, image compression
@@ -57,6 +57,25 @@ but again be warned that nobody will be likely to help you.</p>
 <hr>
 
 <h2>Latest News</h2>
+
+<a name="2.1.8.1"></a><b>7 March 2005: Software Suspend 2.1.8.1 released.</b>
+<p>Scary! Nigel is updating web pages!</p>
+
+<p>A 2.1.8.1 release is out. This release addresses a few small but significant issues
+encountered in 2.1.8.</p>
+
+<p>It also incorporates updates to the Suspend userspace interface
+module. Bernard and I are working toward the userspace user interface module
+becoming the main user interface module. This means that in 2.1.9, Lord willing, 
+the existing text mode and bootsplash modules will be marked deprecated (as you'll 
+see in menuconfig now), and removed in 2.1.10.</p>
+
+<p>The file writer is also slowly coming along. In similar fashion to the userspace
+interface changes, the swapwriter will be deprecated in 2.1.9, and go out-of-tree
+in 2.1.10. It will continue to be available for those who require it, as a separate
+patch on the web site.
+
+<p>All of this is in preparation for another attempt at merging into mainline!</p>
 
 <a name="Bitkeeper Repositories"></a><b>4 March 2005: <tt>bk.suspend2.net</tt>
 makes an appearance.</b>
