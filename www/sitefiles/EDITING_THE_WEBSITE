@@ -31,6 +31,11 @@ Steps to edit the website:
     All the FAQ-*.html and HOWTO-*.html files -- generated from FAQ.sgml and
         HOWTO.sgml respectively by linuxdoc.
 
+    top.html and bottom.html are attached to the top and bottom of every page,
+    respectively.
+
+    Some substitutions are done, surrounded by 3 #'s, such as ###DATE###.
+
   New files must be added to the subversion repository:
     $ svn add newfile.html
   and added to the Makefile under PAGES = 
