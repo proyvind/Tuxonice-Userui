@@ -1,3 +1,5 @@
+# $Id$
+
 CONFIG_DIR = /etc/suspend
 CONFIG_FILE = $(CONFIG_DIR)/suspend.conf
 SCRIPTLET_DIR = $(CONFIG_DIR)/scriptlets.d
