@@ -1,0 +1,59 @@
+Suspend's userspace user interface appeared in 2.1.7 as a "Possibly broken
+developer option". It allows you put the user interface of software suspend
+into a userspace process which offers a great deal of flexibility as to what
+can be done.
+
+To get things going, you'll need the following:
+
+ - A Software Suspend 2 enabled kernel with suspend_userui enabled either as a
+   kernel module or compiled into the kernel.
+ - The userspace UI sources. These are available by subversion - you can check
+   them out by running
+     svn checkout http://svn.ucc.asn.au:8080/dagobah/userui userui
+   As this matures, there may be tarballs made available at some point which
+   will be downloadable from the Berlios download page.
+ - For userui_fbsplash - some images. One sample animation is at
+   http://dagobah.ucc.asn.au/swsusp/penguin-images.tgz - this tarball extracts
+   over your root filesystem and will place the images into
+   /etc/suspend_userui/images/ . These will only work on a 1024x768
+   framebuffer.
+
+Steps:
+
+1. After patching, compiling and booting your kernel, ensure the suspend_userui
+   module is loaded. You probably also want to get rid of the suspend_text
+   module which is most easily done by either not loading the module, or
+   putting "echo 1 > /proc/software_suspend/disable_textmode_support" in your
+   hibernate script ("ProcSetting disable_textmode_support 1" in
+   hibernate.conf)
+
+2. Download the userui sources from the subversion repository or tarballs
+   mentioned above, and compile them by typing "make". This will create
+   userui_text and userui_fbsplash. The latter will only succeed in compiling
+   if you have all the relevant libraries and dev files (libpng, libz,
+   libjpeg).
+
+3. In your hibernate script, put the path to the userui_text or userui_fbsplash
+   binary into /proc/software_suspend/userui_program.
+
+4. [This step is somewhatoptional - if you omit it, you simply will not have a
+    user interface for the first portion of resuming].
+   Add the userui_text or userui_fbsplash binary to your initrd image and set
+   your initrd script to set the userui_program path appropriately (if it is
+   in a different location in the initrd image).
+
+5. [This step for fbsplash only]
+   Download some fbsplash images as PNGs into /etc/suspend_userui/images/ (see
+   url above).
+   If you want to see the images for the first portion of resuming too, you
+   will need to put this into the initrd too. If you only want to use a single
+   image, and not have an animation, make sure it's a PNG that matches your
+   framebuffer size and colour depth, and put it into
+   /etc/suspend_userui/images/ with no other images.
+
+6. Suspend!
+
+Please report any bugs to either the softwaresuspend-devel mailing list or
+bernard@blackham.com.au
+
+
