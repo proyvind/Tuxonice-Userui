@@ -526,11 +526,6 @@ EnsureHaveRoot() {
 
 # DoWork: Does the actual calling of scriptlet functions. We wrap this to make
 # it easy to decide whether or not to pipe its output to $LOGPIPE or not.
-# 
-# If we are given the parameter "hup", then we force ourselves to die when
-# we are complete. This prevents us from lingering around because some script
-# we spawned didn't close it's stdout/stderr. This only works because we are
-# spawned in a subshell to do the pipe.
 DoWork() {
     # Trap Ctrl+C
     trap ctrlc_handler INT
@@ -627,7 +622,7 @@ echo "Starting suspend at "`date` | $LOGPIPE > /dev/null
 if [ "$LOGPIPE" = "cat" ] ; then
     DoWork
 else
-    DoWork hup 2>&1 | $LOGPIPE
+    DoWork 2>&1 | $LOGPIPE
 fi
 
 echo "Resumed at "`date` | $LOGPIPE > /dev/null
