@@ -102,7 +102,7 @@ void truecolor2fb (truecolor* data, u8* out, int len, int y)
 #ifdef CONFIG_PNG
 #define PALETTE_COLORS 240
 
-int load_png(u8* data, int data_len, struct fb_image *img, char mode)
+int load_png(char *filename, struct fb_image *img, char mode)
 {
 	png_structp 	png_ptr;
 	png_infop 	info_ptr;
@@ -120,6 +120,10 @@ int load_png(u8* data, int data_len, struct fb_image *img, char mode)
 	else
 		pal_len = 256;
 		
+	FILE *fp = fopen(filename,"r");
+	if (!fp)
+		return -1;
+	
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	info_ptr = png_create_info_struct(png_ptr);
 
@@ -154,8 +158,7 @@ int load_png(u8* data, int data_len, struct fb_image *img, char mode)
 
 	rowbytes = png_get_rowbytes(png_ptr, info_ptr);	
 	
-	if (!img->data)
-		img->data = malloc(fb_var.xres * fb_var.yres * bytespp);
+	img->data = malloc(fb_var.xres * fb_var.yres * bytespp);
 	if (!img->data)
 		return -4;
 	
@@ -222,6 +225,7 @@ int load_png(u8* data, int data_len, struct fb_image *img, char mode)
 	}
 	
 	free(buf);
+	fclose(fp);
 	
 	return 0;
 }

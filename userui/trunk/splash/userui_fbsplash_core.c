@@ -15,21 +15,13 @@
 
 #define FB_IMAGE_DIR "/etc/suspend_userui/images/"
 
-struct png_data {
-	void* data;
-	int len;
-};
-
 static struct fb_image cur_fb_pic;
-static struct png_data **pngs; /* Array of (struct png_datas *)'s */
+static struct fb_image **fb_pics; /* Array of (struct fb_image *)'s */
 static int fb_fd;
-static int num_pngs;
+static int num_fb_pics;
 
-static void make_pic_cur(int png_num) {
-	int data_len;
-
-	if (load_png(pngs[png_num]->data, pngs[png_num]->len, &cur_fb_pic, 's')) {
-	}
+static void make_pic_cur(struct fb_image *src) {
+	int data_len = src->width * src->height * (src->depth >> 3);
 
 	cur_fb_pic.width = src->width;
 	cur_fb_pic.height = src->height;
@@ -53,11 +45,7 @@ static int read_pics(int for_real, int max_to_load) {
 
 	for (i = 0; i < n; i++) {
 		char *s = NULL;
-		struct png_data *png_data = NULL;
-		struct stat sb;
-		int fd = -1, bytes_to_go;
-		char* p;
-
+		struct fb_image *fb_pic = NULL;
 		s = (char*) malloc(strlen(namelist[i]->d_name)+strlen(FB_IMAGE_DIR)+2);
 		if (!s)
 			goto next;
@@ -70,47 +58,23 @@ static int read_pics(int for_real, int max_to_load) {
 		if (!for_real)
 			goto next;
 
-		if (num_pngs >= max_to_load)
+		if (num_fb_pics >= max_to_load)
 			goto next;
 
-		if (stat(s, &sb) == -1)
+		if (!(fb_pic = (struct fb_image *)malloc(sizeof(struct fb_image))))
 			goto next;
 
-		if (!S_ISREG(sb.st_mode))
+		fb_pic->width  = fb_var.xres;
+		fb_pic->height = fb_var.yres;
+		fb_pic->depth  = fb_var.bits_per_pixel;
+		fb_pic->data   = NULL;
+
+		if (load_png(s, fb_pic, 'v')) {
+			free(fb_pic);
 			goto next;
-
-		if (!(png_data = (struct png_data *)malloc(sizeof(struct png_data))))
-			goto next;
-
-		png_data->data = NULL;
-
-		if ((fd = open(s, O_RDONLY)) == -1)
-			goto next;
-
-		if (!(png_data->data = malloc(sb.st_size)))
-			goto next;
-
-		bytes_to_go = sb.st_size;
-		p = png_data->data;
-		while (bytes_to_go > 0) {
-			int res;
-			res = read(fd, p, bytes_to_go);
-			if (res == -1)
-				goto next;
-			if (res == 0) /* Unexpected EOF */
-				goto next;
-			p += res;
-			bytes_to_go -= res;
 		}
-
-		pngs[num_pngs++] = png_data;
+		fb_pics[num_fb_pics++] = fb_pic;
 next:
-		if (fd >= 0)
-			close(fd);
-		if (png_data && png_data->data)
-			free(png_data->data);
-		if (png_data)
-			free(png_data);
 		if (s)
 			free(s);
 		free(namelist[i]);
@@ -134,7 +98,7 @@ static void fbsplash_prepare() {
 
 	hide_cursor();
 
-	num_pngs = 0;
+	num_fb_pics = 0;
 
 	fb_fd = -1;
 
@@ -152,7 +116,7 @@ static void fbsplash_prepare() {
 	if (n < 0)
 		return;
 
-	if (!(pngs = (struct png_data**)malloc(n*sizeof(struct png_data*))))
+	if (!(fb_pics = (struct fb_image**)malloc(n*sizeof(struct fb_image*))))
 		return;
 	read_pics(1, n);
 
@@ -163,16 +127,16 @@ static void fbsplash_prepare() {
 
 static void fbsplash_cleanup() {
 	int i;
-	for (i = 0; i < num_pngs; i++) {
-		if (!pngs[i])
+	for (i = 0; i < num_fb_pics; i++) {
+		if (!fb_pics[i])
 			continue;
 
-		if (pngs[i]->data)
-			free(pngs[i]->data);
+		if (fb_pics[i]->data)
+			free((char*)fb_pics[i]->data);
 
-		free(pngs[i]);
+		free(fb_pics[i]);
 	}
-	free(pngs);
+	free(fb_pics);
 
 	show_cursor();
 
@@ -197,14 +161,14 @@ static void fbsplash_update_progress(unsigned long value, unsigned long maximum,
 	if (value > maximum)
 		value = maximum;
 
-	image_num = value * num_pngs / maximum;
+	image_num = value * num_fb_pics / maximum;
 
 	if (image_num < 0)
 		image_num = 0;
-	if (image_num >= num_pngs)
-		image_num = num_pngs-1;
+	if (image_num >= num_fb_pics)
+		image_num = num_fb_pics-1;
 
-	make_pic_cur(image_num);
+	make_pic_cur(fb_pics[image_num]);
 
 	box.x1 = fb_var.xres/10;
 	box.x2 = (fb_var.xres/10)+((fb_var.xres*8/10)*value/maximum);
