@@ -5,6 +5,7 @@
 [ -z "$SCRIPT_DEST" ]   && SCRIPT_DEST=$BASE_DIR/usr/local/sbin/hibernate
 [ -z "$CONFIG_DIR" ]    && CONFIG_DIR=$BASE_DIR/etc/hibernate
 [ -z "$CONFIG_FILE" ]   && CONFIG_FILE=$CONFIG_DIR/hibernate.conf
+[ -z "$MAN_DIR" ]       && MAN_DIR=$BASE_DIR/usr/local/man
 [ -z "$SCRIPTLET_DIR" ] && SCRIPTLET_DIR=$BASE_DIR/usr/local/share/hibernate/scriptlets.d
 [ -z "$OLD_SCRIPTLET_DIR" ] && OLD_SCRIPTLET_DIR=$CONFIG_DIR/scriptlets.d
 
@@ -56,6 +57,16 @@ for i in scriptlets.d/* ; do
     cp -a $i $SCRIPTLET_DIR
 done
 
+echo "Installing man pages to $MAN_DIR ..."
+mkdir -p $MAN_DIR/man5 $MAN_DIR/man8
+bash gen-manpages.sh
+cp hibernate.conf.5 $MAN_DIR/man5
+cp hibernate.8 $MAN_DIR/man8
+rm -f hibernate.conf.5 hibernate.8
+
+chmod 644 $MAN_DIR/man5/hibernate.conf.5 $MAN_DIR/man8/hibernate.8
+[ `whoami` = "root" ] && chown root:root $MAN_DIR/man5/hibernate.conf.5 $MAN_DIR/man8/hibernate.8
+
 echo "Setting permissions on installed files ..."
 chmod 700 $SCRIPT_DEST $CONFIG_DIR
 [ `whoami` = "root" ] && chown root:root -R $SCRIPT_DEST $CONFIG_DIR
@@ -69,6 +80,9 @@ else
     echo "$CONFIG_FILE.dist"
     echo "See `basename $SCRIPT_DEST` -h for help on any extra options."
 fi
+
+
+
 )
 
 [ $? -ne 0 ] && echo "Install aborted due to errors."
