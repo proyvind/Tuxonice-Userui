@@ -13,7 +13,9 @@
 #define u32 __u32
 
 #define min(a,b)	((a) < (b) ? (a) : (b))
+#define MAX_RECTS 32
 #define MAX_BOXES 256
+#define MAX_ICONS 512
 
 #define CLAMP(x) ((x) > 255 ? 255 : (x))
 
@@ -21,6 +23,14 @@
 
 #define printerr(args...)	fprintf(stderr, ## args);
 
+struct splash_icon
+{
+	int x, y;
+	char *filename;
+	char *svc;
+	enum { e_display, e_svc_inact_start, e_svc_inact_stop, e_svc_start, e_svc_started, e_svc_stop, e_svc_stopped, e_svc_stop_failed, e_svc_start_failed } type;
+};
+					    
 /* splash_common.c */
 
 void detect_endianess(void);
@@ -28,6 +38,7 @@ int get_fb_settings(int fb_num);
 char *get_cfg_file(char *theme);
 int do_getpic(unsigned char, unsigned char, char);
 int do_config(unsigned char);
+char *get_filepath(char *path);
 
 /* splash_parse.c */
 					    
@@ -52,8 +63,10 @@ int remove_dev(char *fn, int flag);
 /* splash_render.c */
 
 void draw_boxes(u8 *data, char, unsigned char);
+void draw_icons(u8 *data);
 
 #ifdef CONFIG_PNG
+int draw_icon(struct splash_icon ic, u8 *data);
 int load_png(char *filename, struct fb_image *img, char mode);
 int is_png(char *filename);
 #endif
@@ -107,6 +120,11 @@ struct colorf
 	double r, g, b, a;
 };
 
+struct rect
+{
+	int x1, x2, y1, y2;
+};
+
 struct splash_box
 {
 	int x1, x2, y1, y2;
@@ -116,6 +134,12 @@ struct splash_box
 
 extern struct splash_box cf_boxes[MAX_BOXES];
 extern int cf_boxes_cnt;
+
+extern struct splash_icon cf_icons[MAX_ICONS];
+extern int cf_icons_cnt;
+
+extern struct rect cf_rects[MAX_RECTS];
+extern int cf_rects_cnt;
 
 struct splash_config
 {

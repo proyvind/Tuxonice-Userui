@@ -8,7 +8,7 @@
  * License.  See the file COPYING in the main directory of this archive for
  * more details.
  *
- * $Header: /srv/cvs/splash/utils/splash_common.c,v 1.6 2004/09/04 18:15:03 spock Exp $
+ * $Header: /srv/cvs/splash/utils/splash_common.c,v 1.7 2005/01/16 09:39:58 spock Exp $
  * 
  */
 
@@ -62,11 +62,16 @@ int get_fb_settings(int fb_num)
 	char sys[128];
 #endif
 
-	sprintf(fn, "/dev/fb%d", fb_num);
-
+	sprintf(fn, "/dev/fb/%d", fb_num);
 	fb = open(fn, O_WRONLY, 0);
 
 	if (fb == -1) {
+		sprintf(fn, "/dev/fb%d", fb_num);
+		fb = open(fn, O_WRONLY, 0);
+	}
+	
+	if (fb == -1) {
+	
 #ifdef TARGET_KERNEL
 		sprintf(sys, "/sys/class/graphics/fb%d/dev", fb_num);
 		create_dev(fn, sys, 0x1);
@@ -76,7 +81,7 @@ int get_fb_settings(int fb_num)
 		if (fb == -1)
 #endif
 		{
-			printerr("Failed to open /dev/fb%d for reading.\n", fb_num);
+			printerr("Failed to open /dev/fb%d or /dev/fb%d for reading.\n", fb_num, fb_num);
 			return 1;
 		}
 	}
@@ -98,6 +103,17 @@ int get_fb_settings(int fb_num)
 #endif
 
 	return 0;
+}
+
+char *get_filepath(char *path) 
+{
+	char buf[512];
+	
+	if (path[0] == '/')
+		return strdup(path);
+
+	snprintf(buf, 512, "%s/%s/%s", THEME_DIR, arg_theme, path);
+	return strdup(buf);	
 }
 
 char *get_cfg_file(char *theme) 
@@ -164,6 +180,10 @@ int do_getpic(unsigned char origin, unsigned char do_cmds, char mode)
 		
 		draw_boxes((u8*)pic.data, mode, origin);
 
+		if (mode == 's') {
+			draw_icons((u8*)pic.data);
+		}
+			
 		if (do_cmds) {
 			cmd_setpic(&pic, origin);
 			free((void*)pic.data);

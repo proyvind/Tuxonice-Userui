@@ -7,7 +7,7 @@
  * License.  See the file COPYING in the main directory of this archive for
  * more details.
  *
- * $Header: /srv/cvs/splash/utils/splash_render.c,v 1.9 2004/09/27 14:31:56 spock Exp $
+ * $Header: /srv/cvs/splash/utils/splash_render.c,v 1.11 2005/01/16 09:39:58 spock Exp $
  * 
  */
 
@@ -32,6 +32,11 @@ void draw_box(u8* data, struct splash_box box, int fd)
 	int bytespp = fb_var.bits_per_pixel >> 3;
 	int b_width = box.x2 - box.x1;
 	int b_height = box.y2 - box.y1;
+	
+	if (box.x2 > fb_var.xres || box.y2 > fb_var.yres || b_width < 0 || b_height < 0) {
+		fprintf(stderr, "Ignoring invalid box (%d, %d, %d, %d).\n", box.x1, box.y1, box.x2, box.y2);
+		return;
+	}	
 
 	if (b_width <= 0)
 		b_width = 1;
@@ -300,6 +305,15 @@ void interpolate_box(struct splash_box *a, struct splash_box b)
 	inter_color(a->c_ur, b.c_ur);
 	inter_color(a->c_ll, b.c_ll);
 	inter_color(a->c_lr, b.c_lr);
+}
+
+void draw_icons(u8 *data)
+{
+	int i;
+	for (i = 0; i < cf_icons_cnt; i++) {
+		draw_icon(cf_icons[i], data);
+	}
+	return;
 }
 
 

@@ -23,7 +23,7 @@
 
 struct config_opt {
 	char *name;
-	enum { t_int, t_str, t_box } type;
+	enum { t_int, t_path, t_box, t_icon, t_rect } type;
 	void *val;
 };
 
@@ -32,9 +32,15 @@ char *cf_pic = NULL;
 char *cf_silentpic256 = NULL;	/* these are pictures for 8bpp modes */
 char *cf_pic256 = NULL;
 
+struct rect cf_rects[MAX_RECTS];
+int cf_rects_cnt = 0;
+
 struct splash_box cf_boxes[MAX_BOXES];
 int cf_boxes_cnt = 0;
 struct splash_config cf;
+
+struct splash_icon cf_icons[MAX_ICONS];
+int cf_icons_cnt = 0;
 
 int line = 0;
 
@@ -44,27 +50,27 @@ int line = 0;
 struct config_opt opts[] =
 {
 	{	.name = "jpeg",
-		.type = t_str,
+		.type = t_path,
 		.val = &cf_pic		},
 
 	{	.name = "pic256",	
-		.type = t_str,
+		.type = t_path,
 		.val = &cf_pic256	},
 
 	{	.name = "silentpic256",	
-		.type = t_str,
+		.type = t_path,
 		.val = &cf_silentpic256	},
 	
 	{	.name = "silentjpeg",
-		.type = t_str,
+		.type = t_path,
 		.val = &cf_silentpic	},
 
 	{	.name = "pic",
-		.type = t_str,
+		.type = t_path,
 		.val = &cf_pic		},
 
 	{	.name = "silentpic",
-		.type = t_str,
+		.type = t_path,
 		.val = &cf_silentpic	},
 	
 	{ 	.name = "bg_color",
@@ -89,9 +95,16 @@ struct config_opt opts[] =
 	
 	{	.name = "box",
 		.type = t_box,
-		.val = NULL		}
-};
+		.val = NULL		},
 
+	{	.name = "icon",
+		.type = t_icon,
+		.val = NULL		},
+	
+	{	.name = "rect",
+		.type = t_rect,
+		.val = NULL		},
+};
 
 int isdigit(char c) {
 	return (c >= '0' && c <= '9') ? 1 : 0;
@@ -120,7 +133,7 @@ void parse_int(char *t, struct config_opt opt)
 	*(unsigned int*)opt.val = strtol(t,NULL,0);
 }
 
-void parse_string(char *t, struct config_opt opt)
+void parse_path(char *t, struct config_opt opt)
 {
 	if (*t != '=') {
 		fprintf(stderr, "parse error @ line %d\n", line);
@@ -128,7 +141,7 @@ void parse_string(char *t, struct config_opt opt)
 	}
 
 	t++; skip_whitespace(&t);
-	*(char**)opt.val = strdup(t);
+	*(char**)opt.val = get_filepath(t);
 }
 
 int parse_color(char **t, struct color *cl) 
@@ -164,6 +177,176 @@ int parse_color(char **t, struct color *cl)
 	*t = p;
 
 	return 0;
+}
+
+int is_in_svclist(char *svc, char *list)
+{
+	char *data = getenv(list);
+	int l = strlen(svc);
+	
+	if (!data)
+		return 0;
+
+	skip_whitespace(&data);
+	
+	while (1) {
+
+		if (data[0] == 0)
+			break;
+		
+		if (!strncmp(data, svc, l) && (data[l] == ' ' || data[l] == 0))
+			return 1;
+
+		for ( ; data[0] != 0 && data[0] != ' '; data++);
+
+		skip_whitespace(&data);
+	}
+
+	return 0;
+}
+
+void parse_icon(char *t)
+{
+	char *p;
+	struct splash_icon icon;
+	int i;
+	
+	skip_whitespace(&t);
+	for (i = 0; t[i] != ' ' && t[i] != '\t' && t[i] != '\0'; i++);
+	t[i] = 0;
+
+	icon.filename = get_filepath(t);
+	t += (i+1);
+	
+	skip_whitespace(&t);	
+	icon.x = strtol(t,&p,0);
+	if (t == p)
+		return;
+
+	t = p; skip_whitespace(&t);
+	icon.y = strtol(t,&p,0);
+	if (t == p)
+		return;
+	
+	t = p; skip_whitespace(&t);
+	
+	if (!strncmp(t, "svc_inactive_start", 18)) {
+		icon.type = e_svc_inact_start; t += 18;
+	} else if (!strncmp(t, "svc_inactive_stop", 17)) {
+		icon.type = e_svc_inact_stop; t += 17;
+	} else if (!strncmp(t, "svc_started", 11)) {
+		icon.type = e_svc_started; t += 11;
+	} else if (!strncmp(t, "svc_stopped", 11)) {
+		icon.type = e_svc_stopped; t += 11;
+	} else if (!strncmp(t, "svc_start_failed", 17)) {
+		icon.type = e_svc_start_failed; t += 17;
+	} else if (!strncmp(t, "svc_stop_failed",  16)) {
+		icon.type = e_svc_stop_failed; t += 16;
+	} else if (!strncmp(t, "svc_stop", 8)) {
+		icon.type = e_svc_stop; t += 8;
+	} else if (!strncmp(t, "svc_start", 9)) {
+		icon.type = e_svc_start; t += 9;
+	} else {
+		icon.type = e_display; 
+		goto out;
+	}
+	
+	skip_whitespace(&t);
+	for (i = 0; t[i] != ' ' && t[i] != '\t' && t[i] != '\0'; i++);
+	t[i] = 0;
+
+	i = 0;
+	
+	switch (icon.type) {
+		
+	case e_svc_inact_start:
+		if (is_in_svclist(t, "SPL_SVC_INACTIVE_START"))
+			i = 1;
+		break;
+	
+	case e_svc_inact_stop:
+		if (is_in_svclist(t, "SPL_SVC_INACTIVE_STOP"))
+			i = 1;
+		break;
+		
+	case e_svc_started:
+		if (is_in_svclist(t, "SPL_SVC_STARTED"))
+			i = 1;
+		break;
+
+	case e_svc_stopped:
+		if (is_in_svclist(t, "SPL_SVC_STOPPED"))
+			i = 1;
+		break;
+
+	case e_svc_start_failed:
+		if (is_in_svclist(t, "SPL_SVC_START_FAILED"))
+			i = 1;
+		break;
+
+	case e_svc_stop_failed:
+		if (is_in_svclist(t, "SPL_SVC_STOP_FAILED"))
+			i = 1;
+		break;
+
+	case e_svc_stop:
+		if (is_in_svclist(t, "SPL_SVC_STOP"))
+			i = 1;
+		break;
+
+	case e_svc_start:
+		if (is_in_svclist(t, "SPL_SVC_START"))
+			i = 1;
+		break;
+	case e_display:
+		/* we should never get here */
+		break;
+	}
+
+	if (!i)
+		return;
+	
+	icon.svc = strdup(t);
+
+out:
+	if (cf_icons_cnt >= MAX_ICONS)
+		return;
+	cf_icons[cf_icons_cnt++] = icon;
+	return;
+}
+
+void parse_rect(char *t)
+{
+	char *p;	
+	
+	struct rect crect;
+	skip_whitespace(&t);
+
+	while (!isdigit(*t)) {
+		t++;
+	}
+
+	crect.x1 = strtol(t,&p,0);
+	if (t == p)
+		return;
+	t = p; skip_whitespace(&t);
+	crect.y1 = strtol(t,&p,0);
+	if (t == p)
+		return;
+	t = p; skip_whitespace(&t);
+	crect.x2 = strtol(t,&p,0);
+	if (t == p)
+		return;
+	t = p; skip_whitespace(&t);
+	crect.y2 = strtol(t,&p,0);
+	if (t == p)
+		return;
+	t = p; skip_whitespace(&t);
+
+	if (cf_boxes_cnt >= MAX_RECTS)
+		return;
+	cf_rects[cf_rects_cnt++] = crect;
+	return;
 }
 
 void parse_box(char *t)
@@ -246,8 +429,9 @@ void parse_box(char *t)
 	if (parse_color(&t, &cbox.c_lr))
 		goto pb_err;
 pb_end:	
-	cf_boxes[cf_boxes_cnt] = cbox;
-	cf_boxes_cnt++;
+	if (cf_boxes_cnt >= MAX_BOXES)
+		return;
+	cf_boxes[cf_boxes_cnt++] = cbox;
 	return;
 pb_err:
 	fprintf(stderr, "parse error @ line %d\n", line);
@@ -293,8 +477,8 @@ int parse_cfg(char *cfgfile)
 
 				switch(opts[i].type) {
 				
-				case t_str:
-					parse_string(t, opts[i]);
+				case t_path:
+					parse_path(t, opts[i]);
 					break;
 
 				case t_int:
@@ -303,6 +487,14 @@ int parse_cfg(char *cfgfile)
 				
 				case t_box:
 					parse_box(t);
+					break;
+
+				case t_icon:
+					parse_icon(t);
+					break;
+				
+				case t_rect:
+					parse_rect(t);
 					break;
 				}
 			}
