@@ -262,3 +262,4 @@ rm -f $TMPF
 ProgramManFooter >> $PROGRAM_MAN
 ConfigManFooter >> $CONFIG_MAN
 
+# $Id$
