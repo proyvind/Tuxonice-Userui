@@ -678,7 +678,6 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
         proc_image->tls[proc_image->num_tls] = get_tls_info(target_pid, z);
         if (proc_image->tls[proc_image->num_tls]) proc_image->num_tls++;
     }
-    if (proc_image->num_tls) proc_image->uses_tls = 1; /* FIXME ... combine me! */
 
 	/* Find the current directory of our victim */
 	snprintf(tmp_fn, 1024, "/proc/%d/cwd", target_pid);

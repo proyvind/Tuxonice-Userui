@@ -211,7 +211,6 @@ int resume_image_from_file(int fd) {
 	char cmdline[1024];
 	long* ptr;
 	int i, j;
-    int uses_tls;
     int extra_prot = 0;
 
 	safe_read(fd, &pid, sizeof(pid), "pid");
@@ -263,20 +262,20 @@ int resume_image_from_file(int fd) {
 
 	safe_read(fd, &user_data, sizeof(struct user), "user data");
 	safe_read(fd, &i387_data, sizeof(struct user_i387_struct), "i387 data");
+	safe_read(fd, &num_maps, sizeof(int), "num_maps");
+	safe_read(fd, &num_tls, sizeof(int), "num_tls");
 
-	safe_read(fd, &uses_tls, sizeof(int), "uses_tls");
-    if (uses_tls) {
+    if (num_tls > 0) {
         /* detect a TLS-capable system */
         if (set_thread_area(NULL) == -1) { /* you'd hope it did!*/
             if (errno == ENOSYS) {
                 tls_hack = 1;
-                printf("TLS hack enabled!\n");
                 extra_prot = PROT_WRITE;
+                if (verbosity > 0)
+                    printf("TLS hack enabled!\n");
             }
         }
     }
-
-	safe_read(fd, &num_maps, sizeof(int), "num_maps");
 
 	if (verbosity > 0)
 		fprintf(stderr, "Reading %d maps...\n", num_maps);
@@ -313,7 +312,6 @@ int resume_image_from_file(int fd) {
 		}
 	}
 
-	safe_read(fd, &num_tls, sizeof(int), "num_tls");
 	if (verbosity > 0)
 		fprintf(stderr, "Reading %d TLS entries...\n", num_tls);
     if (do_pause) sleep(1);
