@@ -25,6 +25,7 @@ FAQ_TARGET = $(FAQ_BASENAME).html  \
 			$(FAQ_BASENAME)-7.html
 
 PAGES = style.css \
+		.htaccess \
 		index.html \
 		oldnews.html \
 		status.html \
