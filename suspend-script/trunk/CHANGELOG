@@ -1,5 +1,7 @@
 0.95 ()
  - Don't assume /proc/swsusp/reboot exists (2.0 w/o debug doesn't have it)
+ - Install distributed scriptlets into /usr/share/hibernate/scriptlets.d
+   Locally installed scriptlets can go into /etc/hibernate/scriptlets.d
 
 0.94 (12 July 2004)
  - Turn off "AlwaysForce yes" in the default config file.
