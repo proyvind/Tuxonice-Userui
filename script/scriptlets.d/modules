@@ -1,15 +1,17 @@
 AddConfigHandler ModulesOptions
 AddConfigHelp "UnloadModules <module name> [...]" "Names of modules to unload prior to suspending."
-AddConfigHelp "LoadModules <module name> [...]" "Names of modules to load after resumimg."
+AddConfigHelp "LoadModules auto|<module name> [...]" "Names of modules to load after resumimg. If auto is specified, the modules that were unloaded previously are loaded."
 AddConfigHelp "UnloadAllModules <boolean>" "Try to remove all modules loaded prior to suspending."
-AddConfigHelp "AutoLoadModules <boolean>" "Try to load default modules after resuming (distribution specific)."
+AddConfigHelp "LoadModulesFromFile <filename>" "Load default modules after resuming from a given filename. Each module name must appear on it's own line, and line starting with # are ignored. (eg, Debian's /etc/modules, Gentoo's /etc/modules.autoload)"
 
 ModulesUnload() {
     [ -z "$MOD_UNLOAD" ] && return 0
     local mod
+    MOD_UNLOADED=""
     for mod in $MOD_UNLOAD ; do 
 	vecho 1 "Unloading module $mod..."
 	modprobe -r $mod | $LOGPIPE
+	MOD_UNLOADED="$MOD_UNLOADED $mod"
     done
     return 0
 }
@@ -18,6 +20,13 @@ ModulesLoad() {
     [ -z "$MOD_LOAD" ] && return 0
     local mod
     for mod in $MOD_LOAD ; do 
+	if [ "$mod" = "auto" ] ; then
+	    for mod in $MOD_UNLOADED ; do 
+		vecho 1 "Loading module $mod (from auto)..."
+		modprobe $mod | $LOGPIPE
+	    done
+	    continue
+	fi
 	vecho 1 "Loading module $mod..."
 	modprobe $mod | $LOGPIPE
     done
@@ -58,55 +67,24 @@ ModulesUnloadAll() {
     return 0
 }
 
-ModulesAutoLoad() {
-    [ x"$MODULES_AUTOLOAD" = "x1" ] || return 0
-    # This is distribution specific    
-    # XXX - add code for other distros
+ModulesLoadFromFile() {
+    [ -n "$MODULES_FROMFILE" ] || return 0
+    [ -f "$MODULES_FROMFILE" ] || return 0
     
-    case "$DISTRIBUTION" in
-	gentoo)
-	    # for gentoo users
-	    . /sbin/functions.sh
-	    # taken from gentoo's /etc/init.d/modules
-	    if [ -f /etc/modules.autoload -a ! -L /etc/modules.autoload ] ; then
-		modules_autoload_file= /etc/modules.autoload
-	    else
-		local KV="$(uname -r)"
-		local KV_MAJOR="`KV_major "${KV}"`"
-		local KV_MINOR="`KV_minor "${KV}"`"
+    local MOD
+    local args
+    # Loop over every line in given file.
+    vecho 1 "Loading modules listed $MODULES_FROMFILE" 
+    while : ; do
+	read MOD args
+	[ $? -ne 0 ] && [ -z "$MOD" ] && break
+	case "${MOD}" in
+	    \#*|"") continue ;;
+	esac
+	vecho 1 "Loading $MOD" 
+	modprobe ${MOD} ${args} | $LOGPIPE
+    done < $MODULES_FROMFILE
 
-		# New support for /etc/modules.autoload/kernel-$KV
-		if [ "$(get_KV)" -ge "$(KV_to_int '2.5.48')" ] && \
-		[ -f /etc/modules.autoload.d/kernel-"${KV_MAJOR}.${KV_MINOR}" ]
-		then
-		    modules_autoload_file="/etc/modules.autoload.d/kernel-${KV_MAJOR}.${KV_MINOR}"
-		elif [ ! -f /etc/modules.autoload.d/kernel-"${KV_MAJOR}.${KV_MINOR}" ]
-		then
-		    ewarn "Missing /etc/modules.autoload.d/kernel-${KV_MAJOR}.${KV_MINOR}"
-		    modules_autoload_file="/etc/modules.autoload.d/kernel-2.4"
-		else
-		    modules_autoload_file="/etc/modules.autoload.d/kernel-2.4"
-		fi
-	    fi
-
-	    local MOD
-	    local args
-	    # Loop over every line in $modules_autoload_file.
-	    vecho 1 "Loading modules listed $modules_autoload_file" 
-	    while : ; do
-		read MOD args
-		[ $? -ne 0 ] && [ -z "$MOD" ] && break
-		case "${MOD}" in
-		    \#*|"") continue ;;
-		esac
-		vecho 1 "Loading $MOD" 
-		modprobe ${MOD} ${args} | $LOGPIPE
-	    done < $modules_autoload_file
-	    ;;
-	*)
-	    vecho 1 "Warning: ModulesAutoLoad is not supported in this distribution."
-	    ;;
-    esac
     return 0
 }
 
@@ -129,10 +107,10 @@ ModulesOptions() {
 		AddSuspendHook 91 ModulesUnloadAll
 	    fi
 	    ;;
-	autoloadmodules)
-	    if BoolIsOn "$1" "$2" ; then
-		MODULES_AUTOLOAD=1
-		AddResumeHook 91 ModulesAutoLoad
+	loadmodulesfromfile)
+	    if [ -z "$MODULES_FROMFILE" ] ; then
+		MODULES_FROMFILE="$2"
+		AddResumeHook 91 ModulesLoadFromFile
 	    fi
 	    ;;
 	*)

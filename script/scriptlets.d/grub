@@ -31,7 +31,7 @@ RestoreGrubMenu() {
 
 GrubOptions() {
     case $1 in
-	grubmenuchange)
+	changegrubmenu)
 	    BoolIsOn "$1" "$2" && CHANGE_GRUB_MENU=1 || return 0
 	    ;;
 	grubmenufile)
@@ -69,7 +69,7 @@ if [ "`basename $0`" = "grub" ] ; then
 else
     ## called as part of suspend.sh 
     AddConfigHandler GrubOptions
-    AddConfigHelp "GrubMenuChange <boolean>" "Change grub's config file to show system is suspended before suspending and restore after resume."
+    AddConfigHelp "ChangeGrubMenu <boolean>" "Change grub's config file to show system is suspended before suspending and restore after resume."
     AddConfigHelp "GrubMenuFile <filename>" "Filename of grub's config file. Default is /boot/grub/grub.conf."
 fi
 
