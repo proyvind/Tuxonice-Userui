@@ -1,6 +1,6 @@
 Sooner:
 - eflags
-- tid
+- tid?
 - debug registers
 - FPU state
 - file offsets
@@ -9,6 +9,7 @@ Sooner:
 Later:
 - compressor support
 - process trees
+- 2.4/2.6 translatability
 
 Much later:
 - multiple threads
