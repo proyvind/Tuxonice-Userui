@@ -1,5 +1,6 @@
 - Cmd-line option to write a default config file
 - Consider excess cmdline options as configuration file options?
+- Figure out a portable way to pipe and detect exit status.
 
 - Is XAUTHORITY and HOME setting really neccessary in nVidia hack?
 
