@@ -62,7 +62,6 @@ Swsusp2ConfigOptions() {
 }
 
 Swsusp2ConfigSet() {
-	echo "Setting reboot to $OPT_REBOOT"
 	return 0
 }
 
