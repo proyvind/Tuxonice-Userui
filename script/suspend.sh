@@ -73,6 +73,7 @@ EXTRA_LONG_OPTS=""
 # AddOptionHelp <option name> <option help>: Adds the given option name and
 # help text to the help screen.
 AddOptionHelp() {
+    [ -n "$DISABLE_HELP" ] && return
     local ADDED
     local WRAPPED_HELP
     ADDED="  $1"
@@ -90,6 +91,7 @@ CMDLINE_OPTIONS_HELP=""
 # text. <item help> must only contain line breaks if a new paragraph really
 # does want to be started. Text wrapping is taken care of.
 AddConfigHelp() {
+    [ -n "$DISABLE_HELP" ] && return
     local ADDED
     local WRAPPED_HELP
     ADDED="  $1"
@@ -159,7 +161,7 @@ END {
 }
 
 # PluginConfigOption <params>: queries all loaded scriptlets if they want to
-# handle the given option Returns 0 if the option was handled, 1 otherwise.
+# handle the given option. Returns 0 if the option was handled, 1 otherwise.
 PluginConfigOption() {
     local i
     for i in $CONFIG_OPTION_HANDLERS ; do
@@ -251,6 +253,7 @@ DoGetOpt() {
 	shift
 	case $opt in
 	    -h|--help)
+		# In theory this should be caught by CheckIfHelpOnly and friends
 		Usage
 		exit 1
 		;;
@@ -295,17 +298,24 @@ DoGetOpt() {
     done
 }
 
-AddOptionHelp "-h, --help" "Shows this help screen."
-AddOptionHelp "-f, --force" "Ignore errors and suspend anyway."
-AddOptionHelp "-k, --kill" "Kill processes if needed, in order to suspend."
-AddOptionHelp "-v<n>, --verbosity=<n>" "Change verbosity level (0 = errors only, 3 = verbose, 4 = debug)"
-AddOptionHelp "-F<file>, --config-file=<file>" "Use the given configuration file instead of the default ($CONFIG_FILE)"
-
 # ParseOptions <options>: process all the command-line options given
 ParseOptions() {
     local opts
     opts="`getopt -n \"$EXE\" -o \"Vhfksv:nqF:$EXTRA_SHORT_OPTS\" -l \"help,force,kill,verbosity:,config-file:$EXTRA_LONG_OPTS\" -- \"$@\"`" || exit 1
     DoGetOpt $opts
+}
+
+# CheckIfHelpOnly: detects if the -h option was given on the command-line. If
+# so returns 0, or 1 otherwise.
+CheckIfHelpOnly() {
+    local opt
+    for opt in `getopt -q -o h -l help -- "$@"` ; do
+	case $opt in
+	    -h|--help) return 0 ;;
+	    --) return 1 ;;
+	esac
+    done
+    return 1
 }
 
 # LoadScriptlets: sources all scriptlets in $SCRIPTLET_DIR
@@ -358,9 +368,6 @@ ProcessConfigOption() {
     shift
     params="$@"
     case $option in
-	""|\#*)
-	    # ignore comments and blank lines
-	    ;;
 	alwaysforce)
 	    [ -z "$FORCE_ALL" ] && 
 		BoolIsOn "$option" "$params" && FORCE_ALL=1
@@ -410,23 +417,32 @@ ReadConfigFile() {
 	read option params
 	[ $? -ne 0 ] && [ -z "$option" ] && break
 	[ -z "$option" ] && continue
+	case $option in ""|\#*) continue ;; esac # avoids a function call (big speed hit)
 	ProcessConfigOption $option $params
     done < $CONFIG_FILE
     return 0
 }
 
-# Document the above options:
-AddConfigHelp "LogFile <filename>" "If specified, output from the suspend script will also be redirected to this file - useful for debugging purposes."
-AddConfigHelp "SwsuspVT N" "If specified, output from the suspend script is rediredirected to the given VT instead of stdout."
-AddConfigHelp "Verbosity N" "Determines how verbose the output from the suspend script should be:
+# AddInbuiltHelp: Documents the above in-built options.
+AddInbuiltHelp() {
+    AddOptionHelp "-h, --help" "Shows this help screen."
+    AddOptionHelp "-f, --force" "Ignore errors and suspend anyway."
+    AddOptionHelp "-k, --kill" "Kill processes if needed, in order to suspend."
+    AddOptionHelp "-v<n>, --verbosity=<n>" "Change verbosity level (0 = errors only, 3 = verbose, 4 = debug)"
+    AddOptionHelp "-F<file>, --config-file=<file>" "Use the given configuration file instead of the default ($CONFIG_FILE)"
+
+    AddConfigHelp "LogFile <filename>" "If specified, output from the suspend script will also be redirected to this file - useful for debugging purposes."
+    AddConfigHelp "SwsuspVT N" "If specified, output from the suspend script is rediredirected to the given VT instead of stdout."
+    AddConfigHelp "Verbosity N" "Determines how verbose the output from the suspend script should be:
    0: silent except for errors
    1: print steps
    2: print steps in detail
    3: print steps in lots of detail
    4: print out every command executed (uses -x)"
-AddConfigHelp "AlwaysForce <boolean>" "If set to yes, the script will always run as if --force had been passed."
-AddConfigHelp "AlwaysKill <boolean>" "If set to yes, the script will always run as if --kill had been passed."
-AddConfigHelp "Distribution <debian|fedora|mandrake|redhat|gentoo|suse|slackware>" "If specified, tweaks some scriptlets to be more integrated with the given distribution."
+    AddConfigHelp "AlwaysForce <boolean>" "If set to yes, the script will always run as if --force had been passed."
+    AddConfigHelp "AlwaysKill <boolean>" "If set to yes, the script will always run as if --kill had been passed."
+    AddConfigHelp "Distribution <debian|fedora|mandrake|redhat|gentoo|suse|slackware>" "If specified, tweaks some scriptlets to be more integrated with the given distribution."
+}
 
 EnsureHaveRoot() {
     if [ x"`id -u`" != "x0" ] ; then
@@ -447,6 +463,16 @@ LOGPIPE="cat" # also for starters
 
 EnsureHavePrerequisites
 EnsureHaveRoot
+
+# Generating help text is slow. Avoid it if we can.
+if CheckIfHelpOnly "$@" ; then
+    AddInbuiltHelp
+    LoadScriptlets
+    Usage
+    exit 1
+fi
+DISABLE_HELP=1
+
 LoadScriptlets
 ParseOptions "$@"
 ReadConfigFile
