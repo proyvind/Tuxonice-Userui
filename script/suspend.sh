@@ -411,16 +411,25 @@ echo "Suspended at "`date` | $LOGPIPE > /dev/null
 # Suspend itself should be the last one in the sequence.
 for bit in `SortSuspendBits` ; do
 	vecho 1 "$EXE: Executing $bit ... "
-	if ! ${bit} && [ ! x"$FORCE_ALL" = "x1" ] ; then
-		echo "$EXE: Aborting suspend due to errors."
+	$bit
+	ret="$?"
+	# A return value >= 2 denotes we can't go any further, even with --force.
+	if [ $ret -gt 2 ] ; then
+		vecho 1 "$EXE: $bit refuses to let us continue."
+		vecho 0 "$EXE: Aborting."
+		break
+	fi
+	# A return value of 1 means we can't go any further unless --force is used
+	if [ $ret -gt 0 ] && [ x"$FORCE_ALL" != "x1" ] ; then
+		vecho 0 "$EXE: Aborting suspend due to errors."
 		break
 	fi
 done
 
 # Resume and cleanup and stuff.
-for i in `SortResumeBits` ; do
-	vecho 1 "$EXE: Executing $i ... "
-	${i}
+for bit in `SortResumeBits` ; do
+	vecho 1 "$EXE: Executing $bit ... "
+	$bit
 done
 
 echo "Resumed at "`date` | $LOGPIPE > /dev/null

@@ -163,12 +163,12 @@ Your kernel does not have any recent Software Suspend 2 support compiled in.
 Please follow the HOWTO linked from http://swsusp.sourceforge.net/ for
 instructions on how compile Software Suspend into your kernel.
 EOT
-		exit 1
+		return 2
 	fi
 
 	# If we have the resume2 proc entry, we can do some further tests
 	# Otherwise, bail gracefully
-	[ -f $SWSUSP_ROOT/resume2 ] || exit 0
+	[ -f $SWSUSP_ROOT/resume2 ] || return 0
 
 	# See if we have been given a resume2 line
 	read REPLY < $SWSUSP_ROOT/resume2
@@ -181,7 +181,7 @@ where /dev/hdaX is your swap partition. You will then need to either reboot
 after doing so or set it manually (this time only) using:
 	echo swap:/dev/hdaX > /proc/swsusp/resume2
 EOT
-		exit 1
+		return 2
 	fi
 	return 0
 }
