@@ -74,6 +74,9 @@ syntax keyword hibernate_conf changegrubmenu contained nextgroup=hibernate_boole
 syntax keyword hibernate_conf grubmenufile contained nextgroup=hibernate_filenames skipwhite
 syntax keyword hibernate_conf alternategrubmenufile contained nextgroup=hibernate_filenames skipwhite
 
+" lilo
+syntax keyword hibernate_conf ensureliloresumes contained nextgroup=hibernate_boolean skipwhite
+
 " lock
 syntax match hibernate_username /[a-zA-Z0-9\-_]\+/ contained skipwhite
 highlight link hibernate_username Constant
