@@ -23,7 +23,7 @@ static void* base_image;
 static int base_image_size;
 
 static inline void disable_utf8() { write(1, "\033%@", 3); }
-static inline void clear_display() { write(1, "\033[2J", 3); }
+static inline void clear_display() { write(1, "\033c", 2); }
 static inline void move_cursor_to(int c, int r) { printf("\033[%d;%dH", r, c); }
 static void hide_cursor() {
 	ioctl(STDOUT_FILENO, KDSETMODE, KD_GRAPHICS);
@@ -42,6 +42,7 @@ static void reset_silent_img() {
 }
 
 static void silent_off() {
+	show_cursor();
 	clear_display();
 }
 
@@ -68,8 +69,6 @@ out:
 
 static void fbsplash_prepare() {
 	struct winsize winsz;
-
-	hide_cursor();
 
 	fb_fd = -1;
 	last_pos = 0;
@@ -244,6 +243,7 @@ static void fbsplash_log_level_change() {
 		/* Get the nice display or last action [re]drawn */
 		move_cursor_to(0,0);
 		fbsplash_redraw();
+		hide_cursor();
 	}
 	
 	lastloglevel = console_loglevel;
