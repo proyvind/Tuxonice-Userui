@@ -118,11 +118,20 @@ function top_sort(modules, i, j) {
     }
 }
 
-{ if ($4 != "-") deps[$1] = $4 }
+BEGIN {
+    have_module = 0
+}
+
+{
+    if ($4 != "-") deps[$1] = $4
+    if ($1 == module) have_module = 1
+}
 
 END {
-    find_related_modules(module) # puts results into "modules" array
-    top_sort(modules)
+    if (have_module == 1) {
+	find_related_modules(module) # puts results into "modules" array
+	top_sort(modules)
+    }
 }
     ' < /proc/modules
 }
@@ -166,9 +175,11 @@ ModulesUnloadBlacklist() {
 	case $mod in
 	    \#*|"") continue ;;
 	esac
+	[ -z "$vers" ] && continue
 	IsInKernelRange $kver $vers || continue
 	local deps
 	deps=`FindModuleDeps $mod`
+	[ -z "$deps" ] && continue # not loaded
 	vecho 2 "Unloading blacklisted module $mod (and dependencies)"
 	local i
 	for i in $deps ; do

@@ -10,6 +10,7 @@
 [ -z "$MAN_DIR" ]       && MAN_DIR=$BASE_DIR$PREFIX/man
 [ -z "$CONFIG_DIR" ]    && CONFIG_DIR=${BASE_DIR}/etc/hibernate
 [ -z "$CONFIG_FILE" ]   && CONFIG_FILE=$CONFIG_DIR/hibernate.conf
+[ -z "$BLACKLIST" ]     && BLACKLIST=$CONFIG_DIR/blacklisted-modules
 
 [ -z "$OLD_SCRIPTLET_DIR" ] && OLD_SCRIPTLET_DIR=$CONFIG_DIR/scriptlets.d
 
@@ -32,7 +33,7 @@ echo "Installing hibernate script to $SCRIPT_DEST ..."
 mkdir -p `dirname $SCRIPT_DEST`
 cp -a hibernate.sh $SCRIPT_DEST
 
-echo "Installing configuration file to $CONFIG_DIR ..."
+echo "Installing configuration files to $CONFIG_DIR ..."
 mkdir -p $CONFIG_DIR
 if [ -f $CONFIG_FILE ] ; then
     echo "  **"
@@ -44,6 +45,8 @@ if [ -f $CONFIG_FILE ] ; then
 else
     cp -a hibernate.conf $CONFIG_FILE
 fi
+
+cp -a blacklisted-modules $BLACKLIST
 
 # Test if they have anything in there, and warn them
 if /bin/ls $OLD_SCRIPTLET_DIR/* > /dev/null 2>&1 ; then
