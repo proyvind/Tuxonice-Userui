@@ -3,7 +3,7 @@
 
 AddConfigHandler XHacksOptions
 AddConfigHelp "SwitchToTextMode <boolean>" "If your X driver is unable to resume properly, you can try switching to a text console first by setting this to yes."
-AddConfigHelp "nVidiaHack <boolean>" "Some X drivers can be reinitialised by launching a fake X server after resuming to restore the state of the graphics card. Set this to yes to do so."
+AddConfigHelp "UseDummyXServer <boolean>" "Some X drivers can be reinitialised by launching a dummy X server after resuming to restore the state of the graphics card. Set this to yes to do so."
 
 XHacksSuspend() {
     if [ x"$XHACKS_LEAVE_X" = "x1" ] ; then
@@ -25,7 +25,7 @@ XHacksResume() {
 	# Launch a fake X server to reinitialise the graphics card
 	PATH=$PATH:/usr/bin/X11:/usr/X11R6/bin
 	if ! which X > /dev/null 2>&1 ; then
-	    vecho 1 "X not in path. Not starting X server for nVidia hack."
+	    vecho 1 "X not in path. Not starting dummy X server."
 	else
 	    vecho 2 "Launching fake X server."
 	    unset XAUTHORITY   # Make sure we don't clobber the user's .Xauthority
@@ -71,7 +71,7 @@ XHacksOptions() {
 	    BoolIsOn "$1" "$2" && XHACKS_LEAVE_X=1 || return 0
 	    # only break from case statement if we need something done
 	    ;;
-	nvidiahack)
+	usedummyxserver|nvidiahack)
 	    BoolIsOn "$1" "$2" && XHACKS_NVIDIA=1 || return 0
 	    # only break from case statement if we need something done
 	    ;;
