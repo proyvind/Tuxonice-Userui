@@ -575,12 +575,14 @@ DoWork() {
     # Resume and cleanup and stuff.
     for bit in `SortResumeBits` ; do
 	THIS_POS="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)}\"`"
+	[ -z "$THIS_POS" ] && continue
 	bit=${bit##$THIS_POS}
 	[ "$THIS_POS" -gt "$CHAIN_UP_TO" ] && continue
 	vecho 1 "$EXE: Executing $bit ... "
 	[ -n "$OPT_DRY_RUN" ] && continue
 	$bit
     done
+    return $EXIT_CODE
 }
 
 ctrlc_handler() {
@@ -631,15 +633,23 @@ EXIT_CODE=0
 if [ "$LOGPIPE" = "cat" ] ; then
     DoWork
 else
-    # Evilness requires to pass the exit code back to us in a pipe.
-    trap "" INT
-    exec 3>&1
-    eval `
-	exec 4>&1 >&3 3>&-
-	{
-	    DoWork 4>&-
-	    echo "EXIT_CODE=$EXIT_CODE" >&4
-	} | $LOGPIPE`
+    # Sigh. Our portable way to obtain exit codes has issues in bash, so if
+    # we're using bash, we do it the not-so-portable way :)
+    if shopt > /dev/null 2>&1 ; then
+	# we're using something like bash hopefully! :)
+	DoWork | $LOGPIPE
+	eval 'EXIT_CODE=${PIPESTATUS[0]}'
+    else
+	# Evilness requires to pass the exit code back to us in a pipe.
+	trap "" INT
+	exec 3>&1
+	eval `
+	    exec 4>&1 >&3 3>&-
+	    {
+		DoWork 4>&-
+		echo "EXIT_CODE=$EXIT_CODE" >&4
+	    } | $LOGPIPE`
+    fi
 fi
 
 echo "Resumed at "`date` | $LOGPIPE > /dev/null
