@@ -17,6 +17,7 @@
 #include <linux/kdev_t.h>
 #include <linux/types.h>
 #include <asm/ldt.h>
+#include <asm/termios.h>
 
 #define IMAGE_VERSION 0x01
 
@@ -50,6 +51,8 @@ struct fd_entry_t {
 	off_t position;
 	int flags;
 
+    struct termios termios;
+
 	int data_length;
 	char *data;
 };
@@ -57,6 +60,7 @@ struct fd_entry_t {
 /* Flags for fd_entry_t.flags */
 #define FD_IS_TERMINAL       1
 #define FD_OFFSET_NOT_SAVED  2
+#define FD_TERMIOS           4
 
 struct proc_image_t {
     pid_t pid;

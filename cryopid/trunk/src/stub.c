@@ -14,6 +14,7 @@ int do_pause = 0;
 int want_pid = 0;
 int new_cs = 0;
 int translate_pids = 0;
+char ignorefds[256];
 
 int syscall_check(int retval, int can_be_fake, char* desc, ...) {
 	va_list va_args;
@@ -226,23 +227,29 @@ int resume_image_from_file(int fd) {
 		if (fd_entry.flags & FD_IS_TERMINAL) {
 			if (verbosity > 1)
 				fprintf(stderr, "    this looks like our terminal, duplicating stdin\n");
-			fd2 = syscall_check(dup2(stdinfd, fd_entry.fd), 0, "dup2");
+			if (!ignorefds[fd_entry.fd]) {
+                fd2 = syscall_check(dup2(stdinfd, fd_entry.fd), 0, "dup2");
+                if (fd_entry.flags & FD_TERMIOS)
+                    ioctl(fd_entry.fd, TCSETS, &fd_entry.termios);
+            }
 		} else {
-			fd2 = open(fd_entry.filename, fd_entry.mode);
-			if (fd2 < 0) {
-				fprintf(stderr, "Warning: couldn't restore file %s: %s\n", fd_entry.filename, strerror(errno));
-				continue;
-			}
-			if (!(fd_entry.flags & FD_OFFSET_NOT_SAVED)) {
-				if (verbosity > 1)
-					fprintf(stderr, "    seeking to %lld\n", fd_entry.position);
-				if (lseek(fd2, fd_entry.position, SEEK_SET) < 0) {
-					fprintf(stderr, "Warning: restoring file offset %lld to file %s failed: %s\n", fd_entry.position, fd_entry.filename, strerror(errno));
-				}
-			}
-			syscall_check(dup2(fd2, fd_entry.fd), 0, "dup2");
-			syscall_check(close(fd2), 0, "close");
-			fd2 = fd_entry.fd;
+            if (!ignorefds[fd_entry.fd]) {
+                fd2 = open(fd_entry.filename, fd_entry.mode);
+                if (fd2 < 0) {
+                    fprintf(stderr, "Warning: couldn't restore file %s: %s\n", fd_entry.filename, strerror(errno));
+                    continue;
+                }
+                if (!(fd_entry.flags & FD_OFFSET_NOT_SAVED)) {
+                    if (verbosity > 1)
+                        fprintf(stderr, "    seeking to %lld\n", fd_entry.position);
+                    if (lseek(fd2, fd_entry.position, SEEK_SET) < 0) {
+                        fprintf(stderr, "Warning: restoring file offset %lld to file %s failed: %s\n", fd_entry.position, fd_entry.filename, strerror(errno));
+                    }
+                }
+                syscall_check(dup2(fd2, fd_entry.fd), 0, "dup2");
+                syscall_check(close(fd2), 0, "close");
+                fd2 = fd_entry.fd;
+            }
 		}
 		if (fd_entry.data_length >= 0) {
 			fprintf(stderr, "Warning: restoring file contents not yet implemented (for %s)\n", fd_entry.filename);
@@ -256,7 +263,7 @@ int resume_image_from_file(int fd) {
 			}
 		}
 	}
-	close(stdinfd);
+	//close(stdinfd);
 
 	safe_read(fd, &cmdline_length, sizeof(cmdline_length), "cmdline_length");
 	safe_read(fd, cmdline, sizeof(cmdline), "cmdline");
@@ -386,6 +393,7 @@ int open_self() {
 void real_main(int argc, char** argv) {
 	int fd;
 	/* Parse options */
+    memset(ignorefds, 0, sizeof(ignorefds));
 	while (1) {
 		int option_index = 0;
 		int c;
@@ -393,7 +401,7 @@ void real_main(int argc, char** argv) {
 			{0, 0, 0, 0},
 		};
 		
-		c = getopt_long(argc, argv, "vpPc:t",
+		c = getopt_long(argc, argv, "vpPc:ti:",
 				long_options, &option_index);
 		if (c == -1)
 			break;
@@ -412,6 +420,13 @@ void real_main(int argc, char** argv) {
                 break;
             case 't':
                 translate_pids = 1;
+                break;
+            case 'i':
+                if (atoi(optarg) >= 256) {
+                    fprintf(stderr, "Ignored fd number too high! Not ignoring.\n");
+                    exit(1);
+                }
+                ignorefds[atoi(optarg)] = 1;
                 break;
 			case '?':
 				/* invalid option */

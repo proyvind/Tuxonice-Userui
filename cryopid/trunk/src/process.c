@@ -29,6 +29,7 @@
 #include <asm/unistd.h>
 #include <asm/ptrace.h>
 #include <assert.h>
+#include <asm/termios.h>
 #include "process.h"
 
 long scribble_zone = 0; /* somewhere to scribble on in child */
@@ -423,8 +424,7 @@ int get_i387_data(pid_t target_pid, struct user_i387_struct* i387_data) {
 	return 1;
 }
 
-off_t get_file_offset(pid_t pid, int fd, off_t offset, int whence)
-{
+off_t get_file_offset(pid_t pid, int fd, off_t offset, int whence) {
 	struct user_regs_struct r;
 	off_t result;
 
@@ -449,8 +449,7 @@ off_t get_file_offset(pid_t pid, int fd, off_t offset, int whence)
 	return r.eax;
 }
 
-int get_file_contents(char *filename, struct fd_entry_t *out_buf)
-{
+int get_file_contents(char *filename, struct fd_entry_t *out_buf) {
 	int fd;
 	FILE *f;
 	int length, nread;
@@ -538,6 +537,39 @@ int get_signal_handler(pid_t pid, int sig, struct k_sigaction *ksa) {
     memcpy_from_target(pid, ksa, (void*)(scribble_zone+0x100), sizeof(struct k_sigaction));
 
     //printf("sigaction %d was 0x%lx mask 0x%x flags 0x%x restorer 0x%x\n", sig, ksa->sa_hand, ksa->sa_mask.sig[0], ksa->sa_flags, ksa->sa_restorer);
+
+    restore_page(pid, (void*)scribble_zone, pagebackup);
+
+	return 1;
+}
+
+int get_termios(pid_t pid, int fd, struct termios *t) {
+	struct user_regs_struct r;
+    char* pagebackup;
+
+	if (ptrace(PTRACE_GETREGS, pid, 0, &r) == -1) {
+		perror("ptrace(GETREGS)");
+        return 0;
+    }
+
+	r.eax = __NR_ioctl;
+	r.ebx = fd;
+    r.ecx = TCGETS;
+    r.edx = scribble_zone+0x50;
+
+    pagebackup = backup_page(pid, (void*)scribble_zone);
+
+    if (!do_syscall(pid, &r)) return 0;
+
+	/* Error checking! */
+	if (r.eax < 0) {
+		errno = -r.eax;
+        perror("target ioctl");
+        restore_page(pid, (void*)scribble_zone, pagebackup);
+		return 0;
+	}
+
+    memcpy_from_target(pid, t, (void*)(scribble_zone+0x50), sizeof(struct termios));
 
     restore_page(pid, (void*)scribble_zone, pagebackup);
 
@@ -684,6 +716,9 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 		if (S_ISCHR(stat_buf.st_mode) && (stat_buf.st_rdev == term_dev)) {
 			printf("    this looks like our terminal...\n");
 			proc_image->fds[fd_count].flags |= FD_IS_TERMINAL;
+            if (get_termios(target_pid, fd_count, &proc_image->fds[fd_count].termios)) {
+                proc_image->fds[fd_count].flags |= FD_TERMIOS;
+            }
 		}
 
 		/* Locate the offset of the file */
