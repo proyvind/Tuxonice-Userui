@@ -116,7 +116,7 @@ char* voodoo_ptr = NULL;
 char voodoo_backup[12];
 void segv_handler(int sig, siginfo_t *si, void *ucontext) {
     struct ucontext *uc = (struct ucontext*)ucontext;
-    char *pt = (char*)uc->uc_mcontext.eip;
+    unsigned char *pt = (unsigned char*)uc->uc_mcontext.eip;
     if (voodoo_stage == 1) {
 	pt = voodoo_ptr;
 	pt[0] = 0xa3;
@@ -167,19 +167,78 @@ void segv_handler(int sig, siginfo_t *si, void *ucontext) {
 	pt[6] = 0x90;
 	return;
     }
-    if (!memcmp(pt, "\x65\xa1", 2)) {
+    if (!memcmp(pt, "\x65\x89\x3d", 3)) { /* XXX untested */
+	/*
+	 * 80483ab:   65 89 3d 50 00 00 00    mov    %edi,%gs:0x50
+	 * 80483b2:   89 3d ef be ad de       mov    %edi,0xdeadbeef
+	 */
+	pt[0] = 0x89;
+	pt[1] = 0x3d;
+	*(long*)(pt+2) = tls_start+*(long*)(pt+3);
+	pt[6] = 0x90;
+	return;
+    }
+    if (!memcmp(pt, "\x65\xc7\x05", 3)) { /* XXX untested */
+	/*
+	 *  8048344:   65 c7 05 f0 01 00 00    movl   $0xffffffff,%gs:0x1f0
+	 *  804834b:   ff ff ff ff
+	 *  804834f:   c7 05 ef be ad de ff    movl   $0xfffffff,0xdeadbeef
+	 *  8048356:   ff ff 0f
+	 */
+	pt[0] = pt[1];
+	pt[1] = pt[2];
+	*(long*)(pt+2) = tls_start+*(long*)(pt+3);
+	*(long*)(pt+6) = *(long*)(pt+7);
+	pt[10] = 0x90;
+	return;
+    }
+    if (!memcmp(pt, "\xf0\x65\x0f\xb1\x0d", 5)) { /* XXX untested */
+	/*
+	 * 8048359:   f0 65 0f b1 0d 54 00    lock cmpxchg %ecx,%gs:0x54
+	 * 8048360:   00 00
+	 * 8048362:   f0 0f b1 0d ef be ad    lock cmpxchg %ecx,0xdeadbeef
+	 * 8048369:   de
+	 */
+	pt[1] = 0x0f;
+	pt[2] = pt[3];
+	pt[3] = pt[4];
+	*(long*)(pt+4) = tls_start+*(long*)(pt+5);
+	pt[8] = 0x90;
+	return;
+    }
+    if (!memcmp(pt, "\xf0\x65\x83\x0d", 4)) { /* XXX untested */
+	/*
+	 * 804836a:   f0 65 83 0d 54 00 00    lock orl $0x10,%gs:0x54
+	 * 8048371:   00 10
+	 * 8048373:   f0 83 0d ef be ad de    lock orl $0x10,0xdeadbeef
+	 * 804837a:   10
+	 */
+	pt[1] = pt[2];
+	pt[2] = pt[3];
+	*(long*)(pt+3) = tls_start+*(long*)(pt+4);
+	pt[7] = pt[8];
+	pt[8] = 0x90;
+	return;
+    }
+    if (pt[0] == 0x65 && (
+		pt[1] == 0xa1 || /* mov    %gs:0x0,%eax  */
+		pt[1] == 0xa3    /* mov    %eax,%gs:0x48 */
+		)) {
 	/*
 	 * 804838c:   65 a1 00 00 00 00       mov    %gs:0x0,%eax
-	 * 8048392:   a1 ef be ad de	  mov    0xdeadbeef,%eax
+	 * 8048392:   a1 ef be ad de          mov    0xdeadbeef,%eax
+	 *
+	 * 80483c8:   65 a3 48 00 00 00       mov    %eax,%gs:0x48
+	 * 80483ce:   a3 ef be ad de          mov    %eax,0xdeadbeef
 	 */
-	pt[0] = 0xa1;
+	pt[0] = pt[1];
 	*(long*)(pt+1) = tls_start+*(long*)(pt+2);
 	pt[5] = 0x90;
 	return;
     }
     if (!memcmp(pt, "\x65\x89\x51", 3)) {
 	/*
-	 * 80483b1:   65 89 51 00	     mov    %edx,%gs:0x0(%ecx)
+	 * 80483b1:   65 89 51 00             mov    %edx,%gs:0x0(%ecx)
 	 * 80483b5:   89 91 af be ad de       mov    %edx,0xdeadbeaf(%ecx)
 	 *
 	 * WARNING: XXX VOODOO HAPPENS HERE
