@@ -620,7 +620,44 @@ void render_objs(u8 *target, u8 *bgnd, char mode, unsigned char origin, int prog
 			}
 
 			render_icon(c, target);
-		} 
+		} else if (o->type == o_anim) {
+			u8 render_it = 0;
+
+			a = (anim*)o->p;
+
+			if ((a->flags & F_ANIM_SILENT) && mode != 's')
+				continue;
+
+			if ((a->flags & F_ANIM_VERBOSE) && mode != 'v')
+				continue;
+			
+			if ((a->flags & F_ANIM_METHOD_MASK) == F_ANIM_ONCE) {
+				if (a->status != F_ANIM_STATUS_DONE) {
+					switch (mng_render_next(a->mng)) {
+						case MNG_NOERROR:
+							a->status = F_ANIM_STATUS_DONE;
+							break;
+						case MNG_NEEDTIMERWAIT:
+							/* FIXME: we should actually wait in this case */
+							render_it = 1;
+							break;
+					}
+				}
+			} else if ((a->flags & F_ANIM_METHOD_MASK) == F_ANIM_LOOP) {
+				if (!mng_render_next(a->mng)) {
+					/* FIXME: we should actually wait in this case */
+					mng_display_restart(a->mng);
+					mng_render_next(a->mng);
+				}
+				render_it = 1;
+			} else { /* we're F_ANIM_PROPORTIONAL */
+				/* FIXME: fill me in */
+			}
+
+			if (render_it) {
+				mng_display_next(a->mng, target, a->x, a->y);
+			}
+		}
 #if (defined(CONFIG_TTY_KERNEL) && defined(TARGET_KERNEL)) || (defined(CONFIG_TTF) && !defined(TARGET_KERNEL))
 		else if (o->type == o_text) {
 
@@ -668,14 +705,5 @@ void render_objs(u8 *target, u8 *bgnd, char mode, unsigned char origin, int prog
 		}
 	}
 #endif
-
-	for (i = anims.head; i != NULL; i = i->next) {
-		a = (anim*)i->p;
-		if (!mng_render_next(a->mng)) {
-			mng_display_restart(a->mng);
-			mng_render_next(a->mng);
-		}
-		mng_display_next(a->mng, target, a->x, a->y);
-	}
 }
 

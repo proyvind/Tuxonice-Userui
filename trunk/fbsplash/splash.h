@@ -81,7 +81,7 @@ typedef struct {
 } icon;
 
 typedef struct obj {
-	enum { o_box, o_icon, o_text } type;
+	enum { o_box, o_icon, o_text, o_anim } type;
 	void *p;
 } obj;
 
@@ -129,6 +129,8 @@ typedef struct {
 #define F_ANIM_ONCE		0
 #define F_ANIM_LOOP		4
 #define F_ANIM_PROPORTIONAL	8
+
+#define F_ANIM_STATUS_DONE 1
 
 #include "ttf.h"
 
@@ -266,7 +268,6 @@ extern list icons;
 extern list objs;
 extern list rects;
 extern list fonts;
-extern list anims;
 
 extern u8 *bg_buffer;
 extern int bytespp;

@@ -31,7 +31,6 @@ list fonts = { NULL, NULL };
 list icons = { NULL, NULL };
 list objs = { NULL, NULL };
 list rects = { NULL, NULL };
-list anims = { NULL, NULL };
 
 char *cf_silentpic 	= NULL;
 char *cf_pic 		= NULL;
@@ -510,6 +509,7 @@ void parse_anim(char *t)
 {
 	char *p;	
 	char *filename;
+	obj *cobj = NULL;
 	anim *canim = malloc(sizeof(anim));
 	
 	if (!canim)
@@ -574,19 +574,30 @@ void parse_anim(char *t)
 	if (canim->y >= fb_var.yres)
 		canim->y = fb_var.yres-1;
 
+	canim->status = 0;
+
 	filename = get_filepath(filename);
 
 	canim->mng = mng_load(filename);
 	if (!canim->mng)
 		free(canim);
 	else
-		list_add(&anims, canim);
+		list_add(&objs, canim);
 
 	free(filename);
 
+	cobj = malloc(sizeof(obj));
+	if (!cobj) {
+		printerr("Cannot allocate memory (parse_anim)!");
+		goto pa_out;
+	}
+	cobj->type = o_anim;
+	cobj->p = canim;
+	list_add(&objs, cobj);
 	return;
 pa_err:
 	fprintf(stderr, "parse error @ line %d\n", line);
+pa_out:
 	free(canim);
 	return;
 }
