@@ -226,7 +226,7 @@ $CMDLINE_OPTIONS_HELP
 The following config file options are available (module name in brackets):
 
 $CONFIGURATION_OPTIONS_HELP
-Suspend Script $VERSION                                (C) 2004 Bernard Blackham
+Suspend Script $VERSION                     (C) 2004 Bernard Blackham
 EOT
     return
 }
