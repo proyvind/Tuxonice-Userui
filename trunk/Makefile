@@ -13,9 +13,6 @@ FBSPLASH_LIBS = -lpng -ljpeg -lz -lm -lfreetype
 
 all: $(TARGETS)
 
-userui_dummy: $(CORE_OBJECTS) userui_dummy.o
-	$(CC) $(LDFLAGS) $^ -o $@
-
 userui_text: $(CORE_OBJECTS) userui_text.o
 	$(CC) $(LDFLAGS) $^ -o $@
 

@@ -10,8 +10,8 @@ Function API
 ------------
 
 Each userui module should define a struct userui_ops describing its operations,
-and also define a pointer to it called "userui_ops". See userui_dummy.c for an
-example.  The userui_ops struct defined for your module must contain the
+and also define a pointer to it called "userui_ops". See userui_skeleton.c for
+an example.  The userui_ops struct defined for your module must contain the
 following elements :
 
         char *name;
