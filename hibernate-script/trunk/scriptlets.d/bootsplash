@@ -19,7 +19,7 @@ SplashProgress()
     return 0
 }
 
-SplashStart() {
+SplashBegin() {
     [ x"$USE_BOOTSPLASH" != "x1" ] && return 0
 
     # check if /proc/splash and splash exists 
@@ -41,12 +41,14 @@ SplashStart() {
 	return 0
     fi
 
-    # Detect current splash state so we know how to restore it
-    if grep -q 'off$' /proc/splash ; then
-	SPLASH_RESTORE_CMD="0"
-    else
-	# We assume that their usual splash screen isn't silent.
-	SPLASH_RESTORE_CMD="verbose"
+    if [ x"$1" = "xsaveconsole" ] ; then
+	# Detect current splash state so we know how to restore it
+	if grep -q 'off$' /proc/splash ; then
+	    SPLASH_RESTORE_CMD="0"
+	else
+	    # We assume that their usual splash screen isn't silent.
+	    SPLASH_RESTORE_CMD="verbose"
+	fi
     fi
 
     # go
@@ -60,20 +62,31 @@ SplashStart() {
     return 0
 }
 
-SplashResume() {
-    SplashStart
+SplashStartResume() {
+    SplashBegin
     # XXX add text output
 }
 
-SplashSuspend() {
-    SplashStart
+SplashStartSuspend() {
+    SplashBegin saveconsole
     # XXX add text output
 }
 
-SplashStop() {
-    if [ x"$USE_BOOTSPLASH" = "x1" ] ; then
-	echo $SPLASH_RESTORE_CMD > /proc/splash
-    fi
+SplashOff() {
+    [ -n "$SPLASH_RESTORE_CMD" ] && echo $SPLASH_RESTORE_CMD > /proc/splash
+    return 0
+}
+
+EnableSwsuspBootsplash() {
+    [ -n "$SWSUSP_FORCE_CHVT" ] || return 0
+    splash -s "$SPLASH_CONFIG_FILE"
+    echo "silent" > /proc/splash 
+    return 0
+}
+
+DisableSwsuspBootsplash() {
+    [ -n "$SWSUSP_FORCE_CHVT" ] || return 0
+    echo 0 > /proc/splash
     return 0
 }
 
@@ -93,7 +106,7 @@ SplashOptions() {
 
     if [ -z "$BOOTSPLASH_HOOKED" ] ; then
 	# in call order
-	AddSuspendHook 12 SplashSuspend
+	AddSuspendHook 12 SplashStartSuspend
 	AddSuspendHook 20 SplashProgress
 	AddSuspendHook 30 SplashProgress
 	AddSuspendHook 40 SplashProgress
@@ -102,8 +115,10 @@ SplashOptions() {
 	AddSuspendHook 70 SplashProgress
 	AddSuspendHook 80 SplashProgress
 	AddSuspendHook 90 SplashProgress
-	AddSuspendHook 97 SplashProgress
-	AddResumeHook 97 SplashResume
+	AddSuspendHook 95 SplashProgress
+	AddSuspendHook 98 EnableSwsuspBootsplash
+	AddResumeHook 98 DisableSwsuspBootsplash
+	AddResumeHook 95 SplashStartResume
 	AddResumeHook 90 SplashProgress
 	AddResumeHook 80 SplashProgress
 	AddResumeHook 70 SplashProgress
@@ -112,7 +127,8 @@ SplashOptions() {
 	AddResumeHook 40 SplashProgress
 	AddResumeHook 30 SplashProgress
 	AddResumeHook 20 SplashProgress
-	AddResumeHook 12 SplashStop
+	AddResumeHook 15 SplashProgress # get it to 100% :)
+	AddResumeHook 12 SplashOff
 	BOOTSPLASH_HOOKED=1
     fi
 
