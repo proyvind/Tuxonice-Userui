@@ -239,4 +239,4 @@ extern struct fb_image silent_img;
 
 extern struct splash_config cf;
 
-extern int fb_fd;
+extern int fb_fd, fbsplash_fd;

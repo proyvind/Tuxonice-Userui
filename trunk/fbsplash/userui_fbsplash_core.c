@@ -14,7 +14,7 @@
 #include "splash.h"
 #include "../userui.h"
 
-int fb_fd;
+int fb_fd, fbsplash_fd;
 static char lastmessage[512];
 static char rendermessage[512];
 static int lastloglevel;
@@ -25,14 +25,8 @@ static int base_image_size;
 
 static inline void clear_display() { write(1, "\033c", 2); }
 static inline void move_cursor_to(int c, int r) { printf("\033[%d;%dH", r, c); }
-static void hide_cursor() {
-	ioctl(STDOUT_FILENO, KDSETMODE, KD_GRAPHICS);
- 	write(1, "\033[?25l\033[?1c", 9);
-}
-static void show_cursor() {
-	ioctl(STDOUT_FILENO, KDSETMODE, KD_TEXT);
-	write(1, "\033[?25h\033[?0c", 9);
-}
+static void hide_cursor() { write(1, "\033[?25l\033[?1c", 11); }
+static void show_cursor() { write(1, "\033[?25h\033[?0c", 11); }
 
 static void reset_silent_img() {
 	if (!base_image || !silent_img.data)
@@ -114,6 +108,8 @@ static void fbsplash_prepare() {
 			perror("open(\"/dev/fb0\")");
 	}
 
+	fbsplash_fd = open(SPLASH_DEV, O_WRONLY); /* Don't worry if it fails */
+
 	do_getpic(FB_SPLASH_IO_ORIG_USER, 1, 'v');
 	do_getpic(FB_SPLASH_IO_ORIG_USER, 0, 's');
 	do_config(FB_SPLASH_IO_ORIG_USER);
@@ -140,9 +136,6 @@ static void fbsplash_cleanup() {
 	cmd_setstate(0, FB_SPLASH_IO_ORIG_USER);
 	show_cursor();
 
-	if (fb_fd >= 0)
-		close(fb_fd);
-
 	free((void*)silent_img.data);
 	silent_img.data = NULL;
 
@@ -152,6 +145,12 @@ static void fbsplash_cleanup() {
 	free(base_image);
 	base_image = NULL;
 
+	if (fb_fd >= 0)
+		close(fb_fd);
+
+	if (fbsplash_fd >= 0)
+		close(fbsplash_fd);
+
 	free_fonts();
 
 	TTF_Quit();
@@ -160,6 +159,7 @@ static void fbsplash_cleanup() {
 static void update_fb_img() {
 	if (!silent_img.data)
 		return;
+
 	lseek(fb_fd, 0, SEEK_SET);
 	write(fb_fd, silent_img.data, base_image_size);
 }

@@ -26,31 +26,34 @@
 
 void cmd_setstate(unsigned int state, unsigned char origin)
 {
-	int fd;
 	struct fb_splash_iowrapper wrapper = {
 		.vc = arg_vc,
 		.origin = origin,
 		.data = &state,
 	};
-	
-	/* As the kernel fbsplash patch is optional, we won't care about errors here. */
 
-	fd = open(SPLASH_DEV, O_WRONLY);
-	if (fd == -1)
+	if (fbsplash_fd == -1)
 		return;
-
-	ioctl(fd, FBIOSPLASH_SETSTATE, &wrapper);
-
-	close(fd);
+	
+	if (ioctl(fbsplash_fd, FBIOSPLASH_SETSTATE, &wrapper))
+		printerr("FBIOSPLASH_SETSTATE failed, error code %d.\n", errno);
 }
 
 void cmd_setpic(struct fb_image *img, unsigned char origin)
 {
+	struct fb_splash_iowrapper wrapper = {
+		.vc = arg_vc,
+		.origin = origin,
+		.data = img,
+	};
+	
+	if (fbsplash_fd == -1)
+		return;
+	ioctl(fbsplash_fd, FBIOSPLASH_SETPIC, &wrapper);
 }
 
 void cmd_setcfg(unsigned char origin)
 {
-	int fd;
 	struct vc_splash vc_cfg;
 	struct fb_splash_iowrapper wrapper = {
 		.vc = arg_vc,
@@ -58,10 +61,9 @@ void cmd_setcfg(unsigned char origin)
 		.data = &vc_cfg,
 	};
 	
-	fd = open(SPLASH_DEV, O_WRONLY);
-	if (fd == -1)
+	if (fbsplash_fd == -1)
 		return;
-
+	
 	vc_cfg.tx = cf.tx;
 	vc_cfg.ty = cf.ty;
 	vc_cfg.twidth = cf.tw;
@@ -69,9 +71,8 @@ void cmd_setcfg(unsigned char origin)
 	vc_cfg.bg_color = cf.bg_color;
 	vc_cfg.theme = arg_theme;
 	
-	if (ioctl(fd, FBIOSPLASH_SETCFG, &wrapper))
+	if (ioctl(fbsplash_fd, FBIOSPLASH_SETCFG, &wrapper))
 		printerr("FBIOSPLASH_SETCFG failed, error code %d.\n", errno);
-	close(fd);
 }
 
 void cmd_getcfg()
