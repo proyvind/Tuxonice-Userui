@@ -111,7 +111,29 @@ static void fbsplash_message(unsigned long type, unsigned long level, int normal
 }
 
 static void fbsplash_update_progress(unsigned long value, unsigned long maximum, char *fbsplash) {
-	arg_progress = value * PROGRESS_MAX / maximum;
+	int bitshift, tmp;
+
+	if (!maximum)
+		return;
+
+	if (value < 0)
+		value = 0;
+
+	if (value > maximum)
+		value = maximum;
+
+	bitshift = generic_fls(maximum) - 16;
+
+	/* Try to avoid math problems */
+	if (bitshift > 0) {
+		unsigned long temp_maximum = maximum >> bitshift;
+		unsigned long temp_value = value >> bitshift;
+		tmp = (int) (temp_value * PROGRESS_MAX / temp_maximum);
+	} else
+		tmp = (int) (value * PROGRESS_MAX / maximum);
+	
+	arg_progress = tmp;
+
 	arg_task = paint;
 
 	if (console_loglevel < SUSPEND_ERROR)
