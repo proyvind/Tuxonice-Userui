@@ -22,8 +22,9 @@ void usage(char* argv0) {
 "This is used to suspend the state of a single running process to a\n"
 "self-executing file.\n"
 "\n"
-"    -f      Include libraries in the image of the file for a full image.\n"
-"    -c      Save the contents of open files into the image. (Broken!)\n"
+"    -l      Include libraries in the image of the file for a full image.\n"
+"    -f      Save the contents of open files into the image. (Broken!)\n"
+"    -c      Save children of this process as well.\n"
 "\n"
 "This program is part of CryoPID. http://cryopid.berlios.de/\n",
     argv0);
@@ -35,26 +36,31 @@ int main(int argc, char** argv) {
     struct proc_image_t* proc_image;
     int c;
     int flags = 0;
+    int get_children = 0;
     int fd;
 
     /* Parse options */
     while (1) {
 	int option_index = 0;
 	static struct option long_options[] = {
-	    {"full-image", 0, 0, 'f'},
-	    {"file-contents", 0, 0, 'c'},
+	    {"libraries", 0, 0, 'l'},
+	    {"files", 0, 0, 'f'},
+	    {"children", 0, 0, 'c'},
 	    {0, 0, 0, 0},
 	};
 
-	c = getopt_long(argc, argv, "fc", long_options, &option_index);
+	c = getopt_long(argc, argv, "lfc", long_options, &option_index);
 	if (c == -1)
 	    break;
 	switch(c) {
+	    case 'l':
+		flags |= GET_LIBRARIES_TOO;
+		break;
 	    case 'f':
-		flags |= GET_PROC_FULL_IMAGE;
+		flags |= GET_OPEN_FILE_CONTENTS;
 		break;
 	    case 'c':
-		flags |= GET_OPEN_FILE_CONTENTS;
+		get_children = 1;
 		break;
 	    case '?':
 		/* invalid option */
@@ -64,7 +70,7 @@ int main(int argc, char** argv) {
     }
 
     if (argc - optind != 2) {
-    usage(argv[0]);
+	usage(argv[0]);
 	return 1;
     }
 

@@ -614,7 +614,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
     snprintf(tmp_fn, 1024, "/proc/%d/maps", target_pid);
     f = fopen(tmp_fn, "r");
     while (fgets(map_line, 1024, f)) {
-	if (!get_one_vma(target_pid, map_line, &(proc_image->maps[map_count]), flags & GET_PROC_FULL_IMAGE))
+	if (!get_one_vma(target_pid, map_line, &(proc_image->maps[map_count]), flags & GET_LIBRARIES_TOO))
 	    fprintf(stderr, "     Error parsing map: %s", map_line);
 	else
 	    if (proc_image->maps[map_count].start >= 0x10000 &&
