@@ -63,7 +63,7 @@ ModulesUnloadAll() {
 	mod_retry_count=$(($mod_retry_count+1))
     done
 
-    vecho 1 "Some modules failed to unload: `cat /proc/modules` "
+    vecho 1 "Some modules failed to unload: "`awk '{print $1}' /proc/modules`
     return 0
 }
 
