@@ -47,28 +47,28 @@ void put_shell_code(struct user_regs_struct r, char* code) {
 	memset(code, 0, sizeof(code));
 	code[0xffc] = 'A';
     /* set up a temporary stack for use */
-	*cp++ = 0xbc; *(long*)(cp) = (long)code+0x0ff0; cp+=4; /* mov sp, 0x11000 */
+	*cp++=0xbc;*(long*)(cp) = (long)code+0x0ff0; cp+=4; /* mov 0x11000, %esp */
 
     /* munmap resumer code except for us */
-	*cp++ = 0xb8; *(long*)(cp) = __NR_munmap; cp+=4; /* mov foo, ax  */
-	*cp++ = 0xbb; *(long*)(cp) = RESUMER_START; cp+=4; /* mov foo, bx  */
-	*cp++ = 0xb9; *(long*)(cp) = RESUMER_END-RESUMER_START; cp+=4; /* mov foo, cx  */
-    *cp++ = 0xcd; *cp++ = 0x80; /* int $0x80 */
+	*cp++=0xb8;*(long*)(cp) = __NR_munmap; cp+=4; /* mov foo, %eax  */
+	*cp++=0xbb;*(long*)(cp) = RESUMER_START; cp+=4; /* mov foo, %ebx  */
+	*cp++=0xb9;*(long*)(cp) = RESUMER_END-RESUMER_START; cp+=4; /* mov foo, %ecx  */
+    *cp++=0xcd;*cp++=0x80; /* int $0x80 */
 
     /* set up gs */
-	*cp++ = 0x66; *cp++ = 0xb8; *(short*)(cp) = r.gs; cp+=2; /* mov foo, ax  */
-	*cp++ = 0x8e; *cp++ = 0xe8; /* mov %eax, %gs */
+	*cp++=0x66;*cp++=0xb8; *(short*)(cp) = r.gs; cp+=2; /* mov foo, %eax  */
+	*cp++=0x8e;*cp++=0xe8; /* mov %eax, %gs */
 
     /* restore registers */
-	*cp++ = 0xb8; *(long*)(cp) = r.eax; cp+=4; /* mov foo, ax  */
-	*cp++ = 0xbb; *(long*)(cp) = r.ebx; cp+=4; /* mov foo, bx  */
-	*cp++ = 0xb9; *(long*)(cp) = r.ecx; cp+=4; /* mov foo, cx  */
-	*cp++ = 0xba; *(long*)(cp) = r.edx; cp+=4; /* mov foo, dx  */
-	*cp++ = 0xbe; *(long*)(cp) = r.esi; cp+=4; /* mov foo, si  */
-	*cp++ = 0xbf; *(long*)(cp) = r.edi; cp+=4; /* mov foo, di  */
-	*cp++ = 0xbd; *(long*)(cp) = r.ebp; cp+=4; /* mov foo, bp  */
-	*cp++ = 0xbc; *(long*)(cp) = r.esp; cp+=4; /* mov foo, sp  */
-	*cp++ = 0xea;
+	*cp++=0xb8;*(long*)(cp) = r.eax; cp+=4; /* mov foo, %eax  */
+	*cp++=0xbb;*(long*)(cp) = r.ebx; cp+=4; /* mov foo, %ebx  */
+	*cp++=0xb9;*(long*)(cp) = r.ecx; cp+=4; /* mov foo, %ecx  */
+	*cp++=0xba;*(long*)(cp) = r.edx; cp+=4; /* mov foo, %edx  */
+	*cp++=0xbe;*(long*)(cp) = r.esi; cp+=4; /* mov foo, %esi  */
+	*cp++=0xbf;*(long*)(cp) = r.edi; cp+=4; /* mov foo, %edi  */
+	*cp++=0xbd;*(long*)(cp) = r.ebp; cp+=4; /* mov foo, %ebp  */
+	*cp++=0xbc;*(long*)(cp) = r.esp; cp+=4; /* mov foo, %esp  */
+	*cp++=0xea;
 	*(unsigned long*)(cp) = r.eip; cp+= 4;
 	*(unsigned short*)(cp) = r.cs; cp+= 2; /* jmp cs:foo */
 }
