@@ -82,12 +82,11 @@ A patch is available against 2.2.20 kernel named v7c. Since this patch is no
 longer maintained, this document will not provide much information on this
 version.
 
-<sect2> Kernel 2.4.X
-<p> Unfortunately, software suspension isn't part of kernel 2.4.X and should
-therefore be added using one of the patches provided on the Berlios pages
-mentioned above.  The latest patches are distributed as a tarball of patches,
-which must be applied togther. This is most easily done with the <tt>apply</tt>
-script inside the tarball.
+<sect2> Kernel 2.4.X <p> Unfortunately, software suspension isn't part of
+kernel 2.4.X and should therefore be added using one of the patches provided on
+the download pages.  The latest patches are distributed as a tarball of
+patches, which must be applied togther. This is most easily done with the
+<tt>apply</tt> script inside the tarball.
 
 <sect2> Kernel 2.6.X
 <p>An implementation of Software Suspend is directly included since 2.5.18 in
@@ -100,10 +99,11 @@ the download page), most of this HOWTO remains the same.
 with a CPU featuring pse or pse36 feature (type cat /proc/cpuinfo and
 check the flags line for pse or pse36). SMP support is nearly there although
 needs a little more testing. Your hardware disks should be IDE (swsusp with
-SCSI will hopefully be supported in 2.6 kernel).
+SCSI might be supported - nobody has confirmed or denied this recently).
 
 <sect1> Compiling the kernel
-<p> Compiling a kernel is not that hard (see the Kernel-HOWTO) but
+<p> Compiling a kernel is not that hard (see the
+<url url="http://www.tldp.org/HOWTO/Kernel-HOWTO.html" name="Kernel-HOWTO">) but
 be sure to save your running kernel as something like /boot/vmlinuz.old
 and add an entry in your lilo.conf file to be able to boot on this one.
 
@@ -168,25 +168,23 @@ your linuxrc (or init) script to contain the line
 echo > /proc/software_suspend/do_resume
 </quote>
 <bf>BEFORE</bf> the script mounts your filesystem. If you do not, you will most likely suffer from filesystem corruption. You have been warned.
+<p>See the <ref id="modular" name="Modular Software Suspend"> section for more information.
 
 <p>You can now recompile your kernel with Software Suspend...
 
 <sect1> Installing the new kernel
-<p> You must have a swap partition on your disk. This swap partition should
-be at least 30% larger than your RAM (this is a rough estimation: it
-depends on the number of applications you suspend and their memory
-consumption). If you have 128M RAM, you might want to use 160M swap. It
-has to be formatted by mkswap and used as a swap area through /etc/fstab
-configuration file. You don't need a partition specifically set aside
-for suspending.
+<p> You must have a swap partition on your disk. If you are using
+LZF compression (highly recommended!), then you swap partition should
+be about as large as your RAM (this is a rough estimation: it depends on the
+number of applications you suspend and their memory consumption and how much
+swap is normally used).  It has to be formatted by mkswap and used as a swap
+area through /etc/fstab configuration file. You don't need a partition
+specifically set aside for suspending.
 
 <p> You must set the resume kernel option to the swap partition you want to
 use for suspension. If your partition is, for instance, the third
 primary one on first ide disk (/dev/hda3) you have to append
 "resume2=swap:/dev/hda3" as a kernel parameter in your lilo.conf file.
-(As of version 2.0-rc3, resume2= is used to avoid a name clash with another
-implementation in the 2.6 kernel, and the swap parameter introduced to allow
-for multiple "swapwriters" in the future.
 
 <bf>IMPORTANT</bf>: make this entry the default entry in lilo.conf file.
 
@@ -202,7 +200,7 @@ options.
 suspendable kernel. It should boot and run the same way as your original
 kernel. The only difference you should see immediately is that the boot
 messages (dmesg | less) should contain a note that Software Suspend has
-started, and ps should show a ksuspendd thread.
+started (eg, "<tt>Software Suspend 2.1.5.10: Suspending enabled.</tt>").
 
 <sect> Testing software suspend
 <sect1> Installing the suspend script
@@ -245,11 +243,11 @@ See <em>man sudoers(5)</em> for more information. Users will then be able to do
 
 <sect1> Suspending in text mode
 <p> For testing swsusp, you should begin by testing text only suspension.
-Switch to a console by <tt>Ctrl-Alt F1</tt>, login as root. Under Red Hat 
-or Mandrake, stop the X server by typing <tt>init 3</tt>. Debian users will
-need to stop the xdm, gdm or kdm service by running <tt>/etc/init.d/xdm stop</tt>
-(substituting xdm with your display manager). Users of other distributions will do
-something similar.
+Switch to a console by <tt>Ctrl-Alt F1</tt>, login as root. Under Red Hat,
+Fedora or Mandrake, stop the X server by typing <tt>init 3</tt>. Debian users
+will need to stop the xdm, gdm or kdm service by running <tt>/etc/init.d/xdm
+stop</tt> (substituting xdm with your display manager). Users of other
+distributions should do something similar.
 
 <p> Now try <tt>hibernate</tt>. The suspension should take place ending with
 machine halting. Power on the computer and it should recover your session. If
@@ -346,10 +344,7 @@ cat /etc/swsusp.conf > /proc/sys/kernel/swsusp
 <p>The entries within /proc/software_suspend/ are:
 
 <descrip>
-<tag><tt>acpi_s4_support</tt></tag> Use your machine's ACPI implementation to
-put the machine to sleep (may result in a faster resume, as many of the usual
-BIOS checks may be skipped).
-<tag><tt>all_settings</tt></tag> This replaces the old <tt>/proc/sys/kernels/swsusp</tt> - all the settings can be saved or restored at once by reading or writing the contents of this entry.
+<tag><tt>all_settings</tt></tag> This replaces the old <tt>/proc/sys/kernels/swsusp</tt> - all the settings can be saved or restored at once by reading or writing the contents of this entry. Some of the data may be binary, so writing and restoring this data from a file is advised.
 <tag><tt>async_io_limit</tt></tag> Maximum number of asynchronous I/O transactions
 at once.
 <tag><tt>debug_info</tt></tag> (Test versions only) Debug information that should be included with any debugging reports.
@@ -396,6 +391,14 @@ of the proc interface. Incremented with any change in the /proc interface.
 pageset. Implies a maximum image size of half the amount of low memory.
 <tag><tt>pause_between_steps</tt></tag> Pause between the steps of the process
 (useful for debugging).
+<tag><tt>powerdown_method</tt></tag> Use your machine's ACPI implementation to
+put the machine to sleep in one of 3 ways. Entering 3 into here will make the
+machine enter S3 (suspend-to-RAM) after writing the image to disk. This allows
+for a faster resume under normal circumstances, but no losses if your battery
+should run out or for any other reason suspend-to-RAM should not wake up.
+Entering 4 will use the machine's S4 state - this may result in a faster
+resume, as many of the usual BIOS checks may be skipped. Entering 5 will
+powerdown the machine as per usual.
 <tag><tt>reboot</tt></tag> Set to reboot instead of powering off at the end of
 saving the image.
 <tag><tt>resume2</tt></tag> Allows you to set what would be on the kernel
@@ -403,8 +406,9 @@ command line as resume2= (saves a reboot if you forget). This tells the kernel
 where to write the suspend image. You will still need to add it to your
 bootloader (LILO or GRUB) in order to resume from the image!
 <tag><tt>slow</tt></tag> Slows down the suspend process (for debugging).
-<tag><tt>swapfilename</tt></tag> Set the name of the swapfile to use into this
-file if you are using swapfiles (rather than a dedicated swap partition).
+<tag><tt>swapfilename</tt></tag> Set the name of the swapfile to be automatically
+enabled and disabled before and after suspending. See
+<ref id="swapfiles" name="Using a swapfile"> for more information.
 <tag><tt>version</tt></tag> Read only. The version of the software suspend
 patch you are using.
 </descrip>
@@ -427,6 +431,55 @@ view all the information swsusp prints. In this case, you can set the
 debug_sections parameter to control what portions of output are printed (see
 include/linux/suspend-debug.h in the kernel source for what each bit controls).
 
+<sect1>Suspending in a minimalist environment
+<p>To eliminate problems with drivers, people will often recommend to suspend
+from single user mode or use init=/bin/sh.
+
+<sect2>Single user mode
+<p>Linux distributions where many services are not enabled, and ideally, many
+modules are not enabled.  It can be entered by adding the word
+"<tt>single</tt>" to the kernel command line when you boot. Unfortunately some
+distributions will still load many modules in this runlevel, so if suspend still
+fails here, you might need to try using init=/bin/sh.
+
+<sect2>init=/bin/sh
+<p>In this mode, absolutely nothing else is done afer loading the kernel. It
+requires a bit of manual intervention to get things going into a usable state,
+documented below, but should help in isolating bad drivers causing Software
+Suspend to fail.
+
+<itemize>
+<item>To enter this mode, as you boot your machine you need to catch your
+bootloader (eg, LILO or GRUB) before it boots your kernel. Edit the kernel
+command-line to add the text "<tt>init=/bin/sh</tt>". In LILO this can be done
+by holding the Ctrl key down to bring up the menu, selecting your kernel with
+the arrow keys, then typing " init=/bin/sh" and press Enter. In GRUB, you can
+do this by highlighting your kernel in the menu, press E to edit, highlight the
+line that begins "kernel ...", press E to edit that, and type " init=/bin/sh"
+on the end, press Enter to save, and press B to boot.
+<item>You should be greeted with a screen of the kernel booting and a prompt
+that looks a little like <verb>sh-3.00# </verb>
+<item>From here, enter the following commands:
+<itemize>
+<item><tt># mount -o remount,rw /</tt>
+<item><tt># mount -t proc proc proc</tt>
+<item><tt># swapon -a</tt>
+</itemize>
+You may need to start devfsd or udev too:
+<itemize>
+<item><tt># /etc/init.d/devfsd start</tt>
+</itemize>
+And now try running the hibernate script to see if it succeeds. If so, you can
+blame a module and now the process begins to load modules one by one until
+hibernation breaks.
+<item>To cleanly reboot from this point, you will want to do the following:
+<itemize>
+<item><tt># mount -o remount,ro /</tt>
+<item><tt># sync</tt>
+<item><tt># reboot</tt>
+</itemize>
+</itemize>
+
 <sect1>Software suspend hotkeys
 
 <p>When a suspend is in progress there are a number of keys that can be used to
@@ -446,7 +499,9 @@ requires that debugging be enabled (compiled in).
 
 <item> <bf>P</bf> (Test versions only) - toggles pausing between major steps when log level > 1.
 
-<item> <bf>S</bf> (Test versions only) - toggles pausing between minor steps
+<item> <bf>S</bf> (Test versions only) - toggles pausing between minor steps.
+
+<item> <bf>`</bf> (Test versions only) - toggles slowing down the suspend process.
 
 <item> <bf>Space</bf> - continue when paused.
 
@@ -640,12 +695,12 @@ common problems.
 <p>See the <url url="FAQ-6.html#ss6.4" name="Modules FAQ"> for some
 distribution-specific tips.
 
-<sect1>Using a swapfile
-<p><bf>NOTE:</bf> As of 2.1.5.10, your filesystem must have a 4k-blocksize.
-ext3 and reiserfs do. XFS, by default, does not. If you don't know, follow
-steps 1 and 2 below and see what value follows the @ sign in
-<tt>header_locations</tt>. If it is not 4096, then wait until a Software
-Suspend version is released that does handle non-4K blocks (or stay tuned
+<sect1>Using a swapfile<label id="swapfiles">
+<p><bf>NOTE:</bf> Currently (correct as of 2.1.5.10), your filesystem must have
+a 4k-blocksize.  ext3 and reiserfs do. XFS, by default, does not. If you don't
+know, follow steps 1 and 2 below and see what value follows the @ sign in
+<tt>headerlocations</tt>. If it is not 4096, then wait until a Software Suspend
+version is released that does handle non-4K blocks (or stay tuned
 here).
 <enum>
 <item>Create and activate your swap file:
@@ -660,7 +715,7 @@ corresponding device to this mountpoint.
 </itemize>
 <item>Find out your header locations:
 <itemize>
-<item><verb># cat /proc/software_suspend/header_locations
+<item><verb># cat /proc/software_suspend/headerlocations
 For swapfile `/path/to/swapfile               `, use resume2=swap:/dev/&lt;partition name&gt;:0x2da2b4@4096.
 </verb>
 <item>For example, if I know the swapfile is on /dev/hda1, then my "resume2=" line becomes <tt>resume2=swap:/dev/hda1:0x2da2b4@4096</tt>
@@ -668,11 +723,17 @@ For swapfile `/path/to/swapfile               `, use resume2=swap:/dev/&lt;parti
 <item>Enter your resume2= line:
 <itemize>
 <item>On the kernel command line either in lilo.conf, or GRUB's menu.lst, put the full <tt>resume2=...</tt> parameter.
-<ITEM>iF you use the hibernate script, in hibernate.conf put <tt>SuspendDevice swap:/dev/hda1:0x2da2b4@4096</tt>
+<ITEM>If you use the hibernate script, in hibernate.conf put <tt>SuspendDevice swap:/dev/hda1:0x2da2b4@4096</tt>
 <item>If you use a custom suspend script, enter <tt>echo swap:/dev/hda1:0x2da2b4@4096 > /proc/software_suspend/resume2</tt> somewhere before suspending.
 </itemize>
 Doing one of the last two changes above is not required, but if you don't you
 will have to reboot your machine before being able to suspend to the swapfile.
+<item>Get your swap partition automatically enabled and disabled for suspending:
+<itemize>
+<item>By entering the name of your swapfile into
+/proc/software_suspend/swapfile before suspending, Software Suspend will
+automatically enable and disable the swapfile for you.
+</itemize>
 </enum>
 
 <sect1>Swap on LVM/dm-crypt
@@ -681,7 +742,7 @@ will have to reboot your machine before being able to suspend to the swapfile.
 <enum>
 <item>You will need to use an initrd or initramfs support, so your kernel must
 have support for this. Since you're using one anyway, you might like to compile
-<url url="FAQ-6.html" name="suspend as modules"> while you're at it :&gt;
+<ref id="modular" name="suspend as modules"> while you're at it :&gt;
 <item>Configure your LVM/encrypted swap/whatever like you normally would.
 <item>Modify your initrd/initramfs as follows:
     <itemize>
