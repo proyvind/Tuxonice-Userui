@@ -303,19 +303,12 @@ void interpolate_box(struct splash_box *a, struct splash_box b)
 }
 
 
-#if 0
 /* a wrapper function to handle different types of boxes to be drawn */
-void draw_boxes(u8 *data, char mode)
+void draw_boxes(u8 *data, char mode, unsigned char origin)
 {
-	char dev[16];
-	int i, fd = 0;
+	int i;
 	struct splash_box tmp;
 
-	if (arg_progress > 0 && arg_task == paint) {
-		sprintf(dev, "/dev/fb%d", arg_fb);
-		fd = open(dev, O_WRONLY);
-	}
-	
 	for (i = 0; i < cf_boxes_cnt; i++) {
 
 		if (cf_boxes[i].attr & BOX_SILENT && mode != 's')
@@ -332,18 +325,13 @@ void draw_boxes(u8 *data, char mode)
 				goto next;				
 			tmp = cf_boxes[i];
 			interpolate_box(&tmp, cf_boxes[i+1]);
-			draw_box(data, tmp, fd);
+			draw_box(data, tmp, fb_fd);
 next:			i++;
 			continue;
 		}			
 
-		draw_box(data, cf_boxes[i], fd);
+		draw_box(data, cf_boxes[i], fb_fd);
 	}
 
-	if (fd)
-		close(fd);
-	
 	return;
 }
-
-#endif

@@ -99,20 +99,10 @@ void truecolor2fb (truecolor* data, u8* out, int len, int y)
 	}
 }
 
-void my_png_read_fn(png_structp png_ptr, png_bytep buf, png_size_t length)
-{
-	struct png_data *data = (struct png_data*)png_get_io_ptr(png_ptr);
-
-	if (data->cur_pos + length > data->len)
-		length = data->len - data->cur_pos;
-	memcpy(buf, data->data+data->cur_pos, length);
-	data->cur_pos += length;
-}
-
 #ifdef CONFIG_PNG
 #define PALETTE_COLORS 240
 
-int load_png(struct png_data *data, struct fb_image *img, char mode)
+int load_png(char *filename, struct fb_image *img, char mode)
 {
 	png_structp 	png_ptr;
 	png_infop 	info_ptr, end_info;
@@ -130,10 +120,11 @@ int load_png(struct png_data *data, struct fb_image *img, char mode)
 	else
 		pal_len = 256;
 		
-	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (!png_ptr)
+	FILE *fp = fopen(filename,"r");
+	if (!fp)
 		return -1;
-
+	
+	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	info_ptr = png_create_info_struct(png_ptr);
 	if (!info_ptr) {
 		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
@@ -149,8 +140,7 @@ int load_png(struct png_data *data, struct fb_image *img, char mode)
 	if (setjmp(png_jmpbuf(png_ptr)))
 		goto failed;
 
-	data->cur_pos = 0;
-	png_set_read_fn(png_ptr, data, my_png_read_fn);
+	png_init_io(png_ptr, fp);
 	png_read_info(png_ptr, info_ptr);
 
 	if (fb_var.bits_per_pixel == 8 && info_ptr->color_type != PNG_COLOR_TYPE_PALETTE)
@@ -177,8 +167,7 @@ int load_png(struct png_data *data, struct fb_image *img, char mode)
 
 	rowbytes = png_get_rowbytes(png_ptr, info_ptr);	
 	
-	if (!img->data)
-		img->data = malloc(fb_var.xres * fb_var.yres * bytespp);
+	img->data = malloc(fb_var.xres * fb_var.yres * bytespp);
 	if (!img->data)
 		goto failed;
 	
@@ -245,6 +234,7 @@ int load_png(struct png_data *data, struct fb_image *img, char mode)
 	}
 	
 	free(buf);
+	fclose(fp);
 	
 	png_destroy_read_struct(&png_ptr, (png_infopp)&info_ptr, (png_infopp)&end_info);
 	return 0;

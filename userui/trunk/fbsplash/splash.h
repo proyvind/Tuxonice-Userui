@@ -55,12 +55,6 @@ struct splash_config
 	
 } __attribute__ ((packed));
 
-struct png_data {
-	u8* data;
-	int len;
-	int cur_pos;
-};
-
 extern struct splash_config cf;
 
 /* splash_common.c */
@@ -68,8 +62,8 @@ extern struct splash_config cf;
 void detect_endianess(void);
 int get_fb_settings(int fb_num);
 char *get_cfg_file(char *theme);
-int do_getpic(unsigned char, char);
-int do_config();
+int do_getpic(unsigned char, unsigned char, char);
+int do_config(unsigned char);
 
 /* splash_parse.c */
 					    
@@ -93,10 +87,10 @@ int remove_dev(char *fn, int flag);
 
 /* splash_render.c */
 
-void draw_box(u8* data, struct splash_box box, int fd);
+void draw_boxes(u8 *data, char, unsigned char);
 
 #ifdef CONFIG_PNG
-int load_png(struct png_data *data, struct fb_image *img, char mode);
+int load_png(char *filename, struct fb_image *img, char mode);
 int is_png(char *filename);
 #endif
 
@@ -104,9 +98,9 @@ int decompress_jpeg(char *filename, struct fb_image *img);
 
 /* splash_cmd.c */
 
-void cmd_setstate(unsigned int state);
-void cmd_setpic(struct fb_image *img);
-void cmd_setcfg();
+void cmd_setstate(unsigned int state, unsigned char origin);
+void cmd_setpic(struct fb_image *img, unsigned char origin);
+void cmd_setcfg(unsigned char origin);
 void cmd_getcfg();
 
 extern char *cf_pic;
@@ -133,5 +127,6 @@ extern u16 arg_progress;
 extern char *config_file;
 
 extern struct fb_image pic;
-extern char *pic_file;
+extern int fb_fd, fbsplash_fd;
 
+#define FB_SPLASH_IO_ORIG_USER 1

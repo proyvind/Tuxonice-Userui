@@ -99,3 +99,105 @@ int get_fb_settings(int fb_num)
 
 	return 0;
 }
+
+char *get_cfg_file(char *theme) 
+{
+	char buf[512];
+
+	snprintf(buf, 512, "%s/%s/%dx%d.cfg", THEME_DIR, theme, fb_var.xres, fb_var.yres);
+	return strdup(buf);	
+}
+
+int do_getpic(unsigned char origin, unsigned char do_cmds, char mode)
+{	
+	int res;
+	
+	if (!config_file) {
+		printerr("No config file.\n");
+		return -1;
+	}
+
+	pic.width = fb_var.xres;
+	pic.height = fb_var.yres;
+	pic.depth = fb_var.bits_per_pixel;
+
+	/* if we have a 8bpp pixel mode to deal with, we need to use pic256
+	 * and silentpic256, which can currently only be PNGs */
+	if (fb_var.bits_per_pixel == 8) {
+
+		if ((!cf_pic256 && mode == 'v') || (!cf_silentpic256 && mode == 's')) {
+			printerr("No 8bpp picture for the current splash mode (%c) specified in the theme config.\n", mode);
+			return -2;
+		}
+	
+		pic_file = (mode == 'v') ? cf_pic256 : cf_silentpic256;
+#ifdef CONFIG_PNG
+		if (load_png(pic_file, &pic, mode)) {
+			printerr("Failed to load PNG file %s.\n", pic_file);
+			return -2;
+		}
+		
+		if (do_cmds) {
+			cmd_setpic(&pic, origin);	
+			free((void*)pic.data);
+			if (pic.cmap.red)
+				free(pic.cmap.red);
+		}
+#endif
+	} else {
+
+		/* here we handle 15bpp+ modes, the pics can be either jpgs or
+		 * pngs, so we have to check it out first */
+
+		pic_file = (mode == 'v') ? cf_pic : cf_silentpic;
+#ifdef CONFIG_PNG		
+		if (is_png(pic_file))
+			res = load_png(pic_file, &pic, mode);
+		else 
+#endif
+			res = decompress_jpeg(pic_file, &pic);
+	
+		if (res) {
+			printerr("Failed to load image %s.\n", pic_file);
+			return -2;
+		}
+		
+		draw_boxes((u8*)pic.data, mode, origin);
+
+		if (do_cmds) {
+			cmd_setpic(&pic, origin);
+			free((void*)pic.data);
+			if (pic.cmap.red)
+				free(pic.cmap.red);
+		}
+	}
+
+	return 0;
+}
+
+int do_config(unsigned char origin)
+{
+	if (!config_file) {
+		printerr("No config file.\n");
+		return -1;
+	}
+		
+	/* if the user specified invalid values for the text field - correct it.
+	 * also setup default values (text field coverting the whole screen) */
+
+	if (cf.tx > fb_var.xres)
+		cf.tx = 0;
+
+	if (cf.ty > fb_var.yres)
+		cf.ty = 0;
+
+	if (cf.tw > fb_var.xres || cf.tw == 0)
+		cf.tw = fb_var.xres;
+
+	if (cf.th > fb_var.yres || cf.th == 0)
+		cf.th = fb_var.yres;
+
+	cmd_setcfg(origin);
+	return 0;
+}
+
