@@ -1,5 +1,5 @@
 Name: hibernate
-Version: 1.04
+Version: 1.05
 Release: 1
 License: GPL
 Group: Applications/System
