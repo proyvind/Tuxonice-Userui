@@ -23,19 +23,19 @@ SplashStart() {
 	# check if /proc/splash and /sbin/splash exists 
 	if [ ! -f /proc/splash ]; then
 	    USE_BOOTSPLASH=0
-	    vecho 1 "/proc/splash not found. Bootsplash stopped."
+	    vecho 1 "/proc/splash not found. Bootsplash disabled."
 	    return 0
 	fi
 	if [ ! -f /sbin/splash ]; then
 	    USE_BOOTSPLASH=0
-	    vecho 1 "/sbin/splash not found. Bootsplash stopped."
+	    vecho 1 "/sbin/splash not found. Bootsplash disabled."
 	    return 0
 	fi
 
 	# configfile exists ?
 	if [ ! -f "$SPLASH_CONFIG_FILE" ]; then
 	    USE_BOOTSPLASH=0
-	    vecho 1 "config file not found. Bootsplash stopped."
+	    vecho 1 "config file not found. Bootsplash disabled."
 	    return 0
 	fi
 
