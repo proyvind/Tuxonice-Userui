@@ -1,6 +1,6 @@
 OBJECTS = freeze
 
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -O3
 
 CHPAX = /sbin/chpax
 DEPAX = test ! -x $(CHPAX) || $(CHPAX) -xperms
@@ -21,8 +21,8 @@ stub-image.S: stub src2asm.pl
 
 freeze: freeze.o process.o imagewriter.o elfwriter.o stub-image.o
 
-stub: stub.o supervisor.o
-	gcc -static -Tstub-linking.x -o $@ $^ $(LIBC)
+stub: stub.c supervisor.c
+	gcc -static -Tstub-linking.x -Os -o $@ $^ $(LIBC)
 	strip $@
 	$(DEPAX) $@
 
