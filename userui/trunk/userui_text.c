@@ -169,10 +169,10 @@ static void text_loglevel_change(int loglevel)
 		if (lastloglevel < SUSPEND_ERROR)
 			clear_display();
 
-		printf("Switched to console loglevel %d.\n", console_loglevel);
+		printf("\nSwitched to console loglevel %d.\n", console_loglevel);
 
 		if (lastloglevel < SUSPEND_ERROR) {
-			printf("%s\n", lastheader);
+			printf("\n** %s\n", lastheader);
 		}
 	
 	} else if (lastloglevel >= SUSPEND_ERROR) {
