@@ -1,4 +1,4 @@
-0.92
+0.92 (10 July 2004)
  - /etc/suspend/, suspend.conf, and swsusp.log are now called /etc/hibernate/,
    hibernate.conf and hibernate.log for consistency.
  - Redirect stderr to stdout so that both get logged. $LOGPIPE is also no
