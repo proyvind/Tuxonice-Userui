@@ -541,96 +541,7 @@ button event.
 
 <sect>Modular Software Suspend<label id="modular">
 
-<sect1> Why would I want to compile suspend as modules?
-<p>
-<enum>
-<item> Compiling suspend as modules lets you have a smaller base kernel. The
-code will not be taking up memory when it's not being used.
-<item> Certain upgrades of suspend code become possible without rebooting,
-by simply recompiling and reloading the modules. Even so, some code is still
-built into the kernel, and changes to these parts will require a reboot.
-<item> This also allows for loading other modules from the initrd that might
-help overcome power management issues.
-<item> This also allows for encryption support to be included (crypto loop)
-<item> Support for storage devices can be made modular as well (Debian's default
-kernels do this).
-</enum>
-
-<sect1> What options do I need to select in my kernel configuration?
-
-<p>In configuring suspend itself, you can compile as much or as little as
-modules as you like. The core code can be built as a module, or just the
-plugins.
-
-<p>In addition to this, you will need to compile initrd support so that
-suspend modules can be loaded from the initrd and suspend activated
-before any filesystems are mounted. Your initrd will require a /sys directory
-in which a sysfs filesystem will be briefly mounted (if not already mounted
-by your linuxrc script).
-
-<p><bf>This paragraph not applicable since 2.0.0.103:</bf> When configuring
-your kernel, select the new option at the bottom of the Software Suspend 2
-section (Always resume during/after initrd is run). Without this, you'll need
-to add lateresume2 to the command line to get suspend to not try to resume
-earlier (particularly important if you compile as modules!). It is planned to
-get rid of this shortly: suspend will always resume later if you have initrd
-support.
-
-<p>At resume time, suspend needs to do its work in the <tt>linuxrc</tt> script,
-before any filesystems are mounted. This implies that the modules for suspend
-must be put in the initrd and loaded before the initrd does any mounting of
-filesystems (the modules can be inserted, but the mount commands must come
-later). Note: in Debian kernels, a script in /scripts/ is executed too late.
-See <url url="http://softwaresuspend.berlios.de/wiki/DebianInitrd" name="DebianInitrd on the wiki">.
-
-<sect1>Can you give me a checklist to follow in installing the new support?
-
-<p>Sure!
-
-<enum>
-<item> Apply the new patches to your kernel.
-<item> Configure (don't forget initrd support and don't forget to check that suspend support is selected. Changes to the Kconfig file mean it will be
-treated as a new option).
-<item> make bzImage modules modules_install
-<item> Install the bzImage (make sure you can boot an old kernel, just in
-case) and run lilo if needed.
-<item> Mount or create your initrd and copy the suspend modules to the
-initrd. Also ensure that there is a /sys directory inside your initrd.
-<item> Edit your initrd's linuxrc to load the modules and then call echo >
-/proc/software_suspend/do_suspend BEFORE any mounting of filesystems
-(apart from proc) is done.
-<item> Unmount your initrd.
-<item> Reboot to init S.
-<item> Check dmesg or /var/log/messages to confirm that your initrd ran
-fine, that you see the modules installed and that they report all being
-well with the world.
-<item> Try a suspend. Remember that /proc/swsusp is now /proc/software_suspend/
-</enum>
-
-<p><bf>WHEN YOU BUILD A NEW KERNEL, DON'T FORGET TO UPDATE THE MODULES IN THE
-INITRD!!</bf>
-
-<sect1> Can you provide a sample linuxrc?
-<p>
-<verb>
-#!/bin/sh
-/bin/mount none /proc -t proc
-/bin/insmod -q /lib/suspend2_core.ko
-/bin/insmod -q /lib/suspend2_lzf.ko
-/bin/insmod -q /lib/suspend2_block_io.ko
-/bin/insmod -q /lib/suspend2_swap.ko
-echo > /proc/software_suspend/do_resume
-/bin/umount /proc
-</verb>
-
-<p>Notes:
-<itemize>
-<item> You need to mount /proc so you can do the do_resume (which doesn't
-suspend! When called from the initrd, it checks whether to resume.)
-<item> Any support for storage devices should be installed before the writer
-to avoid 'Unable to parse resume device' messages
-<item> Normal filesystems should be mounted afterwards.
-</itemize>
+<p>The "HOWTO" part of this section has been moved to the <url url="HOWTO-6.html#modular" name="HOWTO">
 
 <sect1> I get messages about the size of struct module not agreeing when the initrd tries to insert my suspend modules.
 
@@ -698,6 +609,9 @@ cat /etc/suspend_settings > /proc/software_suspend/all_settings
 <item>hibernate <tt>:)</tt>
 </itemize>
 
+<sect1>How can I update my initrd on Debian?
+
+<p>See <url url="http://softwaresuspend.berlios.de/wiki/DebianInitrd" name="DebianInitrd on the wiki">.
 
 <sect>Miscellaneous
 

@@ -538,6 +538,143 @@ are now running with the original kernel image. Finally, we load the
 first set of pages we saved, clean up and exit.
 
 <sect>Other configurations
+<sect1>Software Suspend compiled as modules<label id="modular">
+
+<sect2>Advantages
+<p>
+<itemize>
+<item> Compiling suspend as modules lets you have a smaller base kernel. The
+code will not be taking up memory when it's not being used.
+<item> Certain upgrades of suspend code become possible without rebooting,
+by simply recompiling and reloading the modules. Even so, some code is still
+built into the kernel, and changes to these parts will require a reboot.
+<item> It allows for loading other modules from the initrd that might help
+overcome power management issues.
+<item> It allows for encryption support to be included (crypto loop)
+<item> Support for storage devices can be made modular as well (Debian's default
+kernels do this).
+</itemize>
+
+<sect2>Disadvantages
+<p>
+<itemize>
+<item> Set up and install is a little more complicated.
+<item> If you do not correctly set up your initrd, you may cause filesystem
+corruption. (The initrd must not mount filesystems before attempting to
+resume).
+</itemize>
+
+<sect2>Configuring your kernel
+
+<p>In configuring suspend itself, you can compile as much or as little as
+modules as you like. The core code can be built as a module, or just the
+plugins.
+
+<p>In addition to this, you will need to compile initrd support so that
+suspend modules can be loaded from the initrd and suspend activated
+before any filesystems are mounted. Your initrd will require a /sys directory
+in which a sysfs filesystem will be briefly mounted (if not already mounted
+by your linuxrc script).
+
+<p>At resume time, suspend needs to do its work in the <tt>linuxrc</tt> script,
+before any filesystems are mounted. This implies that the modules for suspend
+must be put in the initrd and loaded before the initrd does any mounting of
+filesystems (the modules can be inserted, but the mount commands must come
+later). Note: in Debian kernels, a script in /scripts/ is executed too late.
+See <url url="http://softwaresuspend.berlios.de/wiki/DebianInitrd" name="DebianInitrd on the wiki">.
+
+<sect2>Sample linuxrc
+<p>
+<verb>
+#!/bin/sh
+/bin/mount none /proc -t proc
+/bin/insmod -q /lib/suspend_core.ko
+/bin/insmod -q /lib/suspend_lzf.ko
+/bin/insmod -q /lib/suspend_block_io.ko
+/bin/insmod -q /lib/suspend_swap.ko
+/bin/insmod -q /lib/suspend_text.ko
+echo > /proc/software_suspend/do_resume
+/bin/umount /proc
+</verb>
+
+<p>Notes:
+<itemize>
+<item> You need to mount /proc so you can do the do_resume (which doesn't
+suspend! When called from the initrd, it checks whether to resume.)
+<item> Any support for storage devices should be installed before the writer
+to avoid 'Unable to parse resume device' messages
+<item> Normal filesystems should be mounted afterwards.
+</itemize>
+
+<sect2>Checklist
+
+<p>
+<enum>
+<item> Apply the new patches to your kernel.
+<item> Configure (don't forget initrd support and don't forget to check that suspend support is selected. Changes to the Kconfig file mean it will be
+treated as a new option).
+<item> make bzImage modules modules_install
+<item> Install the bzImage (make sure you can boot an old kernel, just in
+case) and run lilo if needed.
+<item> Mount or create your initrd and copy the suspend modules to the
+initrd. Also ensure that there is a /sys directory inside your initrd.
+<item> Edit your initrd's linuxrc to load the modules and then call echo >
+/proc/software_suspend/do_suspend BEFORE any mounting of filesystems
+(apart from proc) is done.
+<item> Unmount your initrd.
+<item> Reboot to init S.
+<item> Check dmesg or /var/log/messages to confirm that your initrd ran
+fine, that you see the modules installed and that they report all being
+well with the world.
+<item> Try to suspend (and resume!)
+</enum>
+
+<p><bf>WHEN YOU BUILD A NEW KERNEL, DON'T FORGET TO UPDATE THE MODULES IN THE
+INITRD!!</bf>
+
+<sect2>Problems
+<p>See the <url url="FAQ-6.html#modular" name="Modules FAQ"> for solutions to
+common problems.
+
+<sect2>Distribution specific tips
+<p>See the <url url="FAQ-6.html#ss6.4" name="Modules FAQ"> for some
+distribution-specific tips.
+
+<sect1>Using a swapfile
+<p><bf>NOTE:</bf> As of 2.1.5.10, your filesystem must have a 4k-blocksize.
+ext3 and reiserfs do. XFS, by default, does not. If you don't know, follow
+steps 1 and 2 below and see what value follows the @ sign in
+<tt>header_locations</tt>. If it is not 4096, then wait until a Software
+Suspend version is released that does handle non-4K blocks (or stay tuned
+here).
+<enum>
+<item>Create and activate your swap file:
+<itemize>
+<item><tt># dd if=/dev/zero of=/path/to/swapfile bs=1M count=&lt;size in MB&gt;</tt>
+<item><tt># mkswap /path/to/swapfile</tt>
+<item><tt># swapon /path/to/swapfile</tt>
+<item>Make sure you know what device your swapfile is on (eg, /dev/hda4). If you're not
+sure, run <tt>mount</tt> and find the longest mountpoint that is a prefix to
+the path of the swapfile (eg, it might be /usr/local, /usr or just /). Read the
+corresponding device to this mountpoint.
+</itemize>
+<item>Find out your header locations:
+<itemize>
+<item><verb># cat /proc/software_suspend/header_locations
+For swapfile `/path/to/swapfile               `, use resume2=swap:/dev/&lt;partition name&gt;:0x2da2b4@4096.
+</verb>
+<item>For example, if I know the swapfile is on /dev/hda1, then my "resume2=" line becomes <tt>resume2=swap:/dev/hda1:0x2da2b4@4096</tt>
+</itemize>
+<item>Enter your resume2= line:
+<itemize>
+<item>On the kernel command line either in lilo.conf, or GRUB's menu.lst, put the full <tt>resume2=...</tt> parameter.
+<ITEM>iF you use the hibernate script, in hibernate.conf put <tt>SuspendDevice swap:/dev/hda1:0x2da2b4@4096</tt>
+<item>If you use a custom suspend script, enter <tt>echo swap:/dev/hda1:0x2da2b4@4096 > /proc/software_suspend/resume2</tt> somewhere before suspending.
+</itemize>
+Doing one of the last two changes above is not required, but if you don't you
+will have to reboot your machine before being able to suspend to the swapfile.
+</enum>
+
 <sect1>Swap on LVM/dm-crypt
 <p>This requires Software Suspend 2.1.4.2 or later.
 
