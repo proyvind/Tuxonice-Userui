@@ -2,6 +2,8 @@
  - Turn off "AlwaysForce yes" in the default config file.
  - Make switching back to X occur before networking and services, to give the
    impression that resuming is faster ;) (Cameron Patrick)
+ - Take more care with scriptlet return values to make Ctrl+C actually work whn
+   not using --force.
 
 0.93 (11 July 2004 (later that evening))
  - Make Ctrl+C abort cleanly again.
