@@ -17,13 +17,8 @@ XHacksResume() {
     if [ x"$XHACK_NVIDIA" = "x1" ] ; then
 	# Launch a fake X server to reinitialise the graphics card
 	vecho 1 "Launching fake X server."
-	export XAUTHORITY="/tmp/.Xauthority-swsusp-fake-x-server"
-	export HOME=/dev/shm
-	xauth <<EOT
-add :3 . 00
-generate :3.0 .
-EOT
-	xinit /bin/false -- :3
+	unset XAUTHORITY   # Make sure we don't clobber the user's
+	xinit /bin/true -- X :3 -auth /dev/null -audit 0 -nolisten tcp
     fi
 
     [ -n "$XHACK_ORIGINAL_VT" ] && chvt $XHACK_ORIGINAL_VT
