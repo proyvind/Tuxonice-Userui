@@ -15,7 +15,8 @@
 #include "../userui.h"
 
 int fb_fd;
-static char lastheader[512];
+static char lastmessage[512];
+static char rendermessage[512];
 static int lastloglevel;
 static unsigned long cur_value, cur_maximum, last_pos;
 static int video_num_lines, video_num_columns;
@@ -37,7 +38,9 @@ static void reset_silent_img() {
 	if (!base_image || !silent_img.data)
 		return;
 	memcpy((void*)silent_img.data, base_image, base_image_size);
+	strncpy(rendermessage, lastmessage, 512);
 	render_objs('s', (u8*)silent_img.data, FB_SPLASH_IO_ORIG_USER);
+	rendermessage[0] = '\0';
 }
 
 static void silent_off() {
@@ -102,7 +105,7 @@ static void fbsplash_prepare() {
 	/* Prime the font cache with glyphs so we don't need to allocate them later */
 	TTF_PrimeCache("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -.", global_font, TTF_STYLE_NORMAL);
 
-	boot_message = lastheader;
+	boot_message = rendermessage;
 
 	fb_fd = open("/dev/fb0", O_WRONLY);
 	if (fb_fd == -1) {
@@ -169,7 +172,7 @@ static void fbsplash_update_silent_message() {
 }
 
 static void fbsplash_message(unsigned long type, unsigned long level, int normally_logged, char *msg) {
-	strncpy(lastheader, msg, 512);
+	strncpy(lastmessage, msg, 512);
 	if (console_loglevel >= SUSPEND_ERROR)
 		printf("\n** %s\n", msg);
 	else
@@ -178,7 +181,7 @@ static void fbsplash_message(unsigned long type, unsigned long level, int normal
 
 static void fbsplash_redraw() {
 	if (console_loglevel >= SUSPEND_ERROR) {
-		printf("\n** %s\n", lastheader);
+		printf("\n** %s\n", lastmessage);
 		return;
 	}
 
@@ -238,7 +241,7 @@ static void fbsplash_log_level_change() {
 		printf("\nSwitched to console loglevel %d.\n", console_loglevel);
 
 		if (lastloglevel < SUSPEND_ERROR)
-			printf("\n** %s\n", lastheader);
+			printf("\n** %s\n", lastmessage);
 	
 	} else if (lastloglevel >= SUSPEND_ERROR) {
 		/* Get the nice display or last action [re]drawn */
