@@ -1,9 +1,12 @@
 1.01 (unreleased)
- - New acpi_sleep module to utilise /proc/acpi/sleep for vanilla swsusp.
- - Fix missing mawk compatibility bug in lock.
  - Rename LeaveXBeforeSuspend to SwitchToTextMode.
  - Rename nVidiaHack to UseDummyXServer.
+ - New acpi_sleep module to utilise /proc/acpi/sleep for vanilla swsusp.
  - Added Swsusp2AllSettingsFile option (and command-line option --save-settings)
+ - Fix missing mawk compatibility bug in lock.
+ - Add locking to hibernate script to avoid being run more than once
+   simultaneously.
+ - Turn off Unicode on the Software Suspend VT.
 
 1.00 (7 November 2004)
  - Fix a long standing bug when printing error result codes.
