@@ -41,24 +41,27 @@ XHacksResume() {
 
 # Hook1's called when using bootsplash and chvt needs to be performed earlier on
 XHacksSuspendHook1() {
-    [ x"$USE_BOOTSPLASH" = "x1" -o -n x"$SWSUSPVT" ] && XHACKS_DELAY_SWITCH=1 && XHacksSuspend
+    if [ x"$USE_BOOTSPLASH" = "x1" -o -n "$SWSUSPVT" ] ; then
+	XHACKS_EARLY_SWITCH=1
+	XHacksSuspend
+    fi
     return 0
 }
 
 XHacksResumeHook1() {
-    [ -n "$XHACKS_DELAY_SWITCH" ] && XHacksResume
+    [ -n "$XHACKS_EARLY_SWITCH" ] && XHacksResume
     return 0
 }
 
 # Hook2's called when not using bootsplash or redirecting output and chvt can
 # wait a while.
 XHacksSuspendHook2() {
-    [ -z "$XHACKS_DELAY_SWITCH" ] && XHacksSuspend
+    [ -z "$XHACKS_EARLY_SWITCH" ] && XHacksSuspend
     return 0
 }
 
 XHacksResumeHook2() {
-    [ -z "$XHACKS_DELAY_SWITCH" ] && XHacksResume
+    [ -z "$XHACKS_EARLY_SWITCH" ] && XHacksResume
     return 0
 }
 
