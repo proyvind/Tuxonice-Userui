@@ -47,20 +47,53 @@ any tasks for resuming the machine are run and the script exits.
 If you want users other than root to be able to run the script, check out the
 sudo package.
 
+CALLING FROM ACPID
+------------------
 You may wish to call this script from acpid to allow you to press a button on
-your machine to hibernate.
+your machine to hibernate, or to activate it on lid closure. For example, you
+could modify /etc/acpi/events/powerbtn to run hibernate when you press the
+power button, as follows:
+
+  event=button[ /]power PWRF
+  action=/usr/local/sbin/hibernate
+
+You can watch ACPI events as they occur by running acpi_listen. If you find that
+your machine is hibernating twice, you are probably receiving two events for
+each button press. To only trigger on one, you may need to use the line
+
+  event=button[ /]power PWRF.*[02468ace]$
+
+to match only every second event. However, for non-button events (such as
+triggering on lid closure), it may be more reliable to check the state of the
+lid before suspending. For example, a small script called /etc/acpi/lid.sh :
+
+  #!/bin/sh
+  #
+  # Initiate suspend when lid is closed
+
+  if grep -q closed /proc/acpi/button/lid/$2/state ; then
+      /usr/local/sbin/hibernate
+  fi
+
+and in /etc/acpi/events/lid
+
+  event=button[ /]lid
+  action=/etc/acpi/lid.sh %e
+
+will trigger only when the lid is closed.
+
+For more details, man acpid. For debugging look into /var/log/acpid.
 
 HELP
 ----
 If you have problems with the hibernate script or Software Suspend, the best
-place to ask is on the mailing list - softwaresuspend-help@lists.berlios.de.
-You will need to subscribe to post. See
-http://softwaresuspend.berlios.de/lists.html for details.
+place to ask is on the mailing list - suspend2-users@lists.suspend2.net.  You
+will need to subscribe to post. See http://www.suspend2.net/lists for details.
 
 If the suspend process itself crashes (while "Writing caches", "Reading
 caches", or "Copying original kernel back", etc), then the problem lies with
-Software Suspend 2 itself. See the FAQ at http://softwaresuspend.berlios.de/ for
-help on debugging.
+Software Suspend 2 itself. See the FAQ at http://www.suspend2.net/ for help on
+debugging.
 
 AUTHOR
 ------
@@ -71,6 +104,7 @@ This script was written by Bernard Blackham, with contributions from:
    bugfixes and ideas, man pages and Debian packaging)
  - Kevin Fenzi (rpm packaging, ideas)
  - Fedor Karpelevitch (lilo scriptlet idea)
+ - And many others (see changelog for full credits)
 
 LICENSE
 -------
