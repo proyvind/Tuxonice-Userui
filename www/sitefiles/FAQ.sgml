@@ -244,12 +244,13 @@ suspending.
 <sect>Using Software Suspend
 
 <sect1> Swsusp doesn't seem to do anything (or: I upgraded to the latest Software Suspend 2 and my machine no longer suspends! Instead, it shuts down all drivers, etc and then starts resuming.)
-<p> Earlier versions of Software Suspend 2 used the file /proc/sys/kernel/swsusp to
-activate suspension. This has been deprecated. Now to activate suspension, you
-will either need to use one of the following methods:
+<p> Earlier versions of Software Suspend 2 used the file /proc/swsusp/activate. Earlier
+versions still used /proc/sys/kernel/swsusp to. These has been deprecated in
+the latest version. Now to activate suspension, you will either need to use one
+of the following methods:
 <itemize>
-<item> Get an updated suspend script (eg v0.15) - an updated one is available on the download page.
-<item> <tt>echo anything > /proc/swsusp/activate</tt>
+<item> Get an updated suspend script (eg v0.98) - an updated one is available on the download page.
+<item> <tt>echo anything > /proc/software_suspend/activate</tt>
 <item> <tt>echo 4 > /proc/acpi/sleep</tt> if you have a working (and not-so-buggy) ACPI implementation
 <!--<item> Download a patched shutdown program, (eg <url url="shutdown+z">, call using <tt>shutdown -z now</tt>). -->
 </itemize>
@@ -295,18 +296,18 @@ will never be as fast as you imagine it, at least as long as hardware drivers
 will not correctly handle suspending events. 
 
 <p>If the delay is in writing to disk, then you may want to play with the
-<tt>image_size_limit</tt> option in <tt>/proc/swsusp/</tt>. By setting a maximum
-image size, Software Suspend 2 will try and free as much memory as possible to
-achieve this (or failing that, flushing to disk) which will speed up suspend
-and resume on machines with slow disk IO. The only downfall is that your
-machine might not be as responsive on resume until buffers and caches are
-restored.
+<tt>image_size_limit</tt> option in <tt>/proc/software_suspend/</tt>. By
+setting a maximum image size, Software Suspend 2 will try and free as much
+memory as possible to achieve this (or failing that, flushing to disk) which
+will speed up suspend and resume on machines with slow disk IO. The only
+downfall is that your machine might not be as responsive on resume until
+buffers and caches are restored.
 
 <p>If you are feeling daring, you can write your own customised suspend script,
 which does the minumum required for your machine. Some machines can suspend
-instantly simply by <tt>echo > /proc/swsusp/activate</tt>. Others need a bit
-more of a hand - the big offenders are generally sound cards, network cards,
-PCMCIA and USB.
+instantly simply by <tt>echo > /proc/software_suspend/activate</tt>. Others
+need a bit more of a hand - the big offenders are generally sound cards,
+network cards, PCMCIA and USB.
 
 <sect1>Can I switch from Windows to Linux using Software Suspend?
 <p>Yes, but the result is guaranteed only if the linux and windows partitions
@@ -471,12 +472,12 @@ needs to be able to fit the image into swap.
     </itemize>
 <item>Set your debugging options as follows:
     <itemize>
-        <item><tt>echo 1 > /proc/swsusp/enable_escape</tt> - ensures you can press escape to cancel the suspend when it hangs
-        <item><tt>echo 1 > /proc/swsusp/log_everything</tt> - tells Software Suspend 2 to record all it's about to display
-        <item><tt>echo 4 > /proc/swsusp/default_console_level</tt> - tell it to display medium level debugging
-        <item><tt>echo 2 > /proc/swsusp/debug_sections</tt> - tell it to display messages about the freezer
+        <item><tt>echo 1 > /proc/software_suspend/enable_escape</tt> - ensures you can press escape to cancel the suspend when it hangs
+        <item><tt>echo 1 > /proc/software_suspend/log_everything</tt> - tells Software Suspend 2 to record all it's about to display
+        <item><tt>echo 4 > /proc/software_suspend/default_console_level</tt> - tell it to display medium level debugging
+        <item><tt>echo 2 > /proc/software_suspend/debug_sections</tt> - tell it to display messages about the freezer
     </itemize>
-<item>Tell it to try to suspend: <tt>echo > /proc/swsusp/activate</tt>
+<item>Tell it to try to suspend: <tt>echo > /proc/software_suspend/activate</tt>
 <item>When it hangs (assuming it does), press escape. It should print a lot of information and then
 return you to the command prompt.
 <item>Look in /var/log/messages. If the output does not contain the names of procedures, but instead lots 
@@ -507,7 +508,7 @@ Software Suspend 2.0.0.10: kswsuspd starting
 Disabling CONFIG_CC_OPTIMIZE_FOR_SIZE appears to resolve the issue. Thanks to
 Michael Schneider for recognising this problem and solution!
 
-<label id="modular"><sect>Modular Software Suspend
+<sect>Modular Software Suspend<label id="modular">
 
 <sect1> Why would I want to compile suspend as modules?
 <p>

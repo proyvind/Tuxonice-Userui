@@ -12,72 +12,67 @@ TITLE=Software Suspend - Features
 <li>Support for plugins: data transformers (compression, encryption) and new storage backends (NFS support is planned).</li>
 <li>Nice user interface (<a href="http://www.bootsplash.org">Bootsplash</a> compatible).</li>
 <li>Support for Highmem (up to 4GB), SMP (on 2.4, 2.6 soon) and preemptive kernels.</li>
+<li>The ability to build Software Suspend 2 as modules, allowing it to be called from an initrd.</li>
 <li>Speed and reliability - Software Suspend has been extensively tested in a variety of configurations over many months. It is not guaranteed to be perfect, but bugs found will be hunted and fixed quickly.
 </ul>
 </p>
 
-<a name="compare"></a><h2>Three Suspend-to-disk implementations explained</h2>
+<a name="compare"></a><h2>Suspend-to-disk implementations explained</h2>
 
 <p>Since the original Software Suspend code was written by Gabor Kuti and
 Pavel Machek back in 1998, three different implementations have been
 created for the 2.6 kernel, all forks of the same original codebase. Here
-is a quick comparison between the three. The first column refers to 
-CONFIG_SOFTWARE_SUSPEND in the 2.6 kernel. The second refers to CONFIG_PM_DISK
-in the 2.6 kernel. The third refers to what is now commonly called "swsusp2"
-and is what this site largely deals with.</p>
+is a quick comparison between the two that still exist. The first column refers
+to CONFIG_SOFTWARE_SUSPEND in the 2.6 kernel. <tt>pmdisk</tt> has been merged
+back into the original swsusp implementation in the kernel, and hence is no
+longer listed here.  The second column refers to what is now commonly called
+"Software Suspend 2" and is what this site largely deals with.</p>
 
 <table border=1>
 <tr>
 <td><b>Name</b></td>
 <td>swsusp</td>
-<td>pmdisk</td>
-<td>swsusp2</td>
+<td>Software Suspend 2</td>
 </tr>
 <tr>
 <td><b>Available in kernel</b></td>
 <td>2.6.x</td>
-<td>2.6.x</td>
-<td>patch against 2.4.2x &amp; 2.6.0</td>
+<td>patch against 2.4.2x &amp; 2.6.x</td>
 </tr>
 <tr>
 <td><b>Kernel config option</b></td>
 <td>CONFIG_SOFTWARE_SUSPEND</td>
-<td>CONFIG_PM_DISK</td>
-<td>CONFIG_SOFTWARE_SUSPEND2</td>
+<td>CONFIG_SOFTWARE_SUSPEND</td>
 </tr>
 <tr>
 <td><b>Principle author</b></td>
 <td>Pavel Machek</td>
-<td>Patrick Mochel</td>
 <td>Nigel Cunningham</td>
 </tr>
 <tr>
 <td><b>PM subsystem required</b></td>
 <td>ACPI</td>
 <td>none</td>
-<td>none</td>
 </tr>
 <tr>
 <td><b>Telling kernel at boot where to save image</b></td>
 <td>resume=/dev/hda#</td>
-<td>pmdisk=/dev/hda#</td>
 <td>resume2=swap:/dev/hda#</td>
 </tr>
 <tr>
 <td><b>How to activate suspend</b></td>
-<td><tt>echo 4 &gt; /proc/acpi/sleep</tt></td>
-<td><tt>echo -n disk &gt; /sys/power/state</tt></td>
-<td><tt>echo &gt; /proc/swsusp/activate</tt></td>
+<td><tt>echo 4 &gt; /proc/acpi/sleep</tt><br>
+or<br>
+<tt>echo -n disk &gt; /sys/power/state</tt></td>
+<td><tt>echo &gt; /proc/software_suspend/activate</tt></td>
 </tr>
 <tr>
 <td><b>Telling kernel not to try and resume in case of a problem</b></td>
 <td><tt>noresume</tt></td>
-<td><tt>pmdisk=off</tt></td>
 <td><tt>noresume2</tt></td>
 </tr>
 <tr>
 <td><b>Highmem support</b></td>
-<td>No</td>
 <td>No</td>
 <td>Yes (up to 4GB)</td>
 </tr>
@@ -85,41 +80,39 @@ and is what this site largely deals with.</p>
  <td><b>Discontiguous memory support</b></td>
  <td>No</td>
  <td>No</td>
- <td>No</td>
 </tr>
 <tr>
  <td><b>SMP support</b></td>
  <td>No</td>
- <td>No</td>
- <td>Yes (2.4 only)</td>
+ <td>Yes</td>
 </tr>
 <tr>
  <td><b>Preemption support</b></td>
  <td>Yes?</td>
  <td>Yes</td>
- <td>Yes</td>
 </tr>
 <tr>
  <td><b>Compression</b></td>
- <td>No</td>
  <td>No</td>
  <td>LZF and GZIP (LZF recommended!)</td>
 </tr>
 <tr>
  <td><b>Suspend-to-swapfile support</b></td>
  <td>No</td>
- <td>No</td>
  <td>Yes</td>
 </tr>
 <tr>
  <td><b>UML support</b></td>
  <td>No</td>
- <td>No</td>
  <td>No (planned)</td>
 </tr>
 <tr>
- <td><b>Suspend-over-NFS support</b></td>
+ <td><b>Modular support</b></td>
  <td>No</td>
+ <td>Yes</td>
+</tr>
+<tr>
+ <td><b>Suspend-over-NFS support</b></td>
  <td>No</td>
  <td>No (also planned ;)</td>
 </tr>

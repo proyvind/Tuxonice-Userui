@@ -70,7 +70,7 @@ $(SITEBASE)/%: %
 
 # building the howto:
 $(HOWTO_TARGET): $(HOWTO_BASENAME).sgml
-	linuxdoc -B html $< -H howto-top.txt -F /dev/null
+	which linuxdoc > /dev/null && linuxdoc -B html $< -H howto-top.txt -F /dev/null || touch $@
 
 # building the faq:
 $(FAQ_TARGET): $(FAQ_BASENAME).sgml

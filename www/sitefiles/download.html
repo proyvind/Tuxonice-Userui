@@ -8,9 +8,12 @@ lists</a> and also potentially are in the <a href="http://developer.berlios.de/p
 the mailing list for any known problems that may arise.
 
 <h2>Stable versions</h2>
-<p>Software suspend comes as pair of patches - one <i>version specific</i>
-patch which is particular to a particular kernel version. This must be applied
-first. The second is the core patch which is the same for all kernel versions,
-and must be applied second. The <a href="Software-suspend.html">HOWTO</a> has
-detailed instructions on patching and recompiling your kernel.
+<p>Software suspend comes as a tarball of patches, which must all be applied
+to your kernel. Each tarball is for a specific kernel version. There is also an
+apply script inside the tarball to make applying the patches in order easier,
+and will back out the patches if it detects that they will not apply cleanly.
+
+<p>
+The <a href="Software-suspend.html">HOWTO</a> has detailed instructions on
+patching and recompiling your kernel.
 

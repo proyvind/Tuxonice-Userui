@@ -29,9 +29,9 @@ swap partition back, and boot normally. Use this in case of emergencies.</li>
 <li>Reboot.</li>
 
 <li>Enable the use of the Escape key to abort a suspend by running <tt>echo 1
-&gt; /proc/swsusp/enable_escape</tt> (disabled by default for security).</li>
+&gt; /proc/software_suspend/enable_escape</tt> (disabled by default for security).</li>
 
-<li>Activate a suspend by running <tt>echo &gt; /proc/swsusp/activate</tt></li>
+<li>Activate a suspend by running <tt>echo &gt; /proc/software_suspend/activate</tt></li>
 
 <li>If all went well your machine should save it's memory to disk (the swap
 parition specified earlier) and power off</li>

@@ -1,24 +1,18 @@
 TITLE=Software Suspend - Optional Extras
 <h1>###TITLE###</h1>
 
-<p>There are several "Options" available for software suspend - these patches
-extend the functionality, but depend on other patches which are not normally
-found in the vanilla kernels. These patches are contained within the swsusp
-tarball obtained from the download page.</p>
+<p>"Options" patches extend the functionality of Software Suspend, but depend
+on other patches which are not normally found in the vanilla kernels.
 
-<p>This information is current for version 2.0 of swsusp.<!-- Please refer to the
+<p>For the 2.1 release of Software Suspend, there are no available option
+patches, largely because most of the code they depended on has been merged into
+the mainstream kernel and support has been merged into the main release of
+Software Suspend (eg, XFS, ACPI, Laptop mode). Bootsplash option patches may
+become available soon.
+
+<p>The following information was current for version 2.0 of swsusp.<!-- Please refer to the
 <tt>Applying</tt> file within the tarball for the latest information on option
 patches.--></p>
-
-<h2><a href="http://acpi.sourceforge.net/">ACPI</a><b> option is no longer needed.</b></h2>
-
-<!--
-<p>Using ACPI with software suspend may be more reliable on some machines as
-ACPI uses it's own mechanisms to notify the hardware of the oncoming suspend.
-Apply the ACPI option patch (called <tt>acpi-option</tt>) <i>after</i> you
-have applied a recent ACPI patch from the
-<a href="http://www.sourceforge.net/projects/acpi/">ACPI project page</a>
-(tested with 20030523 and 20030619).</p> -->
 
 <h2><a href="http://www.bootsplash.org/">Bootsplash</a></h2>
 
@@ -36,23 +30,6 @@ patch. Apply this option patch after applying the one from bootsplash.org</p>
 Linux.  The <tt>patch-swsusp-win4lin</tt> patch allows you suspend whilst running
 Win4Lin.</p>
 
-<h2>Laptop mode <a href="http://lwn.net/Articles/32037/">(description)</a>
-<a href="http://lwn.net/Articles/32520/">(latest original patch)</a></h2>
-<p><b><i>NOTE:</i></b> Laptop mode has been integrated in the 2.4 kernel series
-since 2.4.23 and this is no longer required if you are using 2.4.23 or later.</p>
-<p>Laptop mode is a patch written by Jens Axboe that adds a noticeable amount
-of battery life to a laptop, by holding data to be written to the disk until a
-certain amount of time has elapsed or a read is required - thus not spinning up
-the hard disk unnecessarily. The <tt>laptop-option</tt> patch is the modified
-version of the patch that integrates with software suspend. This option patch
-does <b>not</b> require the original patch be applied to the kernel.<br>
-<b>WARNING:</b> Using this patch increases the risk of data loss in the case of
-unexpected power, software or hardware failures.</p>
-
-<h2><a href="http://oss.sgi.com/projects/xfs/">XFS support</a></h2>
-<p>If you have XFS partitions, then you will need this patch to be able to
-suspend properly. The patches are created
-against recent snapshot versions of the XFS code by
 <a href="mailto:&#115;&#122;&#105;&#119;&#97;&#110;&#64;&#104;&#101;&#108;&#108;&#46;&#111;&#114;&#103;&#46;&#112;&#108;">Karol Kozimor</a>,
 and must be applied after the XFS patch, but before software suspend.
 Download it from <a href="http://hell.org.pl/~sziwan/swsusp-2.0-2.4-xfs.patch">here</a>
