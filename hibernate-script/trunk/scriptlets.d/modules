@@ -181,7 +181,6 @@ IsInVersionRange() {
 	min_ver=`echo $1 | awk 'BEGIN{FS="[^0-9]"}{print($1*0x10000)+($2*0x100)+$3}'`
 	max_ver=`echo $2 | awk 'BEGIN{FS="[^0-9]"}{print($1*0x10000)+($2*0x100)+$3}'`
 	shift 2
-	echo "Asking does $min_ver <= $kver <= $max_ver"
 	[ "$kver" -ge "$min_ver" -a "$kver" -le "$max_ver" ] && return 0
     done
 
