@@ -9,7 +9,8 @@
 This HOWTO documents how to suspend linux kernels to disk using the software
 suspend (swsusp) kernel patch and various scripts. The source SGML file for
 this HOWTO is available <url url="HOWTO.sgml" name="here">. Please
-make sure all corrections are based upon this.
+make sure all corrections are based upon this and sent to <url
+URL="mailto:b-swfaq@blackham.com.au" name="Bernard">.
 </abstract>
 
 <toc>
@@ -40,11 +41,12 @@ computer in suspension mode for too long (or because you're not using a
 have to suspend on disk.
 
 <sect1> Copyright (skip this if you're in a hurry)
-<p>This document is an update by Nigel Cunningham of the original howto
-which was Copyright (c) 2002 by Florent Chabaud. You may freely copy and
-distribute (sell or give away) this document in any format. Send any
-corrections and comments to the document maintainer. You may create a
-derivative work and distribute it provided that you:
+<p>This document is an update by Nigel Cunningham of the original howto which
+was Copyright (c) 2002 by Florent Chabaud. It is currently maintained by
+Bernard Blackham. You may freely copy and distribute (sell or give away) this
+document in any format. Send any corrections and comments to the document
+maintainer. You may create a derivative work and distribute it provided that
+you:
 
 <enum>
 	<item> If it's not a translation: Email a copy of your derivative work
