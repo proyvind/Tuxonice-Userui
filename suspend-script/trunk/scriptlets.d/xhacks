@@ -9,8 +9,9 @@ XHacksSuspend() {
     if [ x"$XHACK_LEAVE_X" = "x1" ] ; then
 	which fgconsole > /dev/null 2>&1 && XHACK_ORIGINAL_VT=`fgconsole` || XHACK_ORIGINAL_VT=1
 	[ -z "$SWSUSPVT" ] && DEST_VT=15 || DEST_VT="$SWSUSPVT"
-	chvt $DEST_VT
+	chvt $DEST_VT || return 1
     fi
+    return 0
 }
 
 XHacksResume() {

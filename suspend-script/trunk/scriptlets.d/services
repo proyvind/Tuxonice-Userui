@@ -19,7 +19,7 @@ ExecuteServices() {
 	[ -x "$INITDIR/$service" ] || continue
 	CMD="$INITDIR/$service $action"
 	vecho 2 "Executing $CMD"
-	$CMD || ret=$?
+	$CMD || ret=1
     done
     return $ret
 }

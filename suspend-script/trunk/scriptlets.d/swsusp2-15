@@ -105,6 +105,7 @@ DoSwsusp2() {
     else
 	vecho 1 "$EXE: Not actually suspending (--no-suspend given)"
     fi
+    return 0
 }
 
 # DoSuspend: activates the suspend and echo's the error code to be processed by

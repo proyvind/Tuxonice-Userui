@@ -48,11 +48,12 @@ ModulesUnload() {
 
 	if modprobe -r $mod > /dev/null 2>&1 ; then
 	    vecho 1
-	    MOD_UNLOADED="$MOD_UNLOADED $mod"
 	else
 	    ret=1
 	    vecho 1 "failed!"
 	fi
+	# It's possible that the module was unloaded anyway (eg, if it Ctrl+C'd)
+	MOD_UNLOADED="$MOD_UNLOADED $mod"
     done
     return $ret
 }

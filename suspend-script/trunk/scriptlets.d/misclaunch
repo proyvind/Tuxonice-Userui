@@ -16,7 +16,7 @@ MiscLaunchSuspendProg() {
     cat <<EOT > $tmpf
 MiscLaunchAuxFunc${MISC_LAUNCH_COUNT}() {
     vecho 1 "Executing $@..."
-    $@
+    $@ || return 1
 }
 EOT
     . $tmpf
@@ -32,7 +32,7 @@ MiscLaunchResumeProg() {
     cat <<EOT > $tmpf
 MiscLaunchAuxFunc${MISC_LAUNCH_COUNT}() {
     vecho 1 "Executing $@..."
-    $@
+    $@ || return 1
 }
 EOT
     . $tmpf
