@@ -125,8 +125,8 @@ static void fbsplash_prepare() {
 	}
 	memcpy(base_image, (void*)silent_img.data, base_image_size);
 
-	/* Allow for the widest progress bar we might have */
-	set_progress_granularity(fb_var.xres);
+	/* Allow for the widest progress bar we might have updating 2px at a time */
+	set_progress_granularity(fb_var.xres/2);
 
 	move_cursor_to(0,0);
 	clear_display();
