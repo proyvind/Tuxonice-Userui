@@ -50,38 +50,23 @@ LockXScreensaver() {
 	return 1 # abort, unless forced
     fi
 
-    local avail_sessions
-    local displays
-    local display
-    local ret
+    local xpid
 
-    # find a list of running X servers
-    displays=$(find /tmp -name '.X*-lock' -maxdepth 1 -print | sed -e 's/.*X\([0-9]\+\)-lock/\1/g')
+    for xpid in `pidof xscreensaver` ; do
+	local xuser xdisp xauth
+	xuser=`awk 'BEGIN{RS="\000";FS="="}($1 == "USER"){print $2}' < /proc/$xpid/environ`
+	xdisp=`awk 'BEGIN{RS="\000";FS="="}($1 == "DISPLAY"){print $2}' < /proc/$xpid/environ`
+	xauth=`awk 'BEGIN{RS="\000";FS="="}($1 == "XAUTHORITY"){print $2}' < /proc/$xpid/environ`
 
-    ret=0
-
-    for display in $displays; do
-	local xpid xauth
-	xpid=$(awk '{print $1}' /tmp/.X$display-lock)
-
-	# ensure xpid is numeric
-	case "$xpid" in
-	    *[!0-9]*|"")
-		vecho 2 "Display :$display's pid ($xpid) is not numeric. Skipping"
-		continue ;;
-	esac
-
-	xauth=$(cat /proc/$xpid/cmdline | sed -e 's/\(.\|[^.]\)*[^[:print:]]-auth[^[:print:]]\(.*\)[^[:print:]]\(.\|[^.]\)*/\2/g')
-
-	vecho 2 "Locking xscreensaver on display :$display using authority file $xauth"
-	DISPLAY=:$display XAUTHORITY=$xauth xscreensaver-command -lock
+	vecho 2 "Locking $xuser's xscreensaver on display $xdisp using authority file $xauth"
+	DISPLAY=$xdisp XAUTHORITY=$xauth su $xuser -c "xscreensaver-command -lock"
 	if [ $? -ne 0 ] ; then
-	    vecho 0 "Failed to activate xscreensaver on :$display using authority file $xauth."
-	    ret=1
+	    vecho 0 "Failed to activate xscreensaver on $xdisp using authority file $xauth."
 	fi
     done
 
-    return $ret
+    # Failing is silly. What would they do about it?
+    return 0
 }
 
 LockConsole() {
