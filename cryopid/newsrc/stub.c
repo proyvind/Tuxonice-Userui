@@ -10,6 +10,7 @@
 #include <linux/elf.h>
 
 int verbosity = 0;
+int do_pause = 0;
 
 int syscall_check(int retval, int can_be_fake, char* desc, ...) {
 	va_list va_args;
@@ -108,7 +109,7 @@ int resume_image_from_file(int fd) {
 
 		if (map.filename && map.filename[0]) {
 			if (verbosity > 0)
-				fprintf(stderr, "Loading 0x%lx (len %d) from file %s\n",
+				fprintf(stderr, "Loading 0x%08lx (len %d) from file %s\n",
 						map.start, map.length, map.filename);
 			syscall_check(fd2 = open(map.filename, O_RDONLY), 0,
 					"open(%s)", map.filename);
@@ -118,8 +119,8 @@ int resume_image_from_file(int fd) {
 				map.start, map.length, map.prot, map.flags, fd2, map.pg_off);
 			syscall_check(close(fd2), 0, "close(%d)", fd2);
 		} else {
-			if (verbosity > 0)
-				fprintf(stderr, "Loading 0x%lx (len %d) from image\n",
+			if (verbosity > 1)
+				fprintf(stderr, "Creating 0x%08lx (len %d) from image\n",
 						map.start, map.length);
 			syscall_check( (int)
 				mmap((void*)map.start, map.length, map.prot,
@@ -129,8 +130,8 @@ int resume_image_from_file(int fd) {
 		}
 		if (map.data != NULL) {
 			if (verbosity > 0)
-				fprintf(stderr, "Loading %d bytes of data for map 0x%lx\n",
-						map.length, map.start);
+				fprintf(stderr, "Loading 0x%08lx (len %d) from image\n",
+						map.start, map.length);
 			safe_read(fd, (void*)map.start, map.length, "map data");
 		}
 	}
@@ -208,6 +209,8 @@ int resume_image_from_file(int fd) {
 			(int)mmap((void*)0x10000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC,
 			MAP_FIXED|MAP_PRIVATE|MAP_ANONYMOUS, 0, 0), 0, "mmap");
 	put_shell_code(user_data.regs, (void*)0x10000);
+	if (do_pause)
+		sleep(2);
 	asm("jmp 0x10000");
 
 	return 1;
@@ -302,7 +305,7 @@ void real_main(int argc, char** argv) {
 			{0, 0, 0, 0},
 		};
 		
-		c = getopt_long(argc, argv, "v",
+		c = getopt_long(argc, argv, "vp",
 				long_options, &option_index);
 		if (c == -1)
 			break;
@@ -310,8 +313,12 @@ void real_main(int argc, char** argv) {
 			case 'v':
 				verbosity++;
 				break;
+			case 'p':
+				do_pause = 1;
+				break;
 			case '?':
 				/* invalid option */
+				fprintf(stderr, "Unknown option on command line.\n");
 				exit(1);
 				break;
 		}
