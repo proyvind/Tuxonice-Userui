@@ -243,8 +243,10 @@ static void fbsplash_update_progress(unsigned long value, unsigned long maximum,
 	cur_value = value;
 	cur_maximum = maximum;
 
-	if (tmp < last_pos) /* we need to blank out the progress bar */
+	if (tmp < last_pos) { /* we need to blank out the progress bar */
+		arg_progress = 0;
 		reset_silent_img();
+	}
 
 	last_pos = tmp;
 	arg_progress = tmp;
