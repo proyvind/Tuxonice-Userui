@@ -7,19 +7,26 @@ AddConfigHelp "Unmount <mount point or device> [...]" "If you have network share
 FilesystemsUnmount() {
     local mnt
     local ret
+    local needsleep
     [ -z "$FS_UNMOUNTS" ] && return 0
+
+    needsleep=0
+
     # Send TERM to processes first
     if [ x"$KILL_PROGRAMS" = "x1" ] ; then
 	for mnt in $FS_UNMOUNTS ; do 
 	    if ! awk '($2 == "'$mnt'"){exit 1}' /proc/mounts ; then
 		vecho 1 "Sending SIGTERM to processes using $mnt..."
 		fuser -s -k -15 $mnt | $LOGPIPE
+		fuser -s $mnt && needsleep=1
 	    fi
 	done
     fi
+
+    [ "$needsleep" -eq 1 ] && sleep 1
+
     # Send KILL to processes and unmount
     ret=0
-    sleep 1
     for mnt in $FS_UNMOUNTS ; do 
 	if ! awk '($2 == "'$mnt'"){exit 1}' /proc/mounts ; then
 	    if [ x"$KILL_PROGRAMS" = "x1" ] ; then
