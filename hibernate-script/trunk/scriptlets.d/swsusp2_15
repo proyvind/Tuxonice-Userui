@@ -180,13 +180,13 @@ DoSwsusp2() {
 # PrintErrors. We can't just return it, because error codes may be > 255
 DoSuspend() {
     # Since 2.0.0.103 (= 0x02000067) we need to chvt manually.
-    if [ x"$XHACK_LEAVE_X" != "x1" ] && SwsuspIsAtLeastVersion $((0x02000067)) ; then
-	# Wish this and xhacks weren't intertwined.  This will co-exist with
-	# XHacksSuspend because we need to support both old, new and other
-	# versions of suspend that do/don't chvt.
+    if SwsuspIsAtLeastVersion $((0x02000067)) ; then
+	# Wish this and xhacks weren't doubling up on work.  This will co-exist
+	# with XHacksSuspend because we need to support both old, new and other
+	# versions of suspend that do/don't chvt. This code simulates what the
+	# old swsusp did.
 	which fgconsole > /dev/null 2>&1 && SWSUSP_ORIGINAL_VT=`fgconsole` || SWSUSP_ORIGINAL_VT=1
-	[ -z "$SWSUSPVT" ] && SWSUSP_DEST_VT=63 || SWSUSP_DEST_VT="$SWSUSPVT"
-	chvt $SWSUSP_DEST_VT
+	chvt 63
     fi
 
     echo > $SWSUSP_ROOT/activate
