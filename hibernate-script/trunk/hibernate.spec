@@ -1,5 +1,5 @@
 Name: hibernate
-Version: 1.02
+Version: 1.03
 Release: 1
 License: GPL
 Group: Applications/System
@@ -51,6 +51,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc TODO
 
 %changelog
+* Wed Jan  5 2005 Bernard Blackham <bernard@blackham.com.au> -
+- Updated to 1.03 final version
 * Wed Nov 24 2004 Bernard Blackham <bernard@blackham.com.au> -
 - Updated to 1.02 final version
 * Thu Nov 18 2004 Bernard Blackham <bernard@blackham.com.au> -

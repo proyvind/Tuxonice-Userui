@@ -1,4 +1,4 @@
-1.03 (unreleased)
+1.03 (5 January 2005)
  - Add ndiswrapper to blacklist.
  - Fix blacklisted modules without versions bug. (Peter Cech)
  - Fix random services-stopping-twice bug.
