@@ -12,6 +12,13 @@ A scriptlet can request both extra command-line arguments, or extra
 configuration file options. It can execute arbitrary commands during the
 suspend and resume process.
 
+NAMING
+------
+A scriptlet's name (filename) is restricted to alphanumerics and the underscore
+(_) character. Otherwise, things will break! It must not conflict with an
+existing script (the hibernate script will warn if it does). Function and
+variable names within the scriptlet should be sufficiently unique.
+
 STDOUT/STDERR
 -------------
 
