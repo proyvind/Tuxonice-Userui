@@ -1,0 +1,141 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
+AddConfigHandler SplashOptions
+AddConfigHelp "Bootsplash <boolean>" "Showing script progress on an bootsplash enabled kernel. You will almost certainly need to enable SwitchToTextMode as well, else your screen might end up garbled."
+AddConfigHelp "BootsplashConfig <configfile>" "Bootsplash config file (default is /etc/bootsplash/default/config/bootsplash-1024x768.cfg)"
+
+
+# default bootsplash theme config file
+SPLASH_CONFIG_FILE="/etc/bootsplash/default/config/bootsplash-1024x768.cfg"
+
+SplashProgress() {
+    if [ x"$USE_BOOTSPLASH" = "x1" ] ; then
+	CURRENT_PROGRESS=$((65535*${SPLASH_PROGRESS}/100));
+	echo "show $CURRENT_PROGRESS" > /proc/splash
+	SPLASH_PROGRESS=$(($SPLASH_PROGRESS+10));
+    fi
+    return 0
+}
+
+SplashBegin() {
+    [ x"$USE_BOOTSPLASH" != "x1" ] && return 0
+
+    # check if /proc/splash and splash exists
+    if [ ! -f /proc/splash ]; then
+	USE_BOOTSPLASH=0
+	vecho 1 "/proc/splash not found. Bootsplash disabled."
+	return 0
+    fi
+    if ! command -v splash > /dev/null 2>&1 ; then
+	USE_BOOTSPLASH=0
+	vecho 1 "'splash' utility not found. Bootsplash disabled."
+	return 0
+    fi
+
+    # configfile exists ?
+    if [ ! -f "$SPLASH_CONFIG_FILE" ]; then
+	USE_BOOTSPLASH=0
+	vecho 1 "config file not found. Bootsplash disabled."
+	return 0
+    fi
+
+    if [ x"$1" = "xsaveconsole" ] ; then
+	# Detect current splash state so we know how to restore it
+	if grep -q 'off$' /proc/splash ; then
+	    SPLASH_RESTORE_CMD="0"
+	else
+	    # We assume that their usual splash screen isn't silent.
+	    SPLASH_RESTORE_CMD="verbose"
+	fi
+    fi
+
+    # go
+    local fgcons
+    fgcons=`fgconsole 2>/dev/null` || fgcons=1
+    splash -s -u $(($fgcons-1)) "$SPLASH_CONFIG_FILE"
+    echo "silent" > /proc/splash
+
+    # increments the bar to 10 and kicks it all off.
+    SPLASH_PROGRESS=0
+    SplashProgress
+
+    return 0
+}
+
+SplashStartResume() {
+    SplashBegin
+    # XXX add text output
+}
+
+SplashStartSuspend() {
+    SplashBegin saveconsole
+    # XXX add text output
+}
+
+SplashOff() {
+    [ -n "$SPLASH_RESTORE_CMD" ] && echo $SPLASH_RESTORE_CMD > /proc/splash
+    return 0
+}
+
+EnableSwsuspBootsplash() {
+    [ -n "$SWSUSP_FORCE_CHVT" ] || return 0
+    local fgcons
+    fgcons=`fgconsole 2>/dev/null` || fgcons=1
+    splash -s -u $(($fgcons-1)) "$SPLASH_CONFIG_FILE"
+    echo "silent" > /proc/splash
+    return 0
+}
+
+DisableSwsuspBootsplash() {
+    [ -n "$SWSUSP_FORCE_CHVT" ] || return 0
+    echo 0 > /proc/splash
+    return 0
+}
+
+SplashOptions() {
+    case $1 in
+	bootsplash)
+	    BoolIsOn "$1" "$2" && USE_BOOTSPLASH=1 || return 0
+	    # don't return. still stuff to do
+	    ;;
+	bootsplashconfig)
+	    SPLASH_CONFIG_FILE="$2"
+	    return 0
+	    ;;
+	*)
+	    return 1
+    esac
+
+    if [ -z "$BOOTSPLASH_HOOKED" ] ; then
+	# in call order
+	AddSuspendHook 12 SplashStartSuspend
+	AddSuspendHook 20 SplashProgress
+	AddSuspendHook 30 SplashProgress
+	AddSuspendHook 40 SplashProgress
+	AddSuspendHook 50 SplashProgress
+	AddSuspendHook 60 SplashProgress
+	AddSuspendHook 70 SplashProgress
+	AddSuspendHook 80 SplashProgress
+	AddSuspendHook 90 SplashProgress
+	AddSuspendHook 95 SplashProgress
+	AddSuspendHook 98 EnableSwsuspBootsplash
+	AddResumeHook 98 DisableSwsuspBootsplash
+	AddResumeHook 95 SplashStartResume
+	AddResumeHook 90 SplashProgress
+	AddResumeHook 80 SplashProgress
+	AddResumeHook 70 SplashProgress
+	AddResumeHook 60 SplashProgress
+	AddResumeHook 50 SplashProgress
+	AddResumeHook 40 SplashProgress
+	AddResumeHook 30 SplashProgress
+	AddResumeHook 20 SplashProgress
+	AddResumeHook 15 SplashProgress # get it to 100% :)
+	AddResumeHook 12 SplashOff
+	BOOTSPLASH_HOOKED=1
+    fi
+
+    return 0
+}
+
+# $Id$

@@ -1,0 +1,53 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
+AddConfigHandler ClockOptions
+AddConfigHelp "SaveClock restore-only|<boolean>" "Set this to yes to save the system clock before suspending and restore the system clock after resuming. If set to restore-only, the clock will not be saved, only restored - this means suspending is faster, but if your hardware clock drifts significantly, your system clock will drift as well."
+
+ClockSave() {
+    if [ "x$DISTRIBUTION" = "xdebian" ] ; then
+	/etc/init.d/hwclock.sh stop > /dev/null 2>&1
+    else
+	if ! /sbin/hwclock --systohc ; then
+	    echo "$EXE: Failed to save system clock - continuing anyway"
+	fi
+    fi
+    return 0  # clock save failing shouldn't be a show stopper, ever.
+}
+
+ClockRestore() {
+    if [ "x$DISTRIBUTION" = "xdebian" ] ; then
+	/etc/init.d/hwclock.sh start > /dev/null 2>&1
+    else
+	if ! /sbin/hwclock --hctosys ; then
+	    echo "$EXE: Failed to restore system clock."
+	fi
+    fi
+    # exit code unchanged.
+}
+
+ClockOptions() {
+    local param
+    case $1 in
+	saveclock)
+	    param=`echo $2 | tr '[A-Z]' '[a-z]'`
+	    case "$param" in
+		restore*) # restore-only
+		    AddResumeHook 70 ClockRestore
+		    ;;
+		*)
+		    if BoolIsOn "$1" "$2" ; then
+			# put before module unloading and x switching.
+			AddSuspendHook 70 ClockSave
+			AddResumeHook 70 ClockRestore
+		    fi
+		    ;;
+	    esac
+	    ;;
+	*)
+	    return 1
+    esac
+    return 0
+}
+
+# $Id$
