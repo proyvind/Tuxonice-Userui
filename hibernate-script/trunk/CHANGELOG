@@ -1,3 +1,12 @@
+0.99 (unreleased)
+ - Make SCRIPTLET_PATH work again so that user-defined scriptlets can
+   be placed in /etc/hibernate /usr/local/share/hibernate will actually
+   work.  Place /usr/share/hibernate/scriptlets.d at the end of
+   scriptlet search path so that custom scriptlets override standard ones.
+     (Cameron Patrick)
+ - Clear the screen before locking virtual consoles with vlock.
+     (Cameron Patrick)
+
 0.98 (20 August 2004)
  - Add ImageSizeLimit option (including "nocache" for excluding caches &
    buffers - needs tweaking it seems)
