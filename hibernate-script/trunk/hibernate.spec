@@ -34,11 +34,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-/usr/local/sbin/hibernate
-/usr/local/share/hibernate/*
+/usr/sbin/hibernate
+/usr/share/hibernate/*
 %doc
 /usr/share/doc/hibernate-%version-%release/*
-/usr/local/man/*
+/usr/man/*
 %config
 /etc/hibernate/*
 
