@@ -4,6 +4,7 @@
    Locally installed scriptlets can go into either /etc/hibernate/scriptlets.d
    or /usr/local/share/hibernate/scriptlets.d
  - Added AlternateGrubMenuFile option.
+ - Don't hardcode /sbin/splash
 
 0.94 (12 July 2004)
  - Turn off "AlwaysForce yes" in the default config file.
