@@ -1,3 +1,6 @@
+0.95.1 (23 July 2004)
+ - Fixed misclaunch scripts always failing bug.
+
 0.95 (21 July 2004)
  - Install distributed scriptlets into /usr/local/share/hibernate/scriptlets.d
    Locally installed scriptlets can go into either /etc/hibernate/scriptlets.d
