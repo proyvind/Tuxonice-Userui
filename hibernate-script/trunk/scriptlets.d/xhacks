@@ -41,7 +41,7 @@ XHacksResume() {
 
 # Hook1's called when using bootsplash and chvt needs to be performed earlier on
 XHacksSuspendHook1() {
-    if [ x"$USE_BOOTSPLASH" = "x1" -o -n "$SWSUSPVT" ] ; then
+    if [ x"$USE_BOOTSPLASH" = "x1" ] || [ -n "$SWSUSPVT" ] ; then
 	XHACKS_EARLY_SWITCH=1
 	XHacksSuspend
     fi

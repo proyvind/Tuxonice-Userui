@@ -472,7 +472,7 @@ EOT
 	return 2
     fi
 
-    if [ -f "$SWSUSP_ROOT/activate" -o -f "$SWSUSP_ROOT/do_suspend" ] ; then
+    if [ -f "$SWSUSP_ROOT/activate" ] || [ -f "$SWSUSP_ROOT/do_suspend" ] ; then
 	if [ ! -f "$SWSUSP_ROOT/version" ] ; then
 	    cat <<EOT
 Can not find $SWSUSP_ROOT/version. Have you loaded the suspend_core
@@ -484,7 +484,7 @@ EOT
     fi
 
     # Check the interface version matches. Warn if it doesn't.
-    if [ $ver -lt "$SWSUSP_INTERFACE_VERSION_MIN" -o $ver -gt "$SWSUSP_INTERFACE_VERSION_MAX" ] ; then
+    if [ $ver -lt "$SWSUSP_INTERFACE_VERSION_MIN" ] || [ $ver -gt "$SWSUSP_INTERFACE_VERSION_MAX" ] ; then
 	cat <<EOT
 WARNING: The swsusp2 scriptlet was written for a different swsusp2 interface
 	 version from the one in your running kernel. This scriptlet was

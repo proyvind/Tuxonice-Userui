@@ -181,7 +181,7 @@ IsInVersionRange() {
 	min_ver=`echo $1 | awk 'BEGIN{FS="[^0-9]"}{print($1*0x10000)+($2*0x100)+$3}'`
 	max_ver=`echo $2 | awk 'BEGIN{FS="[^0-9]"}{print($1*0x10000)+($2*0x100)+$3}'`
 	shift 2
-	[ "$kver" -ge "$min_ver" -a "$kver" -le "$max_ver" ] && return 0
+	[ "$kver" -ge "$min_ver" ] && [ "$kver" -le "$max_ver" ] && return 0
     done
 
     return 1
@@ -266,7 +266,7 @@ ModulesUnloadAll() {
 	modbefore="$modafter"
 
 	# Some sleep implementations might not support decimal sleep values:
-	sleep 0.2 > /dev/null 2>&1 ; [ $? -ne 0 -a $? -ne 130 ] && sleep 1
+	sleep 0.2 > /dev/null 2>&1 ; [ $? -ne 0 ] && [ $? -ne 130 ] && sleep 1
 
 	ModulesUnloadAllOnce
 	modafter="`awk '($3==0){print $1}' /proc/modules`"

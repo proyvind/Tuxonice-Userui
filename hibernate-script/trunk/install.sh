@@ -15,7 +15,7 @@
 [ -z "$OLD_SCRIPTLET_DIR" ] && OLD_SCRIPTLET_DIR=$CONFIG_DIR/scriptlets.d
 
 # Test if the script is already installed.
-if [ -d $CONFIG_DIR -o -f $SCRIPT_DEST ] ; then
+if [ -d $CONFIG_DIR ] || [ -f $SCRIPT_DEST ] ; then
     echo "Config directory $CONFIG_DIR and/or $SCRIPT_DEST already exist."
     echo -n "Are you sure you want to overwrite them? (y/N) "
     read REPLY
