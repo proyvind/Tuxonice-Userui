@@ -75,7 +75,7 @@ chmod 644 $MAN_DIR/man5/hibernate.conf.5 $MAN_DIR/man8/hibernate.8
 [ `whoami` = "root" ] && chown root:root $MAN_DIR/man5/hibernate.conf.5 $MAN_DIR/man8/hibernate.8
 
 echo "Setting permissions on installed files ..."
-chmod 700 $SCRIPT_DEST $CONFIG_DIR
+chmod 755 $SCRIPT_DEST $CONFIG_DIR
 [ `whoami` = "root" ] && chown root:root -R $SCRIPT_DEST $CONFIG_DIR
 
 echo "Installed."

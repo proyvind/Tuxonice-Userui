@@ -1,5 +1,6 @@
 1.05 (28 January 2005 (a few minutes later))
  - Avoid making spurious temporary files.
+ - Relax permissions on install directory to 755 instead of 700.
 
 1.04 (28 January 2005)
  - Include kernel configs in bug reports.
