@@ -31,8 +31,8 @@ DiskCacheOptions() {
     case $1 in
 	disablewritecacheon)
 	    if [ -z "$DISKCACHE_DISABLEDON" ] ; then
-		AddSuspendHook 96 DiskCacheDisable
-		AddResumeHook 96 DiskCacheEnable
+		AddSuspendHook 93 DiskCacheDisable
+		AddResumeHook 93 DiskCacheEnable
 	    fi
 	    DISKCACHE_DISABLEDON="$DISKCACHE_DISABLEDON $2"
 	    ;;

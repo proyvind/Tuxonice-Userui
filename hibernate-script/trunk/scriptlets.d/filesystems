@@ -57,12 +57,12 @@ FilesystemsMount() {
 FilesystemsOptions() {
     case $1 in
 	unmount)
-	    [ -z "$FS_UNMOUNTS" ] && AddSuspendHook 70 FilesystemsUnmount
+	    [ -z "$FS_UNMOUNTS" ] && AddSuspendHook 50 FilesystemsUnmount
 	    shift
 	    FS_UNMOUNTS="$FS_UNMOUNTS $@"
 	    ;;
 	mount)
-	    [ -z "$FS_MOUNTS" ] && AddResumeHook 70 FilesystemsMount
+	    [ -z "$FS_MOUNTS" ] && AddResumeHook 50 FilesystemsMount
 	    shift
 	    FS_MOUNTS="$FS_MOUNTS $@"
 	    ;;
