@@ -27,6 +27,8 @@ int write_proc_image_to_file(struct proc_image_t* p, int fd) {
 		return 0;
 	}
 
+	fwrite(&p->pid, sizeof(p->pid), 1, f);
+
 	fwrite(&p->user_data, sizeof(p->user_data), 1, f);
 	fwrite(&p->i387_data, sizeof(p->i387_data), 1, f);
 

@@ -59,6 +59,7 @@ struct fd_entry_t {
 #define FD_OFFSET_NOT_SAVED  2
 
 struct proc_image_t {
+    pid_t pid;
 	struct user user_data;
 	struct user_i387_struct i387_data;
 	int num_maps;

@@ -562,6 +562,8 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 
 	proc_image = malloc(sizeof(struct proc_image_t));
 
+    proc_image->pid = target_pid;
+
 	/* FIXME being liberal here: */
 	proc_image->maps = malloc(sizeof(struct map_entry_t)*1000);
 

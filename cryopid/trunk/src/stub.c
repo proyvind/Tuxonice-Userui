@@ -11,6 +11,7 @@
 
 int verbosity = 0;
 int do_pause = 0;
+int want_pid = 0;
 
 int syscall_check(int retval, int can_be_fake, char* desc, ...) {
 	va_list va_args;
@@ -103,14 +104,44 @@ int resume_image_from_file(int fd) {
 	struct user user_data;
 	struct user_i387_struct i387_data;
     struct k_sigaction sa;
-	sigset_t zeromask;
 	char dir[1024];
 	int cmdline_length;
 	char cmdline[1024];
 	long* ptr;
 	int i, j;
 
-	sigemptyset(&zeromask);
+	safe_read(fd, &pid, sizeof(pid), "pid");
+    if (want_pid) {
+        if (kill(pid, 0) == 0 || errno == EPERM) {
+            fprintf(stderr, "Pid is already taken. Refusing to do anything :(\n");
+            exit(1);
+        }
+        /* grab it! */
+        if (verbosity > 0)
+            fprintf(stderr, "PID is free ... going for it!\n");
+        int happy = 0;
+        switch(fork()) {
+            case 0: break;
+            case -1: perror("wait"); exit(1);
+            default:
+                     pause();
+                     _exit(0);
+        }
+        while (!happy) {
+            switch(fork()) {
+                case 0:
+                    setpgid(getpid(), getppid());
+                    if (getpid() == pid) happy = 1;
+                    break;
+                case -1:
+                    perror("fork");
+                    exit(1);
+                default:
+                    sleep(1);
+                    _exit(0);
+            }
+        }
+    }
 
 	safe_read(fd, &user_data, sizeof(struct user), "user data");
 	safe_read(fd, &i387_data, sizeof(struct user_i387_struct), "i387 data");
@@ -237,6 +268,7 @@ int resume_image_from_file(int fd) {
     for (i = 1; i <= MAX_SIGS; i++) {
         safe_read(fd, &sa, sizeof(sa), "sigaction");
         if (i == SIGKILL || i == SIGSTOP) continue;
+        sa.sa_hand = SIG_IGN;
         if (set_rt_sigaction(i, &sa) == -1) {
             fprintf(stderr, "Couldn't restore signal handler %d: %s\n",
                     i, strerror(i));
@@ -353,7 +385,7 @@ void real_main(int argc, char** argv) {
 			{0, 0, 0, 0},
 		};
 		
-		c = getopt_long(argc, argv, "vp",
+		c = getopt_long(argc, argv, "vpP",
 				long_options, &option_index);
 		if (c == -1)
 			break;
@@ -364,6 +396,9 @@ void real_main(int argc, char** argv) {
 			case 'p':
 				do_pause = 1;
 				break;
+            case 'P':
+                want_pid = 1;
+                break;
 			case '?':
 				/* invalid option */
 				fprintf(stderr, "Unknown option on command line.\n");
