@@ -17,18 +17,13 @@
 int fb_fd, fbsplash_fd;
 static char lastheader[512];
 static int lastloglevel;
+static unsigned long cur_value, cur_maximum;
+static int video_num_lines, video_num_columns;
 
 static inline void clear_display() { write(1, "\2332J", 3); }
-
-static void hide_cursor() {
-	//ioctl(STDOUT_FILENO, KDSETMODE, KD_GRAPHICS);
-	write(1, "\033[?1c", 5);
-}
-
-static void show_cursor() {
-	//ioctl(STDOUT_FILENO, KDSETMODE, KD_TEXT);
-	write(1, "\033[?0c", 5);
-}
+static inline void move_cursor_to(int c, int r) { printf("\233%d;%dH", r, c); }
+static void hide_cursor() { write(1, "\033[?1c", 5); }
+static void show_cursor() { write(1, "\033[?0c", 5); }
 
 static void silent_on() {
 	lseek(fb_fd, 0, SEEK_SET);
@@ -61,12 +56,20 @@ out:
 }
 
 static void fbsplash_prepare() {
+	struct winsize winsz;
+
 	hide_cursor();
 
 	fb_fd = -1;
 	fbsplash_fd = -1;
 	lastloglevel = SUSPEND_ERROR; /* start in verbose mode */
 
+	/* Find out the screen size */
+	ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz);
+	video_num_lines = winsz.ws_row;
+	video_num_columns = winsz.ws_col;
+
+	/* Find out the FB size */
 	if (get_fb_settings(0))
 		return;
 
@@ -86,7 +89,7 @@ static void fbsplash_prepare() {
 
 	fbsplash_fd = open(SPLASH_DEV, O_WRONLY);
 	if (fbsplash_fd == -1)
-		perror("open(\""SPLASH_DEV"\"");
+		perror("open(\""SPLASH_DEV"\")");
 
 	do_config(FB_SPLASH_IO_ORIG_USER);
 	do_getpic(FB_SPLASH_IO_ORIG_USER, 1, 'v');
@@ -105,12 +108,24 @@ static void fbsplash_cleanup() {
 		close(fb_fd);
 }
 
-static void fbsplash_message(unsigned long type, unsigned long level, int normally_logged, char *msg) {
-	printf("** %s\n", msg);
-	strncpy(lastheader, msg, 512);
+static void fbsplash_put_message_silent() {
+	printf("\2330;0H" /* move cursor to 0,0 */
+			"\2330K"  /* clear to EOL */
+			"\2330;%dH" /* move cursor to 0,<pos> */
+			"%s",
+			(video_num_columns-strlen(lastheader)) / 2,
+			lastheader);
 }
 
-static void fbsplash_update_progress(unsigned long value, unsigned long maximum, char *fbsplash) {
+static void fbsplash_message(unsigned long type, unsigned long level, int normally_logged, char *msg) {
+	strncpy(lastheader, msg, 512);
+	if (console_loglevel >= SUSPEND_ERROR)
+		printf("** %s\n", msg);
+	else
+		fbsplash_put_message_silent();
+}
+
+static void fbsplash_update_progress(unsigned long value, unsigned long maximum, char *msg) {
 	int bitshift, tmp;
 
 	if (!maximum)
@@ -131,9 +146,11 @@ static void fbsplash_update_progress(unsigned long value, unsigned long maximum,
 		tmp = (int) (temp_value * PROGRESS_MAX / temp_maximum);
 	} else
 		tmp = (int) (value * PROGRESS_MAX / maximum);
-	
-	arg_progress = tmp;
 
+	cur_value = value;
+	cur_maximum = maximum;
+
+	arg_progress = tmp;
 	arg_task = paint;
 
 	if (console_loglevel < SUSPEND_ERROR)
@@ -158,7 +175,8 @@ static void fbsplash_log_level_change(int loglevel) {
 		silent_on();
 	
 		/* Get the nice display or last action [re]drawn */
-		/* redraw_progress(); FIXME */
+		fbsplash_update_progress(cur_value, cur_maximum, NULL);
+		fbsplash_put_message_silent();
 	}
 	
 	lastloglevel = console_loglevel;
