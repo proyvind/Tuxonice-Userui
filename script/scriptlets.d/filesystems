@@ -2,6 +2,8 @@ AddConfigHandler FilesystemsOptions
 AddConfigHelp "Unmount <mount point or device> [...]" "If you have network shares or external devices that should be unmounted before suspending, list them here."
 
 FilesystemsUnmount() {
+    local mnt
+    local ret
     [ -z "$FS_UNMOUNTS" ] && return 0
     # Send TERM to processes first
     if [ x"$KILL_PROGRAMS" = "x1" ] ; then
@@ -22,7 +24,7 @@ FilesystemsUnmount() {
 		fuser -s -k -9 $mnt | $LOGPIPE
 	    fi
 	    vecho 1 "Unmounting $mnt ..."
-	    umount $MNT || ret=1
+	    umount $mnt || ret=1
 	fi
     done
     return $ret

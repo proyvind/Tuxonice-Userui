@@ -73,6 +73,7 @@ Swsusp2ConfigRestore() {
 }
 
 DoSwsusp2() {
+    local error
     if [ -z "$SWSUSP2_NO_SUSPEND" ] ; then
 	vecho 1 "$EXE: Activating suspend ..."
 	error=`DoSuspend` && SUSPEND_SUCCESS=1 || SUSPEND_SUCCESS=0
@@ -123,6 +124,9 @@ PrintAnErrorString() {
 # PrintErrors <last_result value>: prints the list of errors associated with a
 # given result code
 PrintErrors() {
+    local code
+    local bit_num
+
     code="$1"
     [ "$code" -eq 0 ] && return 0
 

@@ -5,6 +5,9 @@ AddConfigHelp "RestartServices <service name> [...]" "The services listed are st
 
 # ExecuteServices <action> <services ...>
 ExecuteServices() {
+    local action
+    local services
+    local service
     action=$1
     shift
     services=$@
@@ -48,12 +51,12 @@ ServicesOptions() {
 	AddSuspendHook 30 ServicesStop
 	AddResumeHook 30 ServicesStart
 	SERVICES_HOOKED=1
-	DetectServices
+	ServicesDetectDistro
     fi
     return 0
 }
 
-NetworkDetectDistro() {
+ServicesDetectDistro() {
     # Use either a given $DISTRIBUTION or autodetect one.
     case "$DISTRIBUTION" in
 	gentoo)
@@ -90,7 +93,7 @@ NetworkDetectDistro() {
 		SERVICES_HOOKED=""
 	    fi
     esac
-    vecho 3 "Using $INITDIR and init.d directory and $RLVLDIR as rc.d directory."
+    vecho 3 "Using '$INITDIR' and init.d directory and '$RLVLDIR' as rc.d directory."
     return 0
 }
 

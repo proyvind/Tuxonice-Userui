@@ -1,11 +1,11 @@
 AddConfigHandler ClockOptions
-AddConfigHelp "SaveClock <boolean>" "Set this to yes to restore the system clock after a suspend."
+AddConfigHelp "SaveClock restore-only|<boolean>" "Set this to yes to save the system clock before suspending and restore the system clock after resuming. If set to restore-only, the clock will not be saved, only restored - this means suspending is faster, but if your hardware clock drifts significantly, your system clock will drift as well."
 
 ClockSave() {
     if ! /sbin/hwclock --systohc ; then
 	echo "$EXE: Failed to save system clock - continuing anyway"
     fi
-    return 0  # clock save failing shouldn't be a show stopper.
+    return 0  # clock save failing shouldn't be a show stopper, ever.
 }
 
 ClockRestore() {
@@ -16,12 +16,21 @@ ClockRestore() {
 }
 
 ClockOptions() {
+    local param
     case $1 in
 	saveclock)
-	    if [ -n "$2" ] && BoolIsOn "$1" "$2" ; then
-		AddSuspendHook 98 ClockSave
-		AddResumeHook 98 ClockRestore
-	    fi
+	    param=`echo $2 | tr '[A-Z]' '[a-z]'`
+	    case "$param" in 
+		restore*) # restore-only
+		    AddResumeHook 98 ClockRestore
+		    ;;
+		*)
+		    if BoolIsOn "$1" "$2" ; then
+			AddSuspendHook 98 ClockSave
+			AddResumeHook 98 ClockRestore
+		    fi
+		    ;;
+	    esac
 	    ;;
 	*)
 	    return 1

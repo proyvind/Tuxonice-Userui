@@ -5,33 +5,35 @@ AddConfigHelp "OnResume NN <program to execute> [parameters for program]" "Execu
 MISC_LAUNCH_COUNT=0
 
 MiscLaunchSuspendProg() {
+    local tmpf
     MISC_LAUNCH_COUNT=$(($MISC_LAUNCH_COUNT+1))
-    TMPF=`mktemp`
+    tmpf=`mktemp`
     AddSuspendHook $1 MiscLaunchAuxFunc$MISC_LAUNCH_COUNT
     shift
-    cat <<EOT > $TMPF
+    cat <<EOT > $tmpf
 MiscLaunchAuxFunc${MISC_LAUNCH_COUNT}() {
     vecho 1 "Executing $@..."
     $@
 }
 EOT
-    . $TMPF
-    rm -f $TMPF
+    . $tmpf
+    rm -f $tmpf
 }
 
 MiscLaunchResumeProg() {
+    local tmpf
     MISC_LAUNCH_COUNT=$(($MISC_LAUNCH_COUNT+1))
-    TMPF=`mktemp`
+    tmpf=`mktemp`
     AddResumeHook $1 MiscLaunchAuxFunc$MISC_LAUNCH_COUNT
     shift
-    cat <<EOT > $TMPF
+    cat <<EOT > $tmpf
 MiscLaunchAuxFunc${MISC_LAUNCH_COUNT}() {
     vecho 1 "Executing $@..."
     $@
 }
 EOT
-    . $TMPF
-    rm -f $TMPF
+    . $tmpf
+    rm -f $tmpf
 }
 
 MiscLaunchOptions() {

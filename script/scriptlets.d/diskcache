@@ -2,6 +2,7 @@ AddConfigHandler DiskCacheOptions
 AddConfigHelp "DisableWriteCacheOn <drive> [...]" "On some hardware the power is cut off before the disk has flushed its own hardware cache. List the devices that contain swap partitions (eg, /dev/hda) to disable the write cache before suspending."
 
 DiskCacheDisable() {
+    local i
     for i in $DISKCACHE_DISABLEDON ; do
 	if ! which hdparm > /dev/null ; then
 	    vecho 0 "hdparm utility is not in PATH! Is it installed? Can not disable write cache."
@@ -14,6 +15,7 @@ DiskCacheDisable() {
 }
 
 DiskCacheEnable() {
+    local i
     for i in $DISKCACHE_DISABLEDON ; do
 	which hdparm > /dev/null || return 1
 	vecho 1 "$EXE: Enabling disk cache on $i"
