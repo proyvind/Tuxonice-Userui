@@ -213,8 +213,9 @@ EOT
 	cat <<EOT
 WARNING: The swsusp2 scriptlet was written for a different swsusp2 interface
 	 version from the one in your running kernel. This scriptlet was
-	 written for version ${SWSUSP_INTERFACE_VERSION}, where as the version running in your kernel
-	 is $ver. Things may not work as expected, but proceeding anyway ...
+	 written for version between $SWSUSP_INTERFACE_VERSION_MIN and $SWSUSP_INTERFACE_VERSION_MIN where as the version running
+	 in your kernel is $ver. Things may not work as expected, but proceeding
+	 anyway ...
 
 EOT
     fi
