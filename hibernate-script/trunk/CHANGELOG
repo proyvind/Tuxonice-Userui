@@ -1,9 +1,14 @@
 0.98 ()
  - Add ImageSizeLimit option (including "nocache" for excluding caches &
-   buffers)
- - Initial support for a module blacklist.
+   buffers - needs tweaking it seems)
+ - Always switch consoles if swsusp >= 2.0.0.103.
+ - Initial support for a module blacklist (on by default).
+ - Support recursing module unloading (used for UnloadModules amongst others).
+ - Initrd support - loading suspend modules only when needed, and setting a
+   resume2 device.
+ - Reimplemented xscreensaver locking (inspired by pmsuspend script)
+ - Find gentoo's dcop program in funny places.
  - Stop RPM from clobbering config file.
- - Support recursing module unloading.
 
 0.97 (30 July 2004)
  - Added lilo scriptlet to ensure the current kernel boots next time to resume.
