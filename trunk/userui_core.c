@@ -335,15 +335,24 @@ static void message_loop() {
 
 static void do_test_run() {
 	int i;
+	int max = 100;
 
 	console_loglevel = 1;
 	userui_ops->log_level_change();
 	userui_ops->message(0, 0, 1, "Suspending to disk ...");
-	for (i = 0; i <= 1024; i+=8) {
+	for (i = 0; i <= max; i+=8) {
 		char buf[128];
-		snprintf(buf, 128, "%d/%d MB", i, 1024);
-		userui_ops->update_progress(i, 1024, buf);
+		snprintf(buf, 128, "%d/%d MB", i, max);
+		userui_ops->update_progress(i, max, buf);
 		usleep(5*1000);
+
+		if (i == max/2) {
+			userui_ops->message(0, 0, 0, "Halfway");
+			sleep(1);
+		}
+		if (i == (max/2)+1) {
+			sleep(1);
+		}
 	}
 	usleep(500*1000);
 	userui_ops->cleanup();
@@ -361,6 +370,8 @@ int main(int argc, char **argv) {
 	get_info();
 
 	userui_ops->prepare();
+
+	nice(1);
 
 	if (userui_ops->memory_required)
 		reserve_memory(userui_ops->memory_required());
