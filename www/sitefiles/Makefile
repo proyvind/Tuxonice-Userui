@@ -84,12 +84,12 @@ backup: clean
 
 push: 
 	#cd .. && tar cz sitefiles/ | ssh bernardb@shell.sf.net 'cd swsusp && tar xzv && make -C sitefiles'
-	cd .. && rsync -azve ssh sitefiles bernardb@shell.sf.net:swsusp/ && ssh sf make -C swsusp/sitefiles
+	cd .. && rsync -azve ssh --exclude=.svn sitefiles bernardb@shell.sf.net:swsusp/ && ssh sf make -C swsusp/sitefiles
 
 demo: 
-	cd .. && rsync -azve ssh sitefiles mussel-w:public-html/swsusp/ && ssh mussel-w make -C public-html/swsusp/sitefiles
+	cd .. && rsync -azve ssh --exclude=.svn sitefiles mussel-w:public-html/swsusp/ && ssh mussel-w make -C public-html/swsusp/sitefiles
 
 berlios: 
-	cd .. && rsync -azve ssh sitefiles berlios:softwaresuspend/ && ssh berlios make -C softwaresuspend/sitefiles
+	cd .. && rsync -azve ssh --exclude=.svn sitefiles berlios:softwaresuspend/ && ssh berlios make -C softwaresuspend/sitefiles
 
 .PHONY: directories htmlfiles rawfiles howto clean backup push demo
