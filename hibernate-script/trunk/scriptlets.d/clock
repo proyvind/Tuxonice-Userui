@@ -23,7 +23,7 @@ ClockOptions() {
     case $1 in
 	saveclock)
 	    param=`echo $2 | tr '[A-Z]' '[a-z]'`
-	    case "$param" in 
+	    case "$param" in
 		restore*) # restore-only
 		    AddResumeHook 70 ClockRestore
 		    ;;

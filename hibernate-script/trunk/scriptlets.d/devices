@@ -15,7 +15,7 @@ DevicesFree() {
 
     # Send TERM to processes first
     if [ x"$KILL_PROGRAMS" = "x1" ] ; then
-	for device in $INCOMPATIBLE_DEVICES ; do 
+	for device in $INCOMPATIBLE_DEVICES ; do
 	    if fuser -s $device ; then
 		vecho 1 "Sending SIGTERM to processes using $device..."
 		fuser -s -k -15 $device
@@ -28,7 +28,7 @@ DevicesFree() {
 
     # Send KILL to processes
     ret=0
-    for device in $INCOMPATIBLE_DEVICES ; do 
+    for device in $INCOMPATIBLE_DEVICES ; do
 	if fuser -s $device ; then
 	    if [ x"$KILL_PROGRAMS" = "x1" ] ; then
 		vecho 1 "Sending SIGKILL to processes using $device..."
@@ -39,7 +39,7 @@ DevicesFree() {
 	    fi
 	fi
     done
-    
+
     # We tried our best.
     return $ret
 }

@@ -40,7 +40,7 @@ ModulesUnload() {
     local mod
     local ret
     ret=0
-    for mod in $MOD_UNLOAD ; do 
+    for mod in $MOD_UNLOAD ; do
 	vecho 2 -n "Unloading module $mod... "
 
 	if ! grep -q "^$mod " /proc/modules ; then
@@ -66,9 +66,9 @@ ModulesLoad() {
     RestoreKernelModprobe
 
     local mod
-    for mod in $MOD_LOAD ; do 
+    for mod in $MOD_LOAD ; do
 	if [ "$mod" = "auto" ] ; then
-	    for mod in $MOD_UNLOADED ; do 
+	    for mod in $MOD_UNLOADED ; do
 		vecho 2 "Loading module $mod (from auto)..."
 		modprobe $mod
 	    done
@@ -168,7 +168,7 @@ ModulesUnloadBlacklist() {
     local kver=`awk 'BEGIN{FS="[^0-9]"}{print($1*0x10000)+($2*0x100)+$3}' /proc/sys/kernel/osrelease`
 
     # Loop over every line in given file.
-    vecho 2 "Unloading blacklisted modules listed $MODULES_BLACKLIST_FILE" 
+    vecho 2 "Unloading blacklisted modules listed $MODULES_BLACKLIST_FILE"
     local failedmods=""
     while : ; do
 	local mod vers
@@ -239,18 +239,18 @@ ModulesLoadFromFile() {
     [ -r "$MODULES_FROMFILE" ] || return 0
     CheckModuleSupport || return 0
     RestoreKernelModprobe
-    
+
     local MOD
     local args
     # Loop over every line in given file.
-    vecho 2 "Loading modules listed $MODULES_FROMFILE" 
+    vecho 2 "Loading modules listed $MODULES_FROMFILE"
     while : ; do
 	read MOD args
 	[ $? -ne 0 ] && [ -z "$MOD" ] && break
 	case "${MOD}" in
 	    \#*|"") continue ;;
 	esac
-	vecho 2 "Loading $MOD" 
+	vecho 2 "Loading $MOD"
 	modprobe ${MOD} ${args}
     done < $MODULES_FROMFILE
 

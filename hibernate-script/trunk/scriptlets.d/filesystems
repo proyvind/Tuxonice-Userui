@@ -15,7 +15,7 @@ FilesystemsUnmount() {
 
     # Send TERM to processes first
     if [ x"$KILL_PROGRAMS" = "x1" ] ; then
-	for mnt in $FS_UNMOUNTS ; do 
+	for mnt in $FS_UNMOUNTS ; do
 	    if ! awk '($2 == "'$mnt'"){exit 1}' /proc/mounts ; then
 		vecho 1 "Sending SIGTERM to processes using $mnt..."
 		fuser -s -k -15 $mnt
@@ -28,7 +28,7 @@ FilesystemsUnmount() {
 
     # Send KILL to processes and unmount
     ret=0
-    for mnt in $FS_UNMOUNTS ; do 
+    for mnt in $FS_UNMOUNTS ; do
 	if ! awk '($2 == "'$mnt'"){exit 1}' /proc/mounts ; then
 	    if [ x"$KILL_PROGRAMS" = "x1" ] ; then
 		vecho 1 "Sending SIGKILL to processes using $mnt..."
@@ -47,7 +47,7 @@ FilesystemsMount() {
     [ -z "$FS_MOUNTS" ] && return 0
 
     ret=0
-    for mnt in $FS_MOUNTS ; do 
+    for mnt in $FS_MOUNTS ; do
 	vecho 1 "Mounting $mnt ..."
 	mount $mnt || ret=1
     done

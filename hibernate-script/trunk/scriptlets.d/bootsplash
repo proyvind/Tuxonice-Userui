@@ -9,8 +9,7 @@ AddConfigHelp "BootsplashConfig <configfile>" "Bootsplash config file (default i
 # default bootsplash theme config file
 SPLASH_CONFIG_FILE="/etc/bootsplash/default/config/bootsplash-1024x768.cfg"
 
-SplashProgress() 
-{
+SplashProgress() {
     if [ x"$USE_BOOTSPLASH" = "x1" ] ; then
 	CURRENT_PROGRESS=$((65535*${SPLASH_PROGRESS}/100));
 	echo "show $CURRENT_PROGRESS" > /proc/splash
@@ -22,7 +21,7 @@ SplashProgress()
 SplashBegin() {
     [ x"$USE_BOOTSPLASH" != "x1" ] && return 0
 
-    # check if /proc/splash and splash exists 
+    # check if /proc/splash and splash exists
     if [ ! -f /proc/splash ]; then
 	USE_BOOTSPLASH=0
 	vecho 1 "/proc/splash not found. Bootsplash disabled."
@@ -53,12 +52,12 @@ SplashBegin() {
 
     # go
     splash -s -u 0 "$SPLASH_CONFIG_FILE"
-    echo "silent" > /proc/splash 
+    echo "silent" > /proc/splash
 
     # increments the bar to 10 and kicks it all off.
     SPLASH_PROGRESS=0
     SplashProgress
-    
+
     return 0
 }
 
@@ -80,7 +79,7 @@ SplashOff() {
 EnableSwsuspBootsplash() {
     [ -n "$SWSUSP_FORCE_CHVT" ] || return 0
     splash -s "$SPLASH_CONFIG_FILE"
-    echo "silent" > /proc/splash 
+    echo "silent" > /proc/splash
     return 0
 }
 

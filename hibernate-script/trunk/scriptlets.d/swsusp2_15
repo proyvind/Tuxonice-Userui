@@ -279,7 +279,7 @@ instructions on how to compile Software Suspend into your kernel.
 EOT
 	return 2
     fi
-    
+
     if [ -f "$SWSUSP_ROOT/activate" -a ! -f "$SWSUSP_ROOT/version" ] ; then
 	cat <<EOT
 Can not find $SWSUSP_ROOT/version. Have you loaded the suspend_core

@@ -25,7 +25,7 @@ ProgramsStop() {
 	    local name
 	    local params
 	    ps ax | ( # This fires up a subshell. We can't get any env vars out.
-	    while read pid tty state time name params ; do 
+	    while read pid tty state time name params ; do
 		valid_prog=0
 	    	for prog in $INCOMPATIBLE_PROGRAMS ; do
 		    [ "$prog" = "$name" ] && valid_prog=1 && break

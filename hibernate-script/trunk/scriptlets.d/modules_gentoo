@@ -38,14 +38,14 @@ GentooModulesAutoload() {
     local MOD
     local args
     # Loop over every line in $modules_autoload_file.
-    vecho 1 "Loading modules listed $modules_autoload_file" 
+    vecho 1 "Loading modules listed $modules_autoload_file"
     while : ; do
 	read MOD args
 	[ $? -ne 0 ] && [ -z "$MOD" ] && break
 	case "${MOD}" in
 	    \#*|"") continue ;;
 	esac
-	vecho 1 "Loading $MOD" 
+	vecho 1 "Loading $MOD"
 	modprobe ${MOD} ${args}
     done < $modules_autoload_file
 

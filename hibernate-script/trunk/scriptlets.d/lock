@@ -73,7 +73,7 @@ LockConsole() {
     # Prerequistes are tested for in SwitchToLockConsole
 
     [ -z "$LOCK_CONSOLE_USER" ] && return 0
-  
+
     # Use vlock to lock all consoles. We must already be at the given console.
     vecho 1 "Locking all consoles"
     openvt -wfc $LOCK_DEST_VT -- su - "$LOCK_CONSOLE_USER" -c "vlock -a"
@@ -117,7 +117,7 @@ LockOptions() {
     case $1 in
 	lockkde)
 	    BoolIsOn "$1" "$2" && LOCK_KDE=1 || LOCK_KDE=0
-	    
+
 	    if [ -z "$KDELOCK_HOOKED" ] ; then
 		AddSuspendHook 91 LockKDE
 		KDELOCK_HOOKED=1
