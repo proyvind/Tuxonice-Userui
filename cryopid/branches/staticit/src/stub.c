@@ -10,14 +10,10 @@
 #include <linux/elf.h>
 
 int verbosity = 0;
-int do_pause = 0;
-int want_pid = 0;
-int translate_pids = 0;
 int tls_hack = 0;
 long tls_start = 0;
 void (*old_segvhandler)(int, siginfo_t*, void*) = NULL;
-char ignorefds[256];
-int reforked = 0;
+void *argc_ptr;
 
 int real_argc;
 char** real_argv;
@@ -262,7 +258,6 @@ void segv_handler(int sig, siginfo_t *si, void *ucontext) {
 int resume_image_from_file(int fd) {
     int num_maps, num_fds, num_tls;
     int fd2;
-    int stdinfd;
     struct user_desc tls;
     struct map_entry_t map;
     struct fd_entry_t fd_entry;
@@ -278,51 +273,6 @@ int resume_image_from_file(int fd) {
 
     safe_read(fd, &pid, sizeof(pid), "pid");
 
-    extern int start_supervisor(pid_t);
-    if (translate_pids)
-	start_supervisor(pid);
-
-    if (want_pid) {
-	if (kill(pid, 0) == 0 || errno == EPERM) {
-	    fprintf(stderr, "Pid is already taken. Refusing to do anything :(\n");
-	    exit(1);
-	}
-	/* grab it! */
-	if (verbosity > 0)
-	    fprintf(stderr, "PID is free ... going for it!\n");
-	int happy = 0;
-	switch(fork()) {
-	    case 0: break;
-	    case -1: perror("fork"); exit(1);
-	    default:
-		     {
-			 sigset_t mask;
-			//printf("myppid() = %d\n", getpid());
-			 sigfillset(&mask);
-			 sigdelset(&mask, SIGUSR1);
-			 sigsuspend(&mask);
-			 wait(NULL);
-			 _exit(0);
-		     }
-	}
-	while (!happy) {
-	    switch(fork()) {
-		case 0:
-		    setpgid(getpid(), getppid());
-		    if (getpid() == pid) happy = 1;
-		    break;
-		case -1:
-		    perror("fork");
-		    exit(1);
-		default:
-		    sleep(1);
-		    _exit(0);
-	    }
-	}
-	//printf("getppid() = %d\n", getppid());
-	kill(getppid(),SIGUSR1);
-    }
-
     new_cmdline = (char*)malloc(65536);
     new_environ = (char*)malloc(65536);
     safe_read(fd, &cmdline_length, sizeof(cmdline_length), "cmdline_length");
@@ -333,50 +283,6 @@ int resume_image_from_file(int fd) {
     safe_read(fd, new_environ, environ_length, "environ");
     new_environ[environ_length]='\0';
     
-    if (!reforked) {
-	char fn[128];
-	char *p;
-	char **new_argv, **new_envp;
-	new_argv = (char**)malloc(sizeof(char*)*4096); /* FIXME */
-	new_envp = (char**)malloc(sizeof(char*)*4096); /* FIXME */
-
-	p = new_cmdline;
-	i = 0;
-	while (*p) {
-	    new_argv[i++] = p;
-	    while(*p++);
-	}
-	new_argv[i] = NULL;
-
-	p = new_environ;
-	i = 0;
-	while (*p) {
-	    new_envp[i++] = p;
-	    while(*p++);
-	}
-	new_envp[i] = NULL;
-
-	snprintf(fn, 128, "/tmp/cryopid.state.%d.XXXXXX", getpid());
-	int f = syscall_check(mkstemp(fn), 0, "mkstemp");
-	unlink(fn);
-	int i;
-	syscall_check(write(f, &real_argc, sizeof(real_argc)), 0, "write");
-	for(i=0; i < real_argc; i++) {
-	    int l = strlen(real_argv[i])+1;
-	    syscall_check(write(f, &l, sizeof(l)), 0, "write");
-	    syscall_check(write(f, real_argv[i], l), 0, "write");
-	}
-	syscall_check(dup2(f, 42), 0, "dup2");
-	syscall_check(fcntl(42, F_SETFD, 0), 0, "fcntl"); /* disable close-on-exec */
-	if (verbosity > 0)
-	    fprintf(stderr, "Re-exec'ing...\n");
-	execve(real_argv[0], new_argv, new_envp);
-	printf("execve(%s,0x%p,0x%p) failed. Not restoring cmdline. (error: %s)\n",
-		real_argv[0], new_argv, new_envp, strerror(errno));
-	close(f);
-	close(42);
-    }
-
     safe_read(fd, &user_data, sizeof(struct user), "user data");
     safe_read(fd, &i387_data, sizeof(struct user_i387_struct), "i387 data");
     safe_read(fd, &num_maps, sizeof(int), "num_maps");
@@ -431,7 +337,6 @@ int resume_image_from_file(int fd) {
 
     if (verbosity > 0)
 	fprintf(stderr, "Reading %d TLS entries...\n", num_tls);
-    if (do_pause) sleep(1);
     for(i = 0; i < num_tls; i++) {
 	safe_read(fd, &tls, sizeof(struct user_desc), "tls info");
 
@@ -447,77 +352,15 @@ int resume_image_from_file(int fd) {
 	    syscall_check(set_thread_area(&tls), 0, "set_thread_area");
     }
 
-    stdinfd = 0; /* we'll use stdin for stdout/stderr later if needed */
-    if (verbosity == 0) {
-	close(1);
-	close(2);
-    }
     safe_read(fd, &num_fds, sizeof(int), "num_fds");
     if (verbosity > 0)
 	fprintf(stderr, "Reading %d file descriptors...\n", num_fds);
-    while (num_fds--) {
-	safe_read(fd, &fd_entry, sizeof(struct fd_entry_t), "an fd_entry");
-	if (verbosity > 0) {
-	    fprintf(stderr, "fd: name=%s  fd=%d  mode=%d  flags=%d\n", fd_entry.filename, fd_entry.fd, fd_entry.mode, fd_entry.flags);
-	}
-
-	/* shuffle fd's about if they're going to clash with anything 
-	 * important (stdin, or our image file)
-	 */
-	if (fd_entry.fd == fd) fd = dup(fd);
-	if (fd_entry.fd == stdinfd) stdinfd = dup(stdinfd);
-
-	if (fd_entry.flags & FD_IS_TERMINAL) {
-	    if (verbosity > 1)
-		fprintf(stderr, "    this looks like our terminal, duplicating stdin\n");
-	    if (!ignorefds[fd_entry.fd]) {
-		fd2 = syscall_check(dup2(stdinfd, fd_entry.fd), 0, "dup2");
-		if (fd_entry.flags & FD_TERMIOS) {
-		    extern int ioctl(int fd, unsigned long req, ...);
-		    ioctl(fd_entry.fd, TCSETS, &fd_entry.termios);
-		}
-		//pid_t mypid = getpid();
-		//ioctl(fd_entry.fd, TIOCSPGRP, &mypid);
-	    }
-	} else {
-	    if (!ignorefds[fd_entry.fd]) {
-		fd2 = open(fd_entry.filename, fd_entry.mode);
-		if (fd2 < 0) {
-		    fprintf(stderr, "Warning: couldn't restore file %s: %s\n", fd_entry.filename, strerror(errno));
-		    continue;
-		}
-		if (!(fd_entry.flags & FD_OFFSET_NOT_SAVED)) {
-		    if (verbosity > 1)
-			fprintf(stderr, "    seeking to %ld\n", fd_entry.position);
-		    if (lseek(fd2, fd_entry.position, SEEK_SET) < 0) {
-			fprintf(stderr, "Warning: restoring file offset %ld to file %s failed: %s\n", fd_entry.position, fd_entry.filename, strerror(errno));
-		    }
-		}
-		syscall_check(dup2(fd2, fd_entry.fd), 0, "dup2");
-		syscall_check(close(fd2), 0, "close");
-		fd2 = fd_entry.fd;
-	    }
-	}
-	if (fd_entry.data_length >= 0) {
-	    fprintf(stderr, "Warning: restoring file contents not yet implemented (for %s)\n", fd_entry.filename);
-	    while (fd_entry.data_length) {
-		int r = 4096;
-		char buf[4096];
-		if (r > fd_entry.data_length)
-		    r = fd_entry.data_length;
-		safe_read(fd, buf, r, "junk");
-		fd_entry.data_length -= r;
-	    }
-	}
-	fcntl(fd_entry.fd, F_SETFD, fd_entry.fcntl_data.close_on_exec);
-    }
-    //close(stdinfd);
-
-    safe_read(fd, dir, sizeof(dir), "working directory");
-    if (verbosity > 0)
-	fprintf(stderr, "Changing directory to %s\n", dir);
-    syscall_check(chdir(dir), 0, "chdir %s", dir);
-
+    
+    /* discard misc data */
+    lseek(fd,
+	    num_fds*sizeof(struct fd_entry_t) +
+	    sizeof(dir),
+	    SEEK_CUR);
     if (verbosity > 0)
 	fprintf(stderr, "Restoring signal handlers...\n");
     for (i = 1; i <= MAX_SIGS; i++) {
@@ -544,33 +387,16 @@ int resume_image_from_file(int fd) {
 	    (int)mmap((void*)0x10000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC,
 	    MAP_FIXED|MAP_PRIVATE|MAP_ANONYMOUS, 0, 0), 0, "mmap");
     /* put eflags onto the process' stack so we can pop it off */
+    user_data.regs.esp = argc_ptr;
+    printf("ESP is 0x%p\n", argc_ptr);
     user_data.regs.esp-=4;
     *(long*)user_data.regs.esp = user_data.regs.eflags;
     
     put_shell_code(user_data.regs, (void*)0x10000);
 
-    if (verbosity > 0)
-	fprintf(stderr, "Ready to go!\n");
-
-    /*
-    if (translate_pids) {
-	extern int supervise_me(pid_t);
-	munmap((void*)RESUMER_END, 0xffffffff-RESUMER_END);
-	supervise_me(pid);
-    }
-    */
-
-    if (do_pause)
-	sleep(2);
-    asm("jmp 0x10000");
+    asm volatile("jmp 0x10000");
 
     return 1;
-}
-
-void* get_task_size() {
-    /* stolen from isec brk exploit :) */
-    unsigned tmp;
-    return (void*)(((unsigned)&tmp + (1024*1024*1024)) / (1024*1024*1024) * (1024*1024*1024));
 }
 
 void seek_to_image(int fd) {
@@ -646,161 +472,23 @@ int open_self() {
     return fd;
 }
 
-void usage(char* argv0) {
-    fprintf(stderr,
-"Usage: %s [options]\n"
-"\n"
-"This is a saved image of process. To resume this process, you can simply run\n"
-"this executable. Some options that may be of interest when restoring\n"
-"this process:\n"
-"\n"
-"    -v      Be verbose while resuming.\n"
-"    -i <fd> Do not restore the given file descriptor.\n"
-"    -p      Pause between steps before resuming (for debugging)\n"
-"    -P      Attempt to gain original PID by way of fork()'ing a lot\n"
-"    -t      Use ptrace to translate PIDs in system calls (Experimental and\n"
-"	    incomplete!)"
-"\n"
-"This image was created by CryoPID. http://cryopid.berlios.de/\n",
-    argv0);
-    exit(1);
-}
+int main(int argc, char** argv) {
+    argc_ptr = &argc;
 
-void real_main(int argc, char** argv) __attribute__((noreturn));
-void real_main(int argc, char** argv) {
-    int fd = 42;
-    /* See if we're being executed for the second time. If so, read arguments
-     * from the file.
-     */
-    if (lseek(fd, 0, SEEK_SET) != -1) {
-	safe_read(fd, &argc, sizeof(argc), "argc from cryopid.state");
-	argv = (char**)malloc(sizeof(char*)*argc+1);
-	argv[argc] = NULL;
-	int i, len;
-	for (i=0; i < argc; i++) {
-	    safe_read(fd, &len, sizeof(len), "argv len from cryopid.state");
-	    argv[i] = (char*)malloc(len);
-	    safe_read(fd, argv[i], len, "new argv from cryopid.state");
-	}
-	close(fd);
-	reforked = 1;
-    } else {
-	if (errno != EBADF) {
-	    /* EBADF is the only error we should be expecting! */
-	    fprintf(stderr, "Unexpected error on lseek. Aborting (%s).\n",
-		    strerror(errno));
-	    exit(1);
-	}
+    printf("argc is at 0x%p and argv is at 0x%p\n", &argc, argv);
+    printf("argc is %d\n", argc);
+    int i;
+    for (i = 0; i < argc; i++) {
+        printf("argv[%d] is at 0x%p and = \"%s\"\n", i, argv[i], argv[i]);
     }
 
-    /* Parse options */
-    memset(ignorefds, 0, sizeof(ignorefds));
-    while (1) {
-	int option_index = 0;
-	int c;
-	static struct option long_options[] = {
-	    {0, 0, 0, 0},
-	};
-	
-	c = getopt_long(argc, argv, "vpPc:ti:",
-		long_options, &option_index);
-	if (c == -1)
-	    break;
-	switch(c) {
-	    case 'v':
-		verbosity++;
-		break;
-	    case 'p':
-		do_pause = 1;
-		break;
-	    case 'P':
-		want_pid = 1;
-		break;
-	    case 't':
-		translate_pids = 1;
-		break;
-	    case 'i':
-		if (atoi(optarg) >= 256) {
-		    fprintf(stderr, "Ignored fd number too high! Not ignoring.\n");
-		    exit(1);
-		}
-		ignorefds[atoi(optarg)] = 1;
-		break;
-	    case '?':
-		/* invalid option */
-		fprintf(stderr, "Unknown option on command line.\n");
-		usage(argv[0]);
-		break;
-	}
-    }
-
-    if (argc - optind) {
-	fprintf(stderr, "Extra arguments not expected (%s ...)!\n", argv[optind]);
-	usage(argv[0]);
-    }
-
+    int fd;
     fd = open_self();
     seek_to_image(fd);
     resume_image_from_file(fd);
 
     fprintf(stderr, "Something went wrong :(\n");
-    exit(1);
-}
-
-int main(int argc, char**argv) {
-    long amount_used;
-    void *stack_ptr;
-    void *top_of_old_stack, *bottom_of_old_stack;
-    void *top_of_new_stack;
-    long size_of_new_stack;
-    
-    int i;
-
-    /* Take a copy of our argc/argv and environment below we blow them away */
-    real_argc = argc;
-    real_argv = (char**)malloc((sizeof(char*)*argc)+1);
-    for(i=0; i < argc; i++)
-	real_argv[i] = strdup(argv[i]);
-    real_argv[i] = NULL;
-
-    for(i = 0; environ[i]; i++); /* count environment variables */
-    real_environ = malloc((sizeof(char*)*i)+1);
-    for(i = 0; environ[i]; i++)
-	*real_environ++ = strdup(environ[i]);
-    *real_environ = NULL;
-    environ = real_environ;
-
-    /* Reposition the stack at top_of_old_stack */
-    top_of_old_stack = get_task_size();
-    stack_ptr = &stack_ptr;
-
-    amount_used = top_of_old_stack - stack_ptr;
-
-    top_of_new_stack = (void*)0x00200000;
-    size_of_new_stack = PAGE_SIZE;
-
-    syscall_check( (int)
-	mmap(top_of_new_stack - size_of_new_stack, size_of_new_stack,
-	    PROT_READ|PROT_WRITE|PROT_EXEC,
-	    MAP_ANONYMOUS|MAP_FIXED|MAP_GROWSDOWN|MAP_PRIVATE, -1, 0),
-	0, "mmap(newstack)");
-    memset(top_of_new_stack - size_of_new_stack, 0, size_of_new_stack);
-    memcpy(top_of_new_stack - size_of_new_stack,
-	    top_of_old_stack - size_of_new_stack, /* FIX ME */
-	    size_of_new_stack);
-    bottom_of_old_stack = (void*)(((unsigned long)sbrk(0) + PAGE_SIZE - 1) & PAGE_MASK);
-    __asm__ ("addl %0, %%esp" : : "a"(top_of_new_stack - top_of_old_stack));
-
-    /* unmap absolutely everything above us! */
-    syscall_check(
-	    munmap(top_of_new_stack,
-		(top_of_old_stack - top_of_new_stack)),
-		0, "munmap(stack)");
-    
-    /* Now hope for the best! */
-    real_main(real_argc, real_argv);
-    /* should never return */
-    return 42;
+    return 1;
 }
 
 /* vim:set ts=8 sw=4 noet: */

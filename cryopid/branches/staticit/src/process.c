@@ -293,10 +293,6 @@ int get_one_vma(pid_t target_pid, char* map_line, struct map_entry_t* m, int get
     *ptr2 = '\0';
     m->pg_off = strtoul(ptr1, NULL, 16);
 
-    if ((signed long)m->pg_off < 0) {
-	m->flags |= MAP_GROWSDOWN;
-    }
-
     ptr1 = ptr2+1;
     if ((ptr2 = strchr(ptr1, ':')) == NULL) {
 	fprintf(stderr, "No end of major dev in map line!\n");
@@ -354,6 +350,11 @@ int get_one_vma(pid_t target_pid, char* map_line, struct map_entry_t* m, int get
 	scribble_zone = m->start;
 	printf("[+] Found scribble zone: 0x%lx\n", scribble_zone);
     }
+
+    if ((signed long)m->pg_off < 0) {
+	m->flags |= MAP_GROWSDOWN;
+    }
+    if (m->start + m->length == 0xc0000000) return 0;
 
     if (get_library_data) {
 	/* forget the fact it came from a file. Pretend it was just
@@ -610,12 +611,12 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
     /* FIXME being liberal here: */
     proc_image->maps = malloc(sizeof(struct map_entry_t)*1000);
 
-    start_ptrace(target_pid);
+    //start_ptrace(target_pid);
     snprintf(tmp_fn, 1024, "/proc/%d/maps", target_pid);
     f = fopen(tmp_fn, "r");
     while (fgets(map_line, 1024, f)) {
 	if (!get_one_vma(target_pid, map_line, &(proc_image->maps[map_count]), flags & GET_LIBRARIES_TOO))
-	    fprintf(stderr, "     Error parsing map: %s", map_line);
+	    fprintf(stderr, "     Error parsing map: %s\n", map_line);
 	else
 	    if (proc_image->maps[map_count].start >= 0x10000 &&
 		    proc_image->maps[map_count].start <= 0x11000)
@@ -645,6 +646,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 	proc_image = NULL;
 	goto out_ptrace;
     }
+    fprintf(stderr, "EIP is 0x%lx\n", proc_image->user_data.regs.eip);
     if (is_in_syscall(target_pid, (void*)proc_image->user_data.regs.eip)) {
 	fprintf(stderr, "[+] Process is probably in syscall. Noting this fact.\n");
 	proc_image->user_data.regs.eip-=2;
@@ -815,7 +817,6 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 
     restore_page(target_pid, (void*)scribble_zone, pagebackup);
 out_ptrace:
-    end_ptrace(target_pid);
     return proc_image;
 }
 

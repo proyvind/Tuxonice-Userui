@@ -22,7 +22,7 @@ stub-image.S: stub src2asm.pl
 make-static: make-static.o process.o imagewriter.o elfwriter.o stub-image.o
 
 stub: stub.c supervisor.c
-	gcc -static -Tstub-linking.x -Os -o $@ $^ $(LIBC)
-	strip $@
+	gcc -g -static -Tstub-linking.x -Os -o $@ $^ $(LIBC)
+	#strip $@
 	$(DEPAX) $@
 
