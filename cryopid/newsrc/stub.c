@@ -5,6 +5,8 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <asm/termios.h>
+#include <linux/unistd.h>
+#include <asm/ldt.h>
 #include <linux/elf.h>
 
 int verbosity = 0;
@@ -40,29 +42,34 @@ void safe_read(int fd, void* dest, size_t count, char* desc) {
 }
 
 void put_shell_code(struct user_regs_struct r, char* code) {
-    char *cp = code;
-    memset(code, 0, sizeof(code));
-    code[0xffc] = 'A';
+	char *cp = code;
+	memset(code, 0, sizeof(code));
+	code[0xffc] = 'A';
 	*cp++ = 0xbc; *(long*)(cp) = (long)code+0x0ff0; cp+=4; /* mov sp, 0x11000 */
-	*cp++ = 0x1e;                              /* push cs      */
-	*cp++ = 0x0f; *cp++ = 0xa9;                /* pop gs       */
-	*cp++ = 0xb8; *(long*)(cp) = r.eax; cp+=4; /* mov ax, foo  */
-	*cp++ = 0xbb; *(long*)(cp) = r.ebx; cp+=4; /* mov bx, foo  */
-	*cp++ = 0xb9; *(long*)(cp) = r.ecx; cp+=4; /* mov cx, foo  */
-	*cp++ = 0xba; *(long*)(cp) = r.edx; cp+=4; /* mov dx, foo  */
-	*cp++ = 0xbe; *(long*)(cp) = r.esi; cp+=4; /* mov si, foo  */
-	*cp++ = 0xbf; *(long*)(cp) = r.edi; cp+=4; /* mov di, foo  */
-	*cp++ = 0xbd; *(long*)(cp) = r.ebp; cp+=4; /* mov bp, foo  */
-	*cp++ = 0xbc; *(long*)(cp) = r.esp; cp+=4; /* mov sp, foo  */
+	*cp++ = 0x66; *cp++ = 0xb8; *(short*)(cp) = r.gs; cp+=2; /* mov foo, ax  */
+	*cp++ = 0x8e; *cp++ = 0xe8; /* mov %eax, %gs */
+	*cp++ = 0xb8; *(long*)(cp) = r.eax; cp+=4; /* mov foo, ax  */
+	*cp++ = 0xbb; *(long*)(cp) = r.ebx; cp+=4; /* mov foo, bx  */
+	*cp++ = 0xb9; *(long*)(cp) = r.ecx; cp+=4; /* mov foo, cx  */
+	*cp++ = 0xba; *(long*)(cp) = r.edx; cp+=4; /* mov foo, dx  */
+	*cp++ = 0xbe; *(long*)(cp) = r.esi; cp+=4; /* mov foo, si  */
+	*cp++ = 0xbf; *(long*)(cp) = r.edi; cp+=4; /* mov foo, di  */
+	*cp++ = 0xbd; *(long*)(cp) = r.ebp; cp+=4; /* mov foo, bp  */
+	*cp++ = 0xbc; *(long*)(cp) = r.esp; cp+=4; /* mov foo, sp  */
 	*cp++ = 0xea;
-    *(unsigned long*)(cp) = r.eip; cp+= 4;
-    *(unsigned short*)(cp) = r.cs; cp+= 2; /* jmp cs:foo */
+	*(unsigned long*)(cp) = r.eip; cp+= 4;
+	*(unsigned short*)(cp) = r.cs; cp+= 2; /* jmp cs:foo */
 }
 
+#if !set_thread_area
+_syscall1(int,set_thread_area,struct user_desc*,u_info);
+#endif
+
 int resume_image_from_file(int fd) {
-	int num_maps, num_fds;
+	int num_maps, num_fds, num_tls;
 	int fd2;
 	int stdinfd;
+	struct user_desc tls;
 	struct map_entry_t map;
 	struct fd_entry_t fd_entry;
 	pid_t pid;
@@ -79,6 +86,18 @@ int resume_image_from_file(int fd) {
 
 	safe_read(fd, &user_data, sizeof(struct user), "user data");
 	safe_read(fd, &i387_data, sizeof(struct user_i387_struct), "i387 data");
+
+	safe_read(fd, &num_tls, sizeof(int), "num_tls");
+	if (verbosity > 0)
+		fprintf(stderr, "Reading %d TLS entries...\n", num_tls);
+	for(i = 0; i < num_tls; i++) {
+		safe_read(fd, &tls, sizeof(struct user_desc), "tls data");
+		if (verbosity > 0)
+			fprintf(stderr, "Restoring TLS entry %d (0x%lx limit 0x%lx)\n",
+					tls.entry_number, tls.base_addr, tls.limit);
+		syscall_check(set_thread_area(&tls), 0, "set_thread_area");
+	}
+
 	safe_read(fd, &num_maps, sizeof(int), "num_maps");
 
 	if (verbosity > 0)
@@ -117,10 +136,10 @@ int resume_image_from_file(int fd) {
 	}
 
 	stdinfd = 0; /* we'll use stdin for stdout/stderr later if needed */
-    if (verbosity == 0) {
-        close(1);
-        close(2);
-    }
+	if (verbosity == 0) {
+		close(1);
+		close(2);
+	}
 	safe_read(fd, &num_fds, sizeof(int), "num_fds");
 	if (verbosity > 0)
 		fprintf(stderr, "Reading %d file descriptors...\n", num_fds);
@@ -185,11 +204,11 @@ int resume_image_from_file(int fd) {
 	if (verbosity > 0)
 		fprintf(stderr, "Ready to go!\n");
 
-    syscall_check(
-            (int)mmap((void*)0x10000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC,
-            MAP_FIXED|MAP_PRIVATE|MAP_ANONYMOUS, 0, 0), 0, "mmap");
-    put_shell_code(user_data.regs, (void*)0x10000);
-    asm("jmp 0x10000");
+	syscall_check(
+			(int)mmap((void*)0x10000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC,
+			MAP_FIXED|MAP_PRIVATE|MAP_ANONYMOUS, 0, 0), 0, "mmap");
+	put_shell_code(user_data.regs, (void*)0x10000);
+	asm("jmp 0x10000");
 
 	return 1;
 }
@@ -201,68 +220,68 @@ void* get_task_size() {
 }
 
 void seek_to_image(int fd) {
-    Elf32_Ehdr e;
-    Elf32_Shdr s;
-    int i;
-    char* strtab;
+	Elf32_Ehdr e;
+	Elf32_Shdr s;
+	int i;
+	char* strtab;
 
-    syscall_check(lseek(fd, 0, SEEK_SET), 0, "lseek");
-    safe_read(fd, &e, sizeof(e), "Elf32_Ehdr");
-    if (e.e_shoff == 0) {
-        fprintf(stderr, "No section header found in self! Bugger.\n");
-        exit(1);
-    }
-    if (e.e_shentsize != sizeof(Elf32_Shdr)) {
-        fprintf(stderr, "Section headers incorrect size. Bugger.\n");
-        exit(1);
-    }
-    if (e.e_shstrndx == SHN_UNDEF) {
-        fprintf(stderr, "String section missing. Bugger.\n");
-        exit(1);
-    }
-    
-    /* read the string table */
-    syscall_check(lseek(fd, e.e_shoff+(e.e_shstrndx*e.e_shentsize), SEEK_SET), 0, "lseek");
-    safe_read(fd, &s, sizeof(s), "string table section header");
-    syscall_check(lseek(fd, s.sh_offset, SEEK_SET), 0, "lseek");
-    strtab = malloc(s.sh_size);
-    safe_read(fd, strtab, s.sh_size, "string table");
+	syscall_check(lseek(fd, 0, SEEK_SET), 0, "lseek");
+	safe_read(fd, &e, sizeof(e), "Elf32_Ehdr");
+	if (e.e_shoff == 0) {
+		fprintf(stderr, "No section header found in self! Bugger.\n");
+		exit(1);
+	}
+	if (e.e_shentsize != sizeof(Elf32_Shdr)) {
+		fprintf(stderr, "Section headers incorrect size. Bugger.\n");
+		exit(1);
+	}
+	if (e.e_shstrndx == SHN_UNDEF) {
+		fprintf(stderr, "String section missing. Bugger.\n");
+		exit(1);
+	}
+	
+	/* read the string table */
+	syscall_check(lseek(fd, e.e_shoff+(e.e_shstrndx*e.e_shentsize), SEEK_SET), 0, "lseek");
+	safe_read(fd, &s, sizeof(s), "string table section header");
+	syscall_check(lseek(fd, s.sh_offset, SEEK_SET), 0, "lseek");
+	strtab = malloc(s.sh_size);
+	safe_read(fd, strtab, s.sh_size, "string table");
 
-    for (i=0; i < e.e_shnum; i++) {
-        long offset;
+	for (i=0; i < e.e_shnum; i++) {
+		long offset;
 
-        syscall_check(
-                lseek(fd, e.e_shoff+(i*e.e_shentsize), SEEK_SET), 0, "lseek");
-        safe_read(fd, &s, sizeof(s), "Elf32_Shdr");
-        if (s.sh_type != SHT_PROGBITS || s.sh_name == 0)
-            continue;
+		syscall_check(
+				lseek(fd, e.e_shoff+(i*e.e_shentsize), SEEK_SET), 0, "lseek");
+		safe_read(fd, &s, sizeof(s), "Elf32_Shdr");
+		if (s.sh_type != SHT_PROGBITS || s.sh_name == 0)
+			continue;
 
-        /* We have potential data! Is it really ours? */
-        if (memcmp(strtab+s.sh_name, "cryopid.image", 13) != 0)
-            continue;
+		/* We have potential data! Is it really ours? */
+		if (memcmp(strtab+s.sh_name, "cryopid.image", 13) != 0)
+			continue;
 
-        if (s.sh_info != IMAGE_VERSION) {
-            fprintf(stderr, "Incorrect image version found (%d)! Keeping on trying.\n", s.sh_info);
-            continue;
-        }
+		if (s.sh_info != IMAGE_VERSION) {
+			fprintf(stderr, "Incorrect image version found (%d)! Keeping on trying.\n", s.sh_info);
+			continue;
+		}
 
-        /* Woo! got it! */
-        syscall_check(
-                lseek(fd, s.sh_offset, SEEK_SET), 0, "lseek");
+		/* Woo! got it! */
+		syscall_check(
+				lseek(fd, s.sh_offset, SEEK_SET), 0, "lseek");
 
-        safe_read(fd, &offset, 4, "offset");
+		safe_read(fd, &offset, 4, "offset");
 
-        syscall_check(
-                lseek(fd, offset, SEEK_SET), 0, "lseek");
+		syscall_check(
+				lseek(fd, offset, SEEK_SET), 0, "lseek");
 
-        return;
-    }
-    fprintf(stderr, "Program image not found! Bugger.\n");
-    exit(1);
+		return;
+	}
+	fprintf(stderr, "Program image not found! Bugger.\n");
+	exit(1);
 }
 
 int open_self() {
-    int fd;
+	int fd;
 	if (verbosity > 0)
 		fprintf(stderr, "Reading image...\n");
 	fd = open("/proc/self/exe", O_RDONLY);
@@ -270,11 +289,11 @@ int open_self() {
 		fprintf(stderr, "Couldn't open self: %s\n", strerror(errno));
 		exit(1);
 	}
-    return fd;
+	return fd;
 }
 
 void real_main(int argc, char** argv) {
-    int fd;
+	int fd;
 	/* Parse options */
 	while (1) {
 		int option_index = 0;
@@ -299,13 +318,13 @@ void real_main(int argc, char** argv) {
 	}
 
 	if (argc - optind) {
-        fprintf(stderr, "Extra arguments not expected!\n");
+		fprintf(stderr, "Extra arguments not expected!\n");
 		fprintf(stderr, "Usage: %s [options]\n", argv[0]);
 		exit(1);
 	}
 
-    fd = open_self();
-    seek_to_image(fd);
+	fd = open_self();
+	seek_to_image(fd);
 	resume_image_from_file(fd);
 
 	fprintf(stderr, "Something went wrong :(\n");

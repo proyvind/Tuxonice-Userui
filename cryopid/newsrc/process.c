@@ -540,9 +540,11 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 
     /* Get TLS data */
     int z;
-    proc_image->tls = malloc(sizeof(struct user_desc)*256);
+    proc_image->num_tls = 0;
+    proc_image->tls = malloc(sizeof(struct user_desc*)*256);
     for (z = 0; z < 256; z++) {
-        proc_image->tls[z] = get_tls_data(z);
+        proc_image->tls[proc_image->num_tls] = get_tls_data(z);
+        if (proc_image->tls[proc_image->num_tls]) proc_image->num_tls++;
     }
 
 	/* Find the current directory of our victim */
