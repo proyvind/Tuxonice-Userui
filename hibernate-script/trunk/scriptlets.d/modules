@@ -209,8 +209,9 @@ ModulesUnloadBlacklist() {
 	case $mod in
 	    \#*|"") continue ;;
 	esac
-	[ -z "$vers" ] && continue
-	IsInKernelRange $kver $vers || continue
+	if [ -n "$vers" ] ; then
+	    IsInKernelRange $kver $vers || continue
+	fi
 	local deps
 	deps=`FindModuleDeps $mod`
 	[ -z "$deps" ] && continue # not loaded
