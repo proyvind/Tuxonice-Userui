@@ -458,7 +458,7 @@ Michael Schneider for recognising this problem and solution!
 
 <sect1>It suspends twice every time I hit the power button!
 <p>Your power button is probably sending two events every time you push it
-(sometime one for depressing it, one for releasing it, sometimes just two
+(sometimes one for depressing it, one for releasing it, sometimes just two
 events). You can tell acpid only to react to one event my editing your
 <tt>/etc/acpi/events/powerbtn</tt> file to contain
 "<tt>event=button[ /]power.*[02468ace]$</tt>" instead of the default
