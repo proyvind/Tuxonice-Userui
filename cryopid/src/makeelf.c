@@ -1,3 +1,9 @@
+/***
+ * TODO:
+ *  - Restore EFLAGS
+ *  - Abuse the dynamic linker
+ *  - Incorporate a C bootstrapper.
+ */
 #include <elf.h>
 #include <sys/types.h>
 #include <sys/stat.h>
