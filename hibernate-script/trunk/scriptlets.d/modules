@@ -170,7 +170,7 @@ END {
     '
 }
 
-IsInKernelRange() {
+IsInVersionRange() {
     local kver
     kver=$1
     shift
@@ -181,6 +181,7 @@ IsInKernelRange() {
 	min_ver=`echo $1 | awk 'BEGIN{FS="[^0-9]"}{print($1*0x10000)+($2*0x100)+$3}'`
 	max_ver=`echo $2 | awk 'BEGIN{FS="[^0-9]"}{print($1*0x10000)+($2*0x100)+$3}'`
 	shift 2
+	echo "Asking does $min_ver <= $kver <= $max_ver"
 	[ "$kver" -ge "$min_ver" -a "$kver" -le "$max_ver" ] && return 0
     done
 
@@ -203,14 +204,28 @@ ModulesUnloadBlacklist() {
     vecho 2 "Unloading blacklisted modules listed $MODULES_BLACKLIST_FILE"
     local failedmods=""
     while : ; do
-	local mod vers
+	local mod vers use_mod_ver
+	use_mod_ver=
 	read mod vers
 	[ $? -ne 0 ] && [ -z "$mod" ] && break
 	case $mod in
 	    \#*|"") continue ;;
+	    @*)
+		mod=${mod#@}
+		use_mod_ver=1
+		;;
 	esac
 	if [ -n "$vers" ] ; then
-	    IsInKernelRange $kver $vers || continue
+	    if [ -z "$use_mod_ver" ] ; then
+		IsInVersionRange $kver $vers || continue
+	    else
+		local modver
+		modver=`modinfo $mod | sed -e 's/^version:[ \t]\+\(.*\)$/\1/;t;d' | awk 'BEGIN{FS="[^0-9]"}{print($1*0x10000)+($2*0x100)+$3}'`
+		vecho 3 "Module version for $mod is $modver"
+		if [ -n "$modver" ] ; then
+		    IsInVersionRange $modver $vers || continue
+		fi
+	    fi
 	fi
 	local deps
 	deps=`FindModuleDeps $mod`

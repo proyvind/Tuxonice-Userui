@@ -11,11 +11,15 @@
 # (would indicate that usb-ehci was incompatible in 2.4 until 2.4.25, and in
 # 2.6 until 2.6.2 - example only!)
 #
-# A module without any versions is universally considered unsuspendable.
+# A module without any versions is always considered unsuspendable.
 #
-# This format has many limitations - it does not take into account Software
-# Suspend 2 versions (which may include driver updates), or driver versions
-# (eg, the nvidia driver).
+# If a line is prefixed with an '@' sign, then the versions are interpreted
+# as the module version (as reported by modinfo) instead of the kernel version.
+# Unversioned modules (modules with no version: line shown in modinfo) are
+# always unloaded if listed, regardless of the version range.
+#
+# This format has some limitations - it does not take into account Software
+# Suspend 2 versions (which may include driver updates).
 #
 
 nvidia
@@ -43,3 +47,5 @@ en1370		2.6.0	2.6.99
 en1371		2.6.0	2.6.99
 via-agp		2.6.0	2.6.8
 via-rhine	2.6.0	2.6.8
+
+@ndiswrapper    0.10    0.11

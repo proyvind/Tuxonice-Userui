@@ -3,6 +3,7 @@
  - Fix blacklisted modules without versions bug. (Peter Cech)
  - Fix random services-stopping-twice bug.
  - Add --bug-report option.
+ - Support unloading particular versions of modules.
 
 1.02 (24 November 2004)
  - Make misc launch scriptlets more robust.
