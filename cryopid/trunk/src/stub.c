@@ -229,8 +229,11 @@ int resume_image_from_file(int fd) {
 				fprintf(stderr, "    this looks like our terminal, duplicating stdin\n");
 			if (!ignorefds[fd_entry.fd]) {
                 fd2 = syscall_check(dup2(stdinfd, fd_entry.fd), 0, "dup2");
-                if (fd_entry.flags & FD_TERMIOS)
+                if (fd_entry.flags & FD_TERMIOS) {
                     ioctl(fd_entry.fd, TCSETS, &fd_entry.termios);
+                }
+                //pid_t mypid = getpid();
+                //ioctl(fd_entry.fd, TIOCSPGRP, &mypid);
             }
 		} else {
             if (!ignorefds[fd_entry.fd]) {
@@ -278,7 +281,6 @@ int resume_image_from_file(int fd) {
     for (i = 1; i <= MAX_SIGS; i++) {
         safe_read(fd, &sa, sizeof(sa), "sigaction");
         if (i == SIGKILL || i == SIGSTOP) continue;
-        sa.sa_hand = SIG_IGN;
         if (set_rt_sigaction(i, &sa) == -1) {
             fprintf(stderr, "Couldn't restore signal handler %d: %s\n",
                     i, strerror(i));
@@ -301,6 +303,7 @@ int resume_image_from_file(int fd) {
 
     if (translate_pids) {
         extern int supervise_me(pid_t);
+        munmap(RESUMER_END, 0xffffffff-RESUMER_END);
         supervise_me(pid);
     }
 
