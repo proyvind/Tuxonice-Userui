@@ -2,4 +2,3 @@
 - Write networking scriptlet for multiple distros
 - Cmd-line option to write a default config file
 - Consider excess cmdline options as configuration file options?
-- Catch Ctrl+C and make it abort.

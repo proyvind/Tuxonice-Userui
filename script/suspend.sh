@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ash
 
 # For zsh sanity...
 #   allows splitting strings on whitespace in zsh.
@@ -383,6 +383,7 @@ ReadConfigFile() {
 	# at the end of the file.
 	read option params
 	[ $? -ne 0 ] && [ -z "$option" ] && break
+	[ -z "$option" ] && continue
 	ProcessConfigOption $option $params
     done < $CONFIG_FILE
     return 0
@@ -409,6 +410,10 @@ EnsureHaveRoot() {
     return 0
 }
 
+ctrlc_handler() {
+    SUSPEND_ABORT=1
+}
+
 ############################### MAIN #########################################
 
 VERBOSITY=0 # for starters
@@ -428,6 +433,9 @@ ReadConfigFile
 # Use -x if we're being really verbose!
 [ $VERBOSITY -ge 4 ] && set -x
 
+# Trap Ctrl+C
+trap ctrlc_handler INT
+
 echo "Suspended at "`date` | $LOGPIPE > /dev/null
 
 # Do everything we need to do to suspend. If anything fails, we don't suspend.
@@ -445,6 +453,10 @@ for bit in `SortSuspendBits` ; do
     # A return value of 1 means we can't go any further unless --force is used
     if [ $ret -gt 0 ] && [ x"$FORCE_ALL" != "x1" ] ; then
 	vecho 0 "$EXE: Aborting suspend due to errors."
+	break
+    fi
+    if [ -n "$SUSPEND_ABORT" ] ; then
+	vecho 0 "$EXE: Aborted suspend with Ctrl+C."
 	break
     fi
 done
