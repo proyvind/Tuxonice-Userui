@@ -147,6 +147,23 @@ Swsusp2ConfigSet() {
     return 0
 }
 
+SwsuspIsAtLeastVersion() {
+    local ver ver1 ver2 ver3 ver4
+    local old_IFS="$IFS"
+    local ret=1
+    local wanted_ver=$1
+    ver=`sed -e 's/[^0-9\.]*//g' < $SWSUSP_ROOT/version`
+    IFS="."
+    set -- $ver
+    [ -z $1 ] && ver1=0 || ver1=$1
+    [ -z $2 ] && ver2=0 || ver2=$2
+    [ -z $3 ] && ver3=0 || ver3=$3
+    [ -z $4 ] && ver4=0 || ver4=$4
+    [ $((($ver1*16777216)+($ver2*65536)+($ver3*256)+$ver4)) -ge $wanted_ver ] && ret=0
+    IFS="$old_IFS"
+    return $ret
+}
+
 DoSwsusp2() {
     local error
     if [ -z "$SWSUSP2_NO_SUSPEND" ] ; then
@@ -162,9 +179,22 @@ DoSwsusp2() {
 # DoSuspend: activates the suspend and echo's the error code to be processed by
 # PrintErrors. We can't just return it, because error codes may be > 255
 DoSuspend() {
+    # Since 2.0.0.103 (= 0x02000067) we need to chvt manually.
+    if [ x"$XHACK_LEAVE_X" != "x1" ] && SwsuspIsAtLeastVersion $((0x02000067)) ; then
+	# Wish this and xhacks weren't intertwined.  This will co-exist with
+	# XHacksSuspend because we need to support both old, new and other
+	# versions of suspend that do/don't chvt.
+	which fgconsole > /dev/null 2>&1 && SWSUSP_ORIGINAL_VT=`fgconsole` || SWSUSP_ORIGINAL_VT=1
+	[ -z "$SWSUSPVT" ] && SWSUSP_DEST_VT=63 || SWSUSP_DEST_VT="$SWSUSPVT"
+	chvt $SWSUSP_DEST_VT
+    fi
+
     echo > $SWSUSP_ROOT/activate
     read REPLY < $SWSUSP_ROOT/last_result
     echo $REPLY
+
+    [ -n "$SWSUSP_ORIGINAL_VT" ] && chvt $SWSUSP_ORIGINAL_VT
+
     return 0
 }
 
@@ -175,15 +205,15 @@ PrintAnErrorString() {
     case "$1" in
 	0) echo "Suspend was aborted."
 	;;
-	1) echo "Suspend was aborted by user."
+	1) echo "Suspend was aborted by user (see dmesg if unexpected)."
 	;;
 	2) echo "No swapspace was available. Try swapon?"
 	;;
 	3) echo "Not enough swapspace available. Free some memory?"
 	;;
-	4) echo "Freezing processes failed. Wacky driver problems :( (see dmesg?)"
+	4) echo "Freezing processes failed. Wacky driver problems :( (see dmesg)"
 	;;
-	5) echo "Internal error - an unexpected memory allocation occured. Driver problems? (see dmesg?)"
+	5) echo "Internal error - an unexpected memory allocation occured. Driver problems? (see dmesg)"
 	;;
 	6) echo "Image has been kept as requested."
 	;;
