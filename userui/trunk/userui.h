@@ -18,5 +18,6 @@ struct userui_ops {
 int send_message(int type, void* buf, int len);
 
 extern char software_suspend_version[32];
+extern int console_loglevel;
 
 #endif /* _USERUI_H_ */

@@ -26,6 +26,8 @@ static int test_run = 0;
 
 char software_suspend_version[32];
 
+int console_loglevel = 1;
+
 extern struct userui_ops userui_text_ops;
 
 static struct userui_ops *userui_ops = &userui_text_ops; /* default */
@@ -89,12 +91,15 @@ static void lock_memory() {
 
 static void get_info() {
 	FILE *f = fopen("/proc/software_suspend/version", "r");
-	if (!f)
-		bail("fopen(/proc/software_suspend/version)");
-	fgets(software_suspend_version, sizeof(software_suspend_version), f);
-	fclose(f);
-	software_suspend_version[sizeof(software_suspend_version)-1] = '\0';
-	software_suspend_version[strlen(software_suspend_version)-1] = '\0';
+	if (f) {
+	    fgets(software_suspend_version, sizeof(software_suspend_version), f);
+	    fclose(f);
+	    software_suspend_version[sizeof(software_suspend_version)-1] = '\0';
+	    software_suspend_version[strlen(software_suspend_version)-1] = '\0';
+	}
+
+	send_message(USERUI_MSG_GET_LOGLEVEL, NULL, 0);
+	/* We'll get the reply in our message loop */
 }
 
 /* A generic signal handler to ensure we don't quit in times of desperation */
@@ -190,8 +195,10 @@ static void message_loop() {
 			case USERUI_MSG_PROGRESS:
 				userui_ops->update_progress(msg->a, msg->b, msg->text);
 				break;
+			case USERUI_MSG_GET_LOGLEVEL:
 			case USERUI_MSG_LOGLEVEL_CHANGE:
-				userui_ops->log_level_change(*(int*)NLMSG_DATA(nlh));
+				console_loglevel = *(int*)NLMSG_DATA(nlh);
+				userui_ops->log_level_change(console_loglevel);
 				break;
 			case USERUI_MSG_CLEANUP:
 				/* Cleanup function is called upon exiting. */
@@ -226,10 +233,12 @@ static void message_loop() {
 static void do_test_run() {
 	int i;
 
-	userui_ops->message(0, 0, 1, "Hello World");
-	for (i = 0; i <= 20; i++) {
-		userui_ops->update_progress(i, 20, "Suspending to disk...");
-		usleep(100*1000);
+	userui_ops->message(0, 0, 1, "Suspending to disk ...");
+	for (i = 0; i <= 800; i++) {
+		char buf[128];
+		snprintf(buf, 128, "%d/%d MB", i, 800);
+		userui_ops->update_progress(i, 800, buf);
+		usleep(5*1000);
 	}
 	usleep(500*1000);
 }
