@@ -8,7 +8,7 @@
 <abstract>
 This HOWTO documents how to suspend linux kernels to disk using the software
 suspend (swsusp) kernel patch and various scripts. The source SGML file for
-this HOWTO is available <url url="Software-suspend.sgml" name="here">. Please
+this HOWTO is available <url url="HOWTO.sgml" name="here">. Please
 make sure all corrections are based upon this.
 </abstract>
 
