@@ -29,6 +29,9 @@ highlight link hibernate_boolean Constant
 syntax match hibernate_integer /\d\+/ contained nextgroup=hibernate_error
 highlight link hibernate_integer Constant
 
+syntax match hibernate_decimal /[0-9\.]\+/ contained nextgroup=hibernate_error
+highlight link hibernate_decimal Constant
+
 syntax match hibernate_powerdown_method /([345]|shutdown|platform|firmware)/ contained nextgroup=hibernate_error
 highlight link hibernate_powerdown_method Constant
 
@@ -76,7 +79,12 @@ syntax keyword hibernate_conf incompatibledevices contained nextgroup=hibernate_
 syntax keyword hibernate_conf disablewritecacheon contained nextgroup=hibernate_filenames skipwhite
 
 " filesystems
+syntax match hibernate_filesystem /[a-zA-Z0-9\-_]\+/ contained nextgroup=hibernate_filesystem skipwhite
+highlight link hibernate_filesystem Constant
+
 syntax keyword hibernate_conf unmount contained nextgroup=hibernate_filenames skipwhite
+syntax keyword hibernate_conf unmountfstypes contained nextgroup=hibernate_filesystem skipwhite
+syntax keyword hibernate_conf unmountgracetime contained nextgroup=hibernate_decimal skipwhite
 syntax keyword hibernate_conf mount contained nextgroup=hibernate_filenames skipwhite
 
 " grub
