@@ -4,9 +4,9 @@
 AddConfigHandler SysfsPowerStateConfigEnabler
 AddOptionHandler SysfsPowerStateOptionHandler
 
-AddConfigHelp "UseSysfsPowerState <state>" "Enables the use of /sys/power/state for suspending the machine. This requires a kernel supporting this interface. <state> must be one of the options listed by \`cat /sys/power/state\`, (eg mem, disk, or standby)."
+AddConfigHelp "UseSysfsPowerState <state>" "Enables the use of /sys/power/state for suspending the machine (to RAM or disk). This requires a kernel supporting this interface. <state> must be one of the options listed by \`cat /sys/power/state\`, (eg mem, disk, or standby)."
 
-AddConfigHelp "PowerdownMethod <shutdown|platform|firmware> (requires UseSysfsPowerState)" "If using /sys/power/state to suspend your machine, chooses the method by which to do so. Choosing \"shutdown\" will save state in linux, then tell the bios to powerdown. Choosing \"platform\" will save state in linux, then tell the bios to powerdown and blink it's \"suspended LED\". Choosing \"firmware\" will tell the bios to save state itself (needs BIOS-specific suspend partition, and has very little to do with swsusp)."
+AddConfigHelp "PowerdownMethod <shutdown|platform|firmware> (requires UseSysfsPowerState)" "If using /sys/power/state to suspend your machine to disk, chooses the method by which to do so. Choosing \"shutdown\" will save state in linux, then tell the bios to powerdown (most reliable). Choosing \"platform\" will save state in linux, then tell the bios to powerdown and blink it's \"suspended LED\". Choosing \"firmware\" will tell the bios to save state itself (needs BIOS-specific suspend partition, and has very little to do with swsusp)."
 
 AddShortOption "n"
 AddLongOption "no-suspend"
