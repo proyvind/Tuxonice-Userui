@@ -80,7 +80,7 @@ LockConsole() {
   
     # Use vlock to lock all consoles. We must already be at the given console.
     vecho 1 "Locking all consoles"
-    openvt -wfc $LOCK_DEST_VT su - "$LOCK_CONSOLE_USER" -c "vlock -a"
+    openvt -wfc $LOCK_DEST_VT -- su - "$LOCK_CONSOLE_USER" -c "vlock -a"
 
     # This will hang until the root password is entered.
 
