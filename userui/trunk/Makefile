@@ -13,8 +13,11 @@ userui_dummy: $(CORE_OBJECTS) userui_dummy.o
 userui_text: $(CORE_OBJECTS) userui_text.o
 	$(CC) $(LDFLAGS) $^ -o $@
 
-userui_fbanim: $(CORE_OBJECTS) fbanim/userui_fbanim.o
+userui_fbsplash: $(CORE_OBJECTS) fbsplash/userui_fbsplash.o
 	$(CC) -ljpeg -lpng -lz -lm $(LDFLAGS) $^ -o $@
+
+userui_fbanim: $(CORE_OBJECTS) fbanim/userui_fbanim.o
+	$(CC) -ljpeg -lpng -lz -lm -lpthread $(LDFLAGS) $^ -o $@
 
 fbanim/userui_fbanim.o:
 	make -C fbanim
