@@ -1,3 +1,6 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
 AddConfigHandler ProgramsOptions
 AddConfigHelp "IncompatiblePrograms <process name> [...]" "If there are processes running with any of the names listed (as seen in ps ax), then suspending is aborted. If the --kill option is passed, the offending processes are terminated, and the suspend continues."
 
@@ -63,4 +66,3 @@ ProgramsOptions() {
 }
 
 # $Id$
-# vim:ft=sh:ts=8:sw=4:noet

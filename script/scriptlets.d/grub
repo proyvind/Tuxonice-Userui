@@ -1,3 +1,6 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
 AddConfigHandler GrubConfigOptions
 AddConfigHelp "ChangeGrubMenu <boolean>" "Change grub's config file to show system is suspended before suspending and restore after resume."
 AddConfigHelp "GrubMenuFile <filename>" "Filename of grub's config file. Default is /boot/grub/grub.conf."
@@ -78,4 +81,3 @@ ARestoreGrub() {
 
 
 # $Id$
-# vim:ft=sh:ts=8:sw=4:noet

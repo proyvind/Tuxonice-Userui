@@ -1,3 +1,6 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
 AddConfigHandler ClockOptions
 AddConfigHelp "SaveClock restore-only|<boolean>" "Set this to yes to save the system clock before suspending and restore the system clock after resuming. If set to restore-only, the clock will not be saved, only restored - this means suspending is faster, but if your hardware clock drifts significantly, your system clock will drift as well."
 
@@ -39,4 +42,3 @@ ClockOptions() {
 }
 
 # $Id$
-# vim:ft=sh:ts=8:sw=4:noet

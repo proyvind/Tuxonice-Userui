@@ -1,3 +1,6 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
 AddConfigHandler Swsusp2ConfigEnabler
 AddOptionHandler Swsusp2OptionHandler
 
@@ -229,4 +232,3 @@ EOT
 }
 
 # $Id$
-# vim:ft=sh:ts=8:sw=4:noet

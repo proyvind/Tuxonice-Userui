@@ -1,3 +1,6 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
 AddConfigHandler NetworkConfigOptions
 AddConfigHelp "DownInterfaces <ifname> [...]" "The names of network interfaces to bring down before suspending."
 AddConfigHelp "UpInterfaces auto|<ifname> [...]" "The names of network interfaces to bring up after suspending. If the parameter \"auto\" is given, the interfaces stoped before suspending will be started in reverse order."
@@ -161,4 +164,3 @@ NetworkDetectDistro() {
 }
 
 # $Id$
-# vim:ft=sh:ts=8:sw=4:noet

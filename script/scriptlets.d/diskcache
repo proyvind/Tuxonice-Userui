@@ -1,3 +1,6 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
 AddConfigHandler DiskCacheOptions
 AddConfigHelp "DisableWriteCacheOn <drive> [...]" "On some hardware the power is cut off before the disk has flushed its own hardware cache. List the devices that contain swap partitions (eg, /dev/hda) to disable the write cache before suspending."
 
@@ -40,4 +43,3 @@ DiskCacheOptions() {
 }
 
 # $Id$
-# vim:ft=sh:ts=8:sw=4:noet

@@ -1,3 +1,6 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
 AddConfigHandler FilesystemsOptions
 AddConfigHelp "Unmount <mount point or device> [...]" "If you have network shares or external devices that should be unmounted before suspending, list them here."
 
@@ -44,4 +47,3 @@ FilesystemsOptions() {
 }
 
 # $Id$
-# vim:ft=sh:ts=8:sw=4:noet

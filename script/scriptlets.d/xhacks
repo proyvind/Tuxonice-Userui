@@ -1,3 +1,6 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
 AddConfigHandler XHacksOptions
 AddConfigHelp "LeaveXBeforeSuspend <boolean>" "If your X driver is unable to resume properly, you can try switching to a text console first by setting this to yes."
 AddConfigHelp "nVidiaHack <boolean>" "Some X drivers can be reinitialised by launching a fake X server after resuming to restore the state of the graphics card. Set this to yes to do so."
@@ -48,4 +51,3 @@ XHacksOptions() {
 }
 
 # $Id$
-# vim:ft=sh:ts=8:sw=4:noet

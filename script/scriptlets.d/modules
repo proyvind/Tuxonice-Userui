@@ -1,3 +1,6 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
 AddConfigHandler ModulesOptions
 AddConfigHelp "UnloadModules <module name> [...]" "Names of modules to unload prior to suspending."
 AddConfigHelp "LoadModules auto|<module name> [...]" "Names of modules to load after resumimg. If auto is specified, the modules that were unloaded previously are loaded."
@@ -144,4 +147,3 @@ ModulesOptions() {
 }
 
 # $Id$
-# vim:ft=sh:ts=8:sw=4:noet

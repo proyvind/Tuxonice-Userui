@@ -1,3 +1,6 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
 AddConfigHandler ServicesOptions
 AddConfigHelp "StopServices <service name> [...]" "The services listed are stopped prior to suspending. The service name must correspond to the name of an init.d script that is active in the current runlevel."
 AddConfigHelp "StartServices <service name> [...]" "The services listed are started after resuming. The service name must correspond to the name of an init.d script that is active in the current runlevel."
@@ -99,4 +102,3 @@ ServicesDetectDistro() {
 }
 
 # $Id$
-# vim:ft=sh:ts=8:sw=4:noet
