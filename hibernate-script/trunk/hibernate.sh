@@ -581,8 +581,8 @@ fi
 DISABLE_HELP=1
 
 LoadScriptlets
-ParseOptions "$@"
 ReadConfigFile
+ParseOptions "$@"
 
 # Set a logfile if we need one.
 [ -n "$LOGFILE" ] && LOGPIPE="tee -a -i $LOGFILE"
