@@ -83,7 +83,7 @@ XStatusProgressStart_gnome() {
     trap XStatusProgressPIPEhandler_gnome PIPE
     if [ -n "$NEED_POSIX" ] ; then
 	[ -p $ZENITY_FIFO ] && rm -f $ZENITY_FIFO
-	ZENITY_FIFO=`mktemp`
+	ZENITY_FIFO=`mktemp /tmp/tmp.hibernate.XXXXXX`
 	rm -f $ZENITY_FIFO
 	mknod $ZENITY_FIFO p
 	XStatusProgressStart_gnomeZenityHelper < $ZENITY_FIFO &

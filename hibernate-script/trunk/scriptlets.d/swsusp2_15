@@ -156,7 +156,7 @@ Swsusp2ConfigOptions() {
 	    ;;
 	procsetting)
 	    if [ -z "$SWSUSP_EXTRA_PROC_SETTINGS" ] ; then
-		SWSUSP_EXTRA_PROC_SETTINGS=`mktemp`
+		SWSUSP_EXTRA_PROC_SETTINGS=`mktemp /tmp/tmp.hibernate.XXXXXX`
 		cat <<EOT > $SWSUSP_EXTRA_PROC_SETTINGS
 # Temporary file for hibernate script.
 # If you're reading this then it's probably safe to delete.
@@ -323,7 +323,7 @@ ChangeFromSwsuspVT() {
 
 SaveDmesg() {
     # Save dmesg for later diffing.
-    DMESG_ORIG=`mktemp`
+    DMESG_ORIG=`mktemp /tmp/tmp.hibernate.XXXXXX`
     if ! dmesg > $DMESG_ORIG ; then
 	rm -f $DMESG_ORIG
 	DMESG_ORIG=
@@ -335,7 +335,7 @@ OutputDmesgChanges() {
     [ -z "$DMESG_ORIG" ] && return 0
     local DMESG_CMP
 
-    DMESG_CMP=`mktemp`
+    DMESG_CMP=`mktemp /tmp/tmp.hibernate.XXXXXX`
     # Rip out the relevant bits from the diff
     if dmesg | diff $DMESG_ORIG - | \
 	awk 'BEGIN { chunks = 0 } 

@@ -326,7 +326,7 @@ EnsureHavePrerequisites() {
 	    CNT=1
 	    while :; do
 		D=`date +%s`
-		FN=/tmp/swsusptemp-$$$D$RANDOM$RANDOM$CNT
+		FN=/tmp/tmp.hibernate.$$$D$RANDOM$RANDOM$CNT
 		[ -f $FN ] && continue
 		touch $FN && break
 		CNT=$(($CNT+1))

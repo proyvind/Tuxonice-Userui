@@ -247,7 +247,7 @@ BEGIN {
 }
 
 # Create a copy of hibernate.sh with only the help items
-TMPF=`mktemp`
+TMPF=`mktemp /tmp/tmp.hibernate.XXXXXX`
 awk '{
     if ((substr($0, 1, 1) != "#") && (match($0, "AddConfigHelp") || match($0, "AddOptionHelp")) && (match($0, "\\(\\)") == 0)) {
         print $0;

@@ -10,7 +10,7 @@ MISC_LAUNCH_COUNT=0
 MiscLaunchSuspendProg() {
     local tmpf
     MISC_LAUNCH_COUNT=$(($MISC_LAUNCH_COUNT+1))
-    tmpf=`mktemp`
+    tmpf=`mktemp /tmp/tmp.hibernate.XXXXXX`
     AddSuspendHook $1 MiscLaunchAuxFunc$MISC_LAUNCH_COUNT
     shift
     cat <<EOT > $tmpf
@@ -30,7 +30,7 @@ EOT
 MiscLaunchResumeProg() {
     local tmpf
     MISC_LAUNCH_COUNT=$(($MISC_LAUNCH_COUNT+1))
-    tmpf=`mktemp`
+    tmpf=`mktemp /tmp/tmp.hibernate.XXXXXX`
     AddResumeHook $1 MiscLaunchAuxFunc$MISC_LAUNCH_COUNT
     shift
     cat <<EOT > $tmpf
