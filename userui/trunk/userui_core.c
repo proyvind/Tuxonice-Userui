@@ -18,7 +18,7 @@
 
 #define NETLINK_SUSPEND2_USERUI 10
 
-#define bail(x...) { perror(x); exit(1); }
+#define bail(x...) { perror(x); fflush(stderr); _exit(1); }
 
 static char buf[4096];
 static int nlsock;
@@ -73,7 +73,7 @@ static void handle_params(int argc, char **argv) {
 				test_run = 1;
 				break;
 			case 'h':
-				printf("Help!\n");
+				printf("Usage: %s [-t]\n", argv[0]);
 				exit(1);
 		}
 
@@ -85,7 +85,7 @@ static void handle_params(int argc, char **argv) {
 }
 
 static void lock_memory() {
-	/* Make sure we don't get swapped out or wiped out mid suspend */
+	/* Make sure we don't get swapped out */
 	if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1)
 		bail("mlockall");
 }
@@ -173,7 +173,8 @@ static void message_loop() {
 			case -1:
 				if (errno == EINTR)
 					continue;
-				bail("select");
+				perror("select");
+				return;
 			case 0:
 				/* timeout for doing something interactive maybe ? */
 				continue;
@@ -206,8 +207,9 @@ static void message_loop() {
 				suspend_action = *(int*)NLMSG_DATA(nlh);
 				break;
 			case USERUI_MSG_CLEANUP:
-				/* Cleanup function is called upon exiting. */
-				return;
+				userui_ops->cleanup();
+				close(nlsock);
+				exit(0);
 			case USERUI_MSG_REDRAW:
 				userui_ops->redraw();
 				break;
@@ -260,14 +262,19 @@ int main(int argc, char **argv) {
 
 	userui_ops->prepare();
 
-	if (test_run)
+	if (test_run) {
 		do_test_run();
-	else
-		if (send_ready())
-			message_loop();
+		return 0;
+	}
 
-	userui_ops->cleanup();
+	if (send_ready())
+		message_loop();
 
-	close(nlsock);
-	return 0;
+	/* The only point we ever reach here is if message_loop crashed out.
+	 * If this is the case, we should spin for a few hours before exiting to
+	 * ensure that we don't corrupt stuff on disk (if we're past the atomic
+	 * copy).
+	 */
+	sleep(60*60*12); /* 12 hours */
+	_exit(1);
 }
