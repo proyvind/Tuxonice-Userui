@@ -15,7 +15,9 @@ MiscLaunchSuspendProg() {
     shift
     cat <<EOT > $tmpf
 MiscLaunchAuxFunc${MISC_LAUNCH_COUNT}() {
-    vecho 1 "Executing $@..."
+    vcat 1 <<EOT2
+Executing $@...
+EOT2
     $@
     [ $? -ne 0 ] && return 1
     return 0
@@ -33,7 +35,9 @@ MiscLaunchResumeProg() {
     shift
     cat <<EOT > $tmpf
 MiscLaunchAuxFunc${MISC_LAUNCH_COUNT}() {
-    vecho 1 "Executing $@..."
+    vcat 1 <<EOT2
+Executing $@...
+EOT2
     $@
     [ $? -ne 0 ] && return 1
     return 0

@@ -51,6 +51,22 @@ vecho() {
     fi
 }
 
+# vcat N <cat params>: acts like cat but with verbosity control - If it's
+# high enough to go to stdout, then it'll get logged as well.  Else write it to
+# the log file if it needs to. Otherwise, ignore it.
+vcat() {
+    local v
+    v="$1"
+    shift
+    if [ "$v" -le $VERBOSITY ] ; then
+	cat $@
+    else
+	if [ "$v" -le $LOG_VERBOSITY -a "$LOGPIPE" != "cat" ] ; then
+	    cat $@ | $LOGPIPE > /dev/null
+	fi
+    fi
+}
+
 ##############################################################################
 ### The following functions can be called safely from within scriptlets ######
 ##############################################################################

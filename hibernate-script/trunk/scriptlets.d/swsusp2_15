@@ -308,13 +308,7 @@ OutputDmesgChanges() {
 	# Exit code indicates the diff was useful. Log it (manually for speed).
 	local diff_loglevel=1
 	vecho $diff_loglevel "---- Output from dmesg: ----"
-	if [ $diff_loglevel -le $VERBOSITY ] ; then
-	    cat $DMESG_CMP
-	else
-	    if [ "$diff_loglevel" -le $LOG_VERBOSITY -a "$LOGPIPE" != "cat" ] ; then
-		cat $DMESG_CMP | $LOGPIPE > /dev/null
-	    fi
-	fi
+	vcat $diff_loglevel $DMESG_CMP
 	vecho $diff_loglevel "---- End of dmesg output ----"
     else
 	vecho 1 "Couldn't extract useful information from dmesg. Not logging here."
