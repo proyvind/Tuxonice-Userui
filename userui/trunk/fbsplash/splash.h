@@ -5,6 +5,7 @@
 //#ifdef TARGET_KERNEL
 #include <linux/types.h>
 //#endif
+#include "linux/fb.h"
 
 //#define DEBUG(x...) printf(x)
 #define DEBUG(x...) 
