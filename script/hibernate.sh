@@ -10,7 +10,7 @@ unsetopt FUNCTION_ARGZERO 2>/dev/null || true
 
 SWSUSP_D="/etc/suspend"
 SCRIPTLET_DIR="$SWSUSP_D/scriptlets.d/"
-CONFIG_FILE="$SWSUSP_D/suspend.conf"
+CONFIG_FILE="$SWSUSP_D/hibernate.conf"
 EXE=`basename $0`
 VERSION="0.91"
 
