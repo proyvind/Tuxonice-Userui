@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdarg.h>
-#include <asm/termios.h>
 #include <linux/unistd.h>
 #include <asm/ldt.h>
 #include <asm/ucontext.h>
@@ -30,7 +29,7 @@ int syscall_check(int retval, int can_be_fake, char* desc, ...) {
     /* can_be_fake is true if the syscall might return -1 anyway, and
      * we should simply check errno.
      */
-    if (can_be_fake && errno == 0) return;
+    if (can_be_fake && errno == 0) return retval;
     if (retval == -1) {
 	char str[1024];
 	snprintf(str, 1024, "Error in %s: %s\n", desc, strerror(errno));
@@ -274,8 +273,7 @@ int resume_image_from_file(int fd) {
     char dir[1024];
     int cmdline_length, environ_length;
     char *new_cmdline, *new_environ;
-    long* ptr;
-    int i, j;
+    int i;
     int extra_prot = 0;
 
     safe_read(fd, &pid, sizeof(pid), "pid");
@@ -369,7 +367,7 @@ int resume_image_from_file(int fd) {
 	}
 	close(f);
 	execve(real_argv[0], new_argv, new_envp);
-	printf("execve(%s,0x%lx,0x%lx) failed. Not restoring cmdline. (error: %s)\n",
+	printf("execve(%s,0x%p,0x%p) failed. Not restoring cmdline. (error: %s)\n",
 		real_argv[0], new_cmdline, new_environ, strerror(errno));
     }
 
@@ -398,18 +396,18 @@ int resume_image_from_file(int fd) {
 
 	if (map.filename && map.filename[0]) {
 	    if (verbosity > 0)
-		fprintf(stderr, "Loading 0x%08lx (len %d) from file %s\n",
+		fprintf(stderr, "Loading 0x%08lx (len %ld) from file %s\n",
 			map.start, map.length, map.filename);
 	    syscall_check(fd2 = open(map.filename, O_RDONLY), 0,
 		    "open(%s)", map.filename);
 	    syscall_check((int)mmap((void*)map.start, map.length, map.prot|extra_prot,
 		    MAP_FIXED|map.flags, fd2, map.pg_off),
-		0, "mmap(0x%lx, 0x%lx, %x, %x, %d, 0x%lx)",
+		0, "mmap(0x%lx, 0x%lx, %x, %x, %ld, 0x%lx)",
 		map.start, map.length, map.prot|extra_prot, map.flags, fd2, map.pg_off);
 	    syscall_check(close(fd2), 0, "close(%d)", fd2);
 	} else {
 	    if (verbosity > 1)
-		fprintf(stderr, "Creating 0x%08lx (len %d) from image\n",
+		fprintf(stderr, "Creating 0x%08lx (len %ld) from image\n",
 			map.start, map.length);
 	    syscall_check( (int)
 		mmap((void*)map.start, map.length, map.prot|extra_prot,
@@ -419,7 +417,7 @@ int resume_image_from_file(int fd) {
 	}
 	if (map.data != NULL) {
 	    if (verbosity > 0)
-		fprintf(stderr, "Loading 0x%08lx (len %d) from image\n",
+		fprintf(stderr, "Loading 0x%08lx (len %ld) from image\n",
 			map.start, map.length);
 	    safe_read(fd, (void*)map.start, map.length, "map data");
 	}
@@ -429,13 +427,12 @@ int resume_image_from_file(int fd) {
 	fprintf(stderr, "Reading %d TLS entries...\n", num_tls);
     if (do_pause) sleep(1);
     for(i = 0; i < num_tls; i++) {
-	short savegs;
 	safe_read(fd, &tls, sizeof(struct user_desc), "tls info");
 
 	if (!tls.base_addr) continue;
 
 	if (verbosity > 0)
-	    fprintf(stderr, "Restoring TLS entry %d (0x%lx limit 0x%lx)\n",
+	    fprintf(stderr, "Restoring TLS entry %d (0x%lx limit 0x%x)\n",
 		    tls.entry_number, tls.base_addr, tls.limit);
 
 	if (tls_hack)
@@ -470,6 +467,7 @@ int resume_image_from_file(int fd) {
 	    if (!ignorefds[fd_entry.fd]) {
 		fd2 = syscall_check(dup2(stdinfd, fd_entry.fd), 0, "dup2");
 		if (fd_entry.flags & FD_TERMIOS) {
+		    extern int ioctl(int fd, unsigned long req, ...);
 		    ioctl(fd_entry.fd, TCSETS, &fd_entry.termios);
 		}
 		//pid_t mypid = getpid();
@@ -484,9 +482,9 @@ int resume_image_from_file(int fd) {
 		}
 		if (!(fd_entry.flags & FD_OFFSET_NOT_SAVED)) {
 		    if (verbosity > 1)
-			fprintf(stderr, "    seeking to %lld\n", fd_entry.position);
+			fprintf(stderr, "    seeking to %ld\n", fd_entry.position);
 		    if (lseek(fd2, fd_entry.position, SEEK_SET) < 0) {
-			fprintf(stderr, "Warning: restoring file offset %lld to file %s failed: %s\n", fd_entry.position, fd_entry.filename, strerror(errno));
+			fprintf(stderr, "Warning: restoring file offset %ld to file %s failed: %s\n", fd_entry.position, fd_entry.filename, strerror(errno));
 		    }
 		}
 		syscall_check(dup2(fd2, fd_entry.fd), 0, "dup2");
@@ -515,7 +513,7 @@ int resume_image_from_file(int fd) {
     syscall_check(chdir(dir), 0, "chdir %s", dir);
 
     if (verbosity > 0)
-	fprintf(stderr, "Restoring signal handlers...\n", dir);
+	fprintf(stderr, "Restoring signal handlers...\n");
     for (i = 1; i <= MAX_SIGS; i++) {
 	struct k_sigaction oksa;
 	safe_read(fd, &sa, sizeof(sa), "sigaction");

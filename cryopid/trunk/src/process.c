@@ -120,9 +120,8 @@ void print_status(FILE* f, int status) {
 int do_syscall(pid_t pid, struct user_regs_struct *regs) {
     long loc;
     struct user_regs_struct orig_regs;
-    long old_insn, new_insn;
+    long old_insn;
     int status, ret;
-    off_t result;
 
     if (ptrace(PTRACE_GETREGS, pid, NULL, &orig_regs) < 0) {
 	perror("ptrace getregs");
@@ -426,7 +425,6 @@ int get_i387_data(pid_t target_pid, struct user_i387_struct* i387_data) {
 
 off_t get_file_offset(pid_t pid, int fd, off_t offset, int whence) {
     struct user_regs_struct r;
-    off_t result;
 
     if (ptrace(PTRACE_GETREGS, pid, 0, &r) == -1) {
 	perror("ptrace(GETREGS)");
@@ -451,7 +449,6 @@ off_t get_file_offset(pid_t pid, int fd, off_t offset, int whence) {
 
 int get_file_contents(char *filename, struct fd_entry_t *out_buf) {
     int fd;
-    FILE *f;
     int length, nread;
     struct stat stat_buf;
     char *buf;
@@ -671,7 +668,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 
     /* Get TLS info */
     int z;
-    fprintf(stderr, "[+] Reading TLS data\n", map_count);
+    fprintf(stderr, "[+] Reading TLS data\n");
     proc_image->num_tls = 0;
     proc_image->tls = malloc(sizeof(struct user_desc*)*256);
     for (z = 0; z < 256; z++) {
@@ -695,10 +692,10 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
     fclose(f);
     stat_ptr = strrchr(stat_line, ')');
     if (stat_ptr != NULL) {
-	int tty = -1, tmp;
+	int tty = -1;
 
 	stat_ptr += 2;
-	sscanf(stat_ptr, "%c %d %d %d %d", &tmp, &tmp, &tmp, &tmp, &tty);
+	sscanf(stat_ptr, "%*c %*d %*d %*d %d", &tty);
 	if (tty > 0) {
 	    term_dev = (dev_t)tty;
 	    printf("[+] Terminal device appears to be %d:%d\n", tty >> 8, tty & 0xFF);
@@ -765,7 +762,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 		printf("    file offset not saved\n");
 		proc_image->fds[fd_count].flags |= FD_OFFSET_NOT_SAVED;
 	    } else {
-		printf("    file offset is %lld\n", file_offset);
+		printf("    file offset is %ld\n", file_offset);
 		proc_image->fds[fd_count].position = file_offset;
 	    }
 	} else {

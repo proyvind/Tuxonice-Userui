@@ -12,6 +12,9 @@
 #include <fcntl.h>
 #include "process.h"
 
+extern void write_stub(int fd);
+extern int write_proc_image_to_file(struct proc_image_t* p, int fd);
+
 void usage(char* argv0) {
     fprintf(stderr,
 "Usage: %s [options] <output filename> <pid>\n"

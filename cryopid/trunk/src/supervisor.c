@@ -6,9 +6,9 @@
 #include <asm/user.h>
 #include <sys/wait.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int translate_ioctl(struct user_regs_struct *r, pid_t oldpid, pid_t newpid, int in) {
-    int ioc = r->ebx;
     switch(r->ecx) {
 	case TIOCSPGRP:
 	    if (in) {

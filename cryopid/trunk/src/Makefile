@@ -1,6 +1,6 @@
 OBJECTS = freeze
 
-CFLAGS = -g
+CFLAGS = -g -Wall
 
 CHPAX = /sbin/chpax
 DEPAX = test ! -x $(CHPAX) || $(CHPAX) -xperms
