@@ -15,8 +15,10 @@
 #include <libmng.h>
 #include <unistd.h>
 #include "fbsplash_mng.h"
+#include "splash.h"
 
-static int mng_readfile(mng_handle mngh, char *filename) {
+static int mng_readfile(mng_handle mngh, char *filename)
+{
 	int fd, len;
 	char *file_data;
 	struct stat sb;
@@ -63,14 +65,10 @@ close_fail:
 	return 0;
 }
 
-mng_handle mng_load(char* filename, int fb_bytes_pp) {
+mng_handle mng_load(char* filename)
+{
 	mng_handle mngh;
 	mng_anim *mng;
-
-	if (fb_bytes_pp < 3 || fb_bytes_pp > 4) {
-		fprintf(stderr, "%s: Invalid colour depth!", __FUNCTION__);
-		return MNG_NULL;
-	}
 
 	mng = (mng_anim*)malloc(sizeof(mng_anim));
 	if (!mng) {
@@ -80,7 +78,6 @@ mng_handle mng_load(char* filename, int fb_bytes_pp) {
 	}
 
 	memset(&mng, 0, sizeof(mng_anim));
-	mng->canvas_bytes_pp = fb_bytes_pp;
 
 	mngh = mng_initialize(mng, fbsplash_mng_memalloc, fbsplash_mng_memfree,
 			MNG_NULL);
@@ -114,11 +111,13 @@ freemem_fail:
 	return MNG_NULL;
 }
 
-void mng_done(mng_handle mngh) {
+void mng_done(mng_handle mngh)
+{
 	mng_cleanup(&mngh);
 }
 
-mng_retcode mng_render_next(mng_handle mngh) {
+mng_retcode mng_render_next(mng_handle mngh)
+{
 	mng_anim *mng = mng_get_userdata(mngh);
 	mng_retcode ret;
 
@@ -137,15 +136,16 @@ mng_retcode mng_render_next(mng_handle mngh) {
 	return ret;
 }
 
-int mng_display_next(mng_handle mngh, char* dest, int x, int y, int width, int height) {
-	char *src;
+int mng_display_next(mng_handle mngh, char* dest, int x, int y, int width, int height)
+{
+	truecolor *src;
 	int line;
 	mng_anim *mng = mng_get_userdata(mngh);
-	int bpp = mng->canvas_bytes_pp;
+	int bpp = (fb_var.bits_per_pixel + 7) >> 3;
 	int dispwidth, dispheight;
 
 	dest += y * width * bpp;
-	src = mng->canvas;
+	src = (truecolor*)mng->canvas;
 
 	if (x + mng->canvas_w > width)
 		dispwidth = width - x;
@@ -158,9 +158,9 @@ int mng_display_next(mng_handle mngh, char* dest, int x, int y, int width, int h
 		dispheight = mng->canvas_h;
 
 	for (line = 0; line < dispheight; line++) {
-		memcpy(dest + (x * bpp), src, dispwidth * bpp);
+		truecolor2fb(src, dest + (x * bpp), dispwidth, y + line, 1);
 		dest += width * bpp;
-		src  += mng->canvas_w * bpp;
+		src  += mng->canvas_w * mng->canvas_bytes_pp;
 	}
 
 	return 1;

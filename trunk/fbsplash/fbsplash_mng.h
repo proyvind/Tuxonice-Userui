@@ -11,7 +11,7 @@ typedef struct {
 	int len, ptr, open;
 
 	char *canvas;
-	int canvas_h, canvas_w, canvas_bpp, canvas_bytes_pp;
+	int canvas_h, canvas_w, canvas_bytes_pp;
 
 	int wait_msecs;
 	struct timeval start_time;
@@ -19,7 +19,7 @@ typedef struct {
 } mng_anim;
 
 /* mng_render.c */
-extern mng_handle mng_load(char *filename, int fb_bytes_pp);
+extern mng_handle mng_load(char *filename);
 extern void mng_done(mng_handle mngh);
 extern mng_retcode mng_render_next(mng_handle mngh);
 extern int mng_display_next(mng_handle mngh, char* dest, int x, int y,
@@ -31,7 +31,8 @@ extern void fbsplash_mng_memfree(mng_ptr p, mng_size_t len);
 extern mng_retcode mng_init_callbacks(mng_handle handle);
 
 /* MNG-error printing functions */
-static inline void __print_mng_error(mng_handle mngh, char* s, ...) {
+static inline void __print_mng_error(mng_handle mngh, char* s, ...)
+{
 	va_list ap;
 
 	mng_int8 severity;

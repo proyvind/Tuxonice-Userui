@@ -14,15 +14,18 @@
 #include <time.h>
 #include "fbsplash_mng.h"
 
-mng_ptr fbsplash_mng_memalloc(mng_size_t len) {
+mng_ptr fbsplash_mng_memalloc(mng_size_t len)
+{
 	return calloc(1, len);
 }
 
-void fbsplash_mng_memfree(mng_ptr p, mng_size_t len) {
+void fbsplash_mng_memfree(mng_ptr p, mng_size_t len)
+{
 	free(p);
 }
 
-static mng_bool fbsplash_mng_openstream(mng_handle handle) {
+static mng_bool fbsplash_mng_openstream(mng_handle handle)
+{
 	mng_anim *mng = mng_get_userdata(handle);
 
 	if (mng->data == NULL || mng->len == 0)
@@ -34,7 +37,8 @@ static mng_bool fbsplash_mng_openstream(mng_handle handle) {
 	return MNG_TRUE;
 }
 
-static mng_bool fbsplash_mng_closestream(mng_handle handle) {
+static mng_bool fbsplash_mng_closestream(mng_handle handle)
+{
 	mng_anim *mng = mng_get_userdata(handle);
 
 	mng->open = 0;
@@ -42,7 +46,8 @@ static mng_bool fbsplash_mng_closestream(mng_handle handle) {
 }
 
 static mng_bool fbsplash_mng_readdata(mng_handle handle, mng_ptr buf, 
-		mng_uint32 len, mng_uint32p pread) {
+		mng_uint32 len, mng_uint32p pread)
+{
 	mng_anim *mng = mng_get_userdata(handle);
 	char *src_buf;
 	
@@ -63,7 +68,8 @@ static mng_bool fbsplash_mng_readdata(mng_handle handle, mng_ptr buf,
 	return MNG_TRUE;
 }
 
-static mng_ptr fbsplash_mng_getcanvasline(mng_handle handle, mng_uint32 line_num) {
+static mng_ptr fbsplash_mng_getcanvasline(mng_handle handle, mng_uint32 line_num)
+{
 	mng_anim *mng = mng_get_userdata(handle);
 
 	if (mng->canvas == NULL || line_num >= mng->canvas_h) {
@@ -76,13 +82,15 @@ static mng_ptr fbsplash_mng_getcanvasline(mng_handle handle, mng_uint32 line_num
 }
 
 static mng_bool fbsplash_mng_refresh(mng_handle handle, mng_uint32 x, mng_uint32 y,
-		mng_uint32 width, mng_uint32 height) {
+		mng_uint32 width, mng_uint32 height)
+{
 
 	/* FIXME */
 	return MNG_TRUE;
 }
 
-static mng_uint32 fbsplash_mng_gettickcount(mng_handle handle) {
+static mng_uint32 fbsplash_mng_gettickcount(mng_handle handle)
+{
 	struct timeval tv;
 	mng_anim *mng = mng_get_userdata(handle);
 
@@ -100,7 +108,8 @@ static mng_uint32 fbsplash_mng_gettickcount(mng_handle handle) {
 		((tv.tv_usec - mng->start_time.tv_usec)/1000);
 }
 
-static mng_bool fbsplash_mng_settimer(mng_handle handle, mng_uint32 msecs) {
+static mng_bool fbsplash_mng_settimer(mng_handle handle, mng_uint32 msecs)
+{
 	mng_anim *mng = mng_get_userdata(handle);
 
 	mng->wait_msecs = msecs;
@@ -108,7 +117,8 @@ static mng_bool fbsplash_mng_settimer(mng_handle handle, mng_uint32 msecs) {
 }
 
 static mng_bool fbsplash_mng_processheader(mng_handle handle, mng_uint32 width,
-		mng_uint32 height) {
+		mng_uint32 height)
+{
 	mng_anim *mng = mng_get_userdata(handle);
 
 	free(mng->canvas);
@@ -121,17 +131,18 @@ static mng_bool fbsplash_mng_processheader(mng_handle handle, mng_uint32 width,
 	mng->canvas_w = width;
 	mng->canvas_h = height;
 
-	mng_set_canvasstyle(handle,
-			(mng->canvas_bytes_pp == 3)?MNG_CANVAS_BGR8:MNG_CANVAS_BGRA8);
+	mng_set_canvasstyle(handle, MNG_CANVAS_RGBA8);
+	mng->canvas_bytes_pp = 4;
 
-	mng_set_bgcolor(handle, 0, 0, 0); /* FIXME - make configurable */
+	mng_set_bgcolor(handle, 0, 0, 0); /* FIXME - make configurable? */
 
 	return MNG_TRUE;
 }
 
 static mng_bool fbsplash_mng_errorproc(mng_handle handler, mng_int32 code,
 		mng_int8 severity, mng_chunkid chunkname, mng_uint32 chunkseq,
-		mng_int32 extra1, mng_int32 extra2, mng_pchar errtext) {
+		mng_int32 extra1, mng_int32 extra2, mng_pchar errtext)
+{
 	fprintf(stderr, "libmng error: Code: %d, Severity: %d - %s\n",
 			code, severity, errtext);
 	abort();
@@ -140,14 +151,16 @@ static mng_bool fbsplash_mng_errorproc(mng_handle handler, mng_int32 code,
 
 #ifdef MNG_SUPPORT_TRACE
 static mng_bool fbsplash_mng_traceproc(mng_handle handle, mng_int32 funcnr,
-		mng_int32 seq, mng_pchar funcname) {
+		mng_int32 seq, mng_pchar funcname)
+{
 	fprintf(stderr, "libmng trace: %s (seq %d\n)", funcname, seq);
 	return MNG_TRUE;
 
 }
 #endif
 
-mng_retcode mng_init_callbacks(mng_handle handle) {
+mng_retcode mng_init_callbacks(mng_handle handle)
+{
 	mng_retcode ret;
 
 #define set_cb(x) \
