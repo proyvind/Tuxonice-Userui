@@ -15,7 +15,7 @@ int translate_ioctl(struct user_regs_struct *r, pid_t oldpid, pid_t newpid, int 
                 pid_t ioctlpid;
                 ioctlpid = ptrace(PTRACE_PEEKDATA, newpid, r->edx, 0);
 				if (ioctlpid == oldpid) {
-                    printf("Wooy in:%d edx:0x%lx %d -> %d!\n", in, r->edx, oldpid, newpid);
+                    //printf("Wooy in:%d edx:0x%lx %d -> %d!\n", in, r->edx, oldpid, newpid);
                     if (ptrace(PTRACE_POKEDATA, newpid, r->edx, newpid) == -1) {
                         perror("ptrace(POKEDATA)");
                     }
@@ -34,7 +34,7 @@ int translate_syscall(struct user_regs_struct *r, pid_t oldpid, pid_t newpid, in
     //printf("in: %d eax: %d orig_eax: %d\n", in, r->eax, r->orig_eax);
 	switch(syscall) {
 		case __NR_getpid:
-			if (!in) r->eax = newpid;
+			if (!in) r->eax = oldpid;
 			break;
 		case __NR_ioctl:
 			return translate_ioctl(r, oldpid, newpid, in);
@@ -69,6 +69,9 @@ int supervise_me(pid_t oldpid) {
 		default:
 			break;
 	}
+    sigset_t allmask; /* we don't like signals */
+    sigfillset(&allmask);
+    sigprocmask(SIG_SETMASK, &allmask, NULL);
 	/* parent will never return until the child is done */
     if (ptrace(PTRACE_ATTACH, pid, 0, 0) == -1) {
         perror("ptrace(ATTACH)");
@@ -76,21 +79,23 @@ int supervise_me(pid_t oldpid) {
     }
     waitpid(pid, &status, 0);
     //print_status(stdout, status);
+    if (ptrace(PTRACE_SYSCALL, pid, 0, 0) == -1) {
+        perror("ptrace(PTRACE_SYSCALL)");
+        exit(1);
+    }
 	for(;;) {
 		struct user_regs_struct r;
-		if (ptrace(PTRACE_SYSCALL, pid, 0, 0) == -1) {
-			perror("ptrace(PTRACE_SYSCALL)");
-            exit(1);
-        }
 		waitpid(pid, &status, 0);
         //printf("In: "); print_status(stdout, status);
         if (WIFEXITED(status)) _exit(WEXITSTATUS(status));
         if (WIFSTOPPED(status) && WSTOPSIG(status) != SIGTRAP) {
             ptrace(PTRACE_SYSCALL, pid, 0, WSTOPSIG(status));
+            //printf("Stopped on signal %d\n", WSTOPSIG(status));
             continue;
         }
         if (WIFSIGNALED(status)) {
             ptrace(PTRACE_SYSCALL, pid, 0, WTERMSIG(status));
+            //printf("Got signal %d\n", WTERMSIG(status));
             continue;
         }
 
@@ -114,6 +119,20 @@ int supervise_me(pid_t oldpid) {
         //printf("Ou: "); print_status(status); 
         if (WIFEXITED(status)) _exit(WEXITSTATUS(status));
 
-        /* exit */
+		if (ptrace(PTRACE_GETREGS, pid, 0, &r) == -1) {
+			perror("ptrace(PTRACE_GETREGS)");
+            exit(1);
+        }
+		if (translate_syscall(&r, oldpid, pid, 0)) {
+			if (ptrace(PTRACE_SETREGS, pid, 0, &r) == -1) {
+				perror("ptrace(PTRACE_SETREGS)");
+                exit(1);
+            }
+        }
+
+        if (ptrace(PTRACE_SYSCALL, pid, 0, 0) == -1) {
+            perror("ptrace(PTRACE_SYSCALL)");
+            exit(1);
+        }
 	}
 }
