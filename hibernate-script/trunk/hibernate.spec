@@ -25,7 +25,6 @@ mkdir -p ${RPM_BUILD_ROOT}/usr/share/doc/hibernate-%version-%release
 export BASE_DIR=${RPM_BUILD_ROOT}
 export PREFIX=/usr
 sh install.sh
-cp README CHANGELOG COPYING TODO SCRIPTLET-API ${RPM_BUILD_ROOT}/usr/share/doc/hibernate-%version-%release
 
 %clean
 unset BASE_DIR
@@ -34,13 +33,22 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
+
+# Directories owned by this package
+%dir /usr/share/hibernate
+
+# Files owned by this package (taken from %{buildroot}
 /usr/sbin/hibernate
 /usr/share/hibernate/*
-%doc
-/usr/share/doc/hibernate-%version-%release/*
 /usr/man/*
-%config(noreplace)
-/etc/hibernate/*
+%config /etc/hibernate/*
+
+# Documentation for this package (taken from $RPM_BUILD_DIR)
+%doc CHANGELOG
+%doc COPYING
+%doc README
+%doc SCRIPTLET-API
+%doc TODO
 
 %changelog
 * Thu Nov 18 2004 Bernard Blackham <bernard@blackham.com.au> -
