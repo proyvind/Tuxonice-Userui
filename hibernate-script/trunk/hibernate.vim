@@ -161,6 +161,11 @@ syntax keyword hibernate_conf powerdownmethod contained nextgroup=hibernate_powe
 syntax keyword hibernate_conf procsetting contained nextgroup=hibernate_procsetting skipwhite
 syntax keyword hibernate_conf asynciolimit contained nextgroup=hibernate_integer skipwhite
 
+" acpi_sleep
+syntax keyword hibernate_conf useacpisleep contained nextgroup=hibernate_acpi_state skipwhite
+syntax match hibernate_acpi_state /[34]/ contained skipwhite
+highlight link hibernate_acpi_state Special
+
 " sysfspowerstate
 syntax keyword hibernate_conf usesysfspowerstate contained nextgroup=hibernate_sysfspowerstate skipwhite
 syntax match hibernate_sysfspowerstate /\(disk\|mem\|standby\)/ contained skipwhite
