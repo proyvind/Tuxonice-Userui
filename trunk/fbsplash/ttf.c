@@ -675,7 +675,9 @@ void TTF_RenderUNICODE_Shaded(u8 *target, const unsigned short *text,
 				int i;		
 				int rb, gb, bb;
 			
-				if (bytespp == 2 && dst+1 > memlimit)
+				if (bytespp == 1 && dst > memlimit)
+					break;
+				else if (bytespp == 2 && dst+1 > memlimit)
 					break;
 				else if (bytespp == 3 && dst+2 > memlimit)
 					break;
@@ -689,13 +691,22 @@ void TTF_RenderUNICODE_Shaded(u8 *target, const unsigned short *text,
 				gd = fcol.g * val/255;
 				bd = fcol.b * val/255;
 			
-				if (bytespp == 2) { 
-					i = *(u16*)dst;
-				} else if (bytespp == 3) {
-					i = *(u32*)dst & 0xffffff;
-				} else if (bytespp == 4) {
-					i = *(u32*)dst;
-				}				
+				switch (bytespp) {
+					case 1:
+						i = *(u8*)dst;
+						break;
+					case 2:
+						i = *(u16*)dst;
+						break;
+					case 3:
+						i = *(u32*)dst & 0xffffff;
+						break;
+					case 4:
+						i = *(u32*)dst;
+						break;
+					default:
+						return;
+				}
 
 				rb = ((i >> fb_var.red.offset & ((1 << rlen)-1)) << (8 - rlen));
 				gb = ((i >> fb_var.green.offset & ((1 << glen)-1)) << (8 - glen));

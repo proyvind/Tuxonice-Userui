@@ -42,10 +42,10 @@ typedef struct {
  * framebuffer uses */
 void truecolor2fb (truecolor* data, u8* out, int len, int y, u8 alpha)
 {
-	int i, add = 0, r, g, b, a;
+	int i, add = 0, r, g, b, a = 0;
 	int rlen, blen, glen;
 	rgbcolor* rgb = (rgbcolor*)data;
-	u32 t;
+	u32 t = 0;
 	
 	if (fb_fix.visual == FB_VISUAL_DIRECTCOLOR) {
 		blen = glen = rlen = min(min(fb_var.red.length,fb_var.green.length),fb_var.blue.length);
