@@ -656,10 +656,9 @@ echo > /proc/software_suspend/do_resume
 
 <p>Notes:
 <itemize>
-<item> You need to mount /proc so you can do the do_resume (which doesn't
-suspend! When called from the initrd, it checks whether to resume.)
+<item> You need to mount /proc so you can access the do_resume file.
 <item> Any support for storage devices should be installed before the writer
-to avoid 'Unable to parse resume device' messages
+to avoid 'Unable to parse resume device' messages.
 <item> Normal filesystems should be mounted afterwards.
 </itemize>
 
@@ -734,9 +733,21 @@ will have to reboot your machine before being able to suspend to the swapfile.
 <itemize>
 <item>By entering the name of your swapfile into
 /proc/software_suspend/swapfile before suspending, Software Suspend will
-automatically enable and disable the swapfile for you.
+automatically enable and disable the swapfile for you. This is not required,
+but merely a convenience.
 </itemize>
 </enum>
+
+<sect2>Superfluous details
+<p>Specifying the resume2= device simply tells Software Suspend where to write
+and find the header that indicates the machine is suspended and where to find
+the rest of the image. The image itself is written to any available swapspace
+whether it be swapfile or swap partition. The actual order of swap devices that
+data is written to turns out to essentially be the order in which swap
+partitions are enabled. Hence it's entirely plausible if you have a normal swap
+partition (or file), and one turned on only for suspending, that the entire
+image is contained in the first swap partition, but the header alone is in the
+second.
 
 <sect1>Swap on LVM/dm-crypt
 <p>This requires Software Suspend 2.1.4.2 or later.
