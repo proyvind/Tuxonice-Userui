@@ -336,7 +336,7 @@ static void message_loop() {
 
 static void do_test_run() {
 	int i;
-	int max = 100;
+	int max = 128;
 
 	console_loglevel = 1;
 	userui_ops->log_level_change();
@@ -365,9 +365,9 @@ int main(int argc, char **argv) {
 		open_console();
 		open_netlink();
 		get_nofreeze();
+		get_info();
 	}
 	lock_memory();
-	get_info();
 
 	userui_ops->prepare();
 
