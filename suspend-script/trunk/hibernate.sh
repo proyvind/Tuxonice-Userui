@@ -355,30 +355,28 @@ LoadScriptlets() {
     for scriptlet_dir in $SCRIPTLET_PATH ; do
 	[ -d "$scriptlet_dir" ] || continue
 	[ -z "`/bin/ls -1 $scriptlet_dir`" ] && return 0
-	prev_pwd="$PWD"
-	cd $scriptlet_dir
-	for scriptlet in * ; do
+	for scriptlet in $scriptlet_dir/* ; do
 	    # Avoid editor backup files.
 	    case "$scriptlet" in *~|*.bak) continue ;; esac
 
 	    # Don't source a scriptlet by name more than once.
-
 	    scriptlet_name="`basename $scriptlet`"
 
 	    local prev_path
 	    eval "prev_path=\"\${HAVE_SOURCED_SCRIPTLET_$scriptlet_name}\""
 
 	    if [ -n "$prev_path" ] ; then
-		vecho 1 "$EXE: Scriptlet $scriptlet_name exists in both $scriptlet and $prev_path"
-		vecho 1 "$EXE: Cowardly refusing to load $scriptlet_name a second time."
+		echo "$EXE: Scriptlet $scriptlet_name exists in both $scriptlet and $prev_path"
+		echo "$EXE: Cowardly refusing to load $scriptlet_name a second time."
 		continue
 	    fi
 	    eval "HAVE_SOURCED_SCRIPTLET_$scriptlet_name=$scriptlet"
 
+	    # And now source it!
+
 	    CURRENT_SOURCED_SCRIPTLET="$scriptlet"
-	    . ./$scriptlet
+	    . $scriptlet
 	done
-	cd $prev_pwd
     done
     if [ -z "$CURRENT_SOURCED_SCRIPTLET" ] ; then
 	echo "WARNING: No directories in scriptlet search path contained any scriptlets."
