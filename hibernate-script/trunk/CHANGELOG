@@ -1,4 +1,4 @@
-1.05 (28 January 2005 (a few minutes later))
+1.05 (28 January 2005 (later that day))
  - Avoid making spurious temporary files.
  - Relax permissions on install directory to 755 instead of 700.
 

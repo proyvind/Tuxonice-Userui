@@ -52,6 +52,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Fri Jan 28 2005 Bernard Blackham <bernard@blackham.com.au> -
+- Updated to 1.05 final version
+* Fri Jan 28 2005 Bernard Blackham <bernard@blackham.com.au> -
 - Updated to 1.04 final version
 * Wed Jan  5 2005 Bernard Blackham <bernard@blackham.com.au> -
 - Updated to 1.03 final version
