@@ -20,7 +20,10 @@ ModulesUnload() {
     for mod in $MOD_UNLOAD ; do 
 	vecho 1 -n "Unloading module $mod... "
 
-	grep -vq "$mod " /proc/modules && vecho 1 "not loaded." && continue
+	if ! grep -q "^$mod " /proc/modules ; then
+	    vecho 1 "not loaded."
+	    continue
+	fi
 
 	if modprobe -r $mod > /dev/null 2>&1 ; then # FIXME - use $LOGPIPE
 	    vecho 1
