@@ -1,6 +1,6 @@
 Name: hibernate
-Version: 0.96-rc1
-Release: 1
+Version: 0.96
+Release: rc1
 License: GPL
 Group: Applications/System
 URL: http://dagobah.ucc.asn.au/swsusp/script2/hibernate-script-0.96-rc1.tar.gz
