@@ -46,7 +46,7 @@ for i in scriptlets.d/* ; do
 done
 
 echo "Setting permissions on installed files ..."
-chmod 700 $SCRIPT_DEST $SCRIPTLET_DIR
+chmod 700 $SCRIPT_DEST $CONFIG_DIR
 chown root:root -R $SCRIPT_DEST $CONFIG_DIR
 
 echo "Installed."
