@@ -4,8 +4,10 @@
    or /usr/local/share/hibernate/scriptlets.d. Distribution packages can use
    /usr/share/hibernate/scriptlets.d. All three are searched.
  - Added AlternateGrubMenuFile option.
- - Don't hardcode /sbin/splash
- - Don't assume /proc/swsusp/reboot exists (2.0 w/o debug doesn't have it)
+ - Added -n option to be equivalent to --no-suspend.
+ - Added --dry-run option to just list what would get done.
+ - Don't hardcode /sbin/splash.
+ - Don't assume /proc/swsusp/reboot exists (2.0 w/o debug doesn't have it).
 
 0.94 (12 July 2004)
  - Turn off "AlwaysForce yes" in the default config file.
