@@ -202,7 +202,7 @@ EnsureSwsusp2Capable() {
 	cat <<EOT
 Your kernel does not have any recent Software Suspend 2 support compiled in.
 Please follow the HOWTO linked from http://softwaresuspend.berlios.de/ for
-instructions on how compile Software Suspend into your kernel.
+instructions on how to compile Software Suspend into your kernel.
 EOT
 	return 2
     fi
