@@ -21,9 +21,14 @@ CheckModuleSupport() {
 SaveKernelModprobe() {
     [ -n "$KERNEL_MODPROBE" ] && return 0
     [ -r "/proc/sys/kernel/modprobe" ] || return 0
-    read KERNEL_MODPROBE < /proc/sys/kernel/modprobe
-    echo "/bin/true" > /proc/sys/kernel/modprobe
+
+    KERNEL_MODPROBE=`cat /proc/sys/kernel/modprobe`
+    [ -z "$KERNEL_MODPROBE" ] && return 0 # not much we can do here.
+
     vecho 3 "Saved /proc/sys/kernel/modprobe is $KERNEL_MODPROBE"
+
+    echo "/bin/true" > /proc/sys/kernel/modprobe
+
     return 0
 }
 
