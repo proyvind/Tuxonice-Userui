@@ -183,6 +183,9 @@ syntax keyword hibernate_conf usesysfspowerstate contained nextgroup=hibernate_s
 syntax match hibernate_sysfspowerstate /\(disk\|mem\|standby\)/ contained skipwhite
 highlight link hibernate_sysfspowerstate Special
 
+" vbetool
+syntax keyword hibernate_conf enablevbetool contained nextgroup=hibernate_boolean skipwhite
+
 " xhacks
 syntax keyword hibernate_conf switchtotextmode contained nextgroup=hibernate_boolean skipwhite
 syntax keyword hibernate_conf usedummyxserver contained nextgroup=hibernate_boolean skipwhite
