@@ -1,4 +1,4 @@
-CFLAGS := -Wall -O0 -g
+CFLAGS := -Wall -O3 -g
 LDFLAGS := -static
 
 DESTDIR := 
