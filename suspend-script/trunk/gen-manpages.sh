@@ -133,7 +133,7 @@ ConfigManHeader() {
 .\" Author: Cameron Patrick <cameron@patrick.wattle.id.au>
 .\" Information on the various options is automatically generated
 .\" from the suspend scripts themselves.
-.TH HIBERNATE.CONF 8 "$THE_DATE" "Linux Software Suspend" ""
+.TH HIBERNATE.CONF 5 "$THE_DATE" "Linux Software Suspend" ""
 .SH NAME
 hibernate.conf \- configuration file for the suspend script
 .SH SYNOPSIS
