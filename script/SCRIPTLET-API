@@ -79,10 +79,10 @@ vecho N <echo params>
   level is greater than or equal to N, the text will be written to screen and
   logged to file. Verbosity levels are :
     0: silent except for errors
-	1: print functions executed
-	2: print functions executed with debugging
-	3: print functions executed with lots of debugging
-	4: use shell's -x option to print every command executed (very noisy)
+    1: print functions executed
+    2: print functions executed with debugging
+    3: print functions executed with lots of debugging
+    4: use shell's -x option to print every command executed (very noisy)
 
 ORDERING
 --------
