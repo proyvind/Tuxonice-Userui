@@ -131,13 +131,23 @@ int mng_display_next(mng_handle mngh, char* dest, int x, int y, int width, int h
 	int line;
 	mng_anim *mng = mng_get_userdata(mngh);
 	int bpp = mng->canvas_bytes_pp;
+	int dispwidth, dispheight;
 
 	dest += y * width * bpp;
 	src = mng->canvas;
 
-	/* FIXME: no bounds checking if the canvas goes off the edge! */
-	for (line = 0; line < mng->canvas_h; line++) {
-		memcpy(dest + (x * bpp), src, mng->canvas_w * bpp);
+	if (x + mng->canvas_w > width)
+		dispwidth = width - x;
+	else
+		dispwidth = mng->canvas_w;
+
+	if (y + mng->canvas_h > height)
+		dispwidth = height - y;
+	else
+		dispwidth = mng->canvas_h;
+
+	for (line = 0; line < dispheight; line++) {
+		memcpy(dest + (x * bpp), src, dispwidth * bpp);
 		dest += width * bpp;
 		src  += mng->canvas_w * bpp;
 	}
