@@ -98,27 +98,38 @@ int memcpy_from_target(pid_t pid, void* dest, const void* src, size_t n) {
 	return 1;
 }
 
-int do_syscall(pid_t pid, struct user_regs_struct *regs, void* loc) {
-	/* Execute a given syscall using the given memory location (all 2 bytes)
-	 * of it. We don't care about the page we're overwriting. It is the
-	 * caller's responsibility to make sure it was backed up!
+int do_syscall(pid_t pid, struct user_regs_struct *regs) {
+    /* Execute a given syscall. We don't care about the page we're overwriting.
+     * It is the caller's responsibility to make sure it was backed up!
 	 */
-	unsigned int returned_data1, returned_data2;
 	struct user_regs_struct orig_regs;
-    long new_insn;
+    long old_insn, new_insn;
 	off_t result;
 
-	new_insn = 0x000080CD; /* "int 0x80" */
+    return 10;
+    if (ptrace(PTRACE_CONT, pid, NULL, NULL) < 0) {
+		perror("ptrace syscall-cleanup");
+		return 0;
+	}
 
 	if (ptrace(PTRACE_GETREGS, pid, NULL, &orig_regs) < 0) {
 		perror("ptrace getregs");
 		return 0;
 	}
 
-	if (ptrace(PTRACE_POKETEXT, pid, loc, new_insn) < 0) {
+	old_insn = ptrace(PTRACE_PEEKTEXT, pid, orig_regs.eip-2, 0);
+    if (errno) {
+		perror("ptrace peektext");
+		return 0;
+	}
+    printf("original instruction was 0x%lx\n", old_insn);
+
+	if (ptrace(PTRACE_POKETEXT, pid, orig_regs.eip-2, 0x80cd) < 0) {
 		perror("ptrace poketext");
 		return 0;
 	}
+
+    regs->eip = orig_regs.eip-2;
 
 	/* Set up registers for ptrace syscall */
 	if (ptrace(PTRACE_SETREGS, pid, NULL, &regs) < 0) {
@@ -128,11 +139,11 @@ int do_syscall(pid_t pid, struct user_regs_struct *regs, void* loc) {
 
 	/* Execute call */
 	if (ptrace(PTRACE_SYSCALL, pid, NULL, NULL) < 0) {
-		perror("ptrace syscall");
+		perror("ptrace syscall-entry");
 		return 0;
 	}
 	if (ptrace(PTRACE_SYSCALL, pid, NULL, NULL) < 0) {
-		perror("ptrace syscall");
+		perror("ptrace syscall-exit");
 		return 0;
 	}
 
@@ -145,6 +156,11 @@ int do_syscall(pid_t pid, struct user_regs_struct *regs, void* loc) {
 	/* Return everything back to normal */
 	if (ptrace(PTRACE_SETREGS, pid, NULL, &orig_regs) < 0) {
 		perror("ptrace getregs");
+		return 0;
+	}
+
+	if (ptrace(PTRACE_POKETEXT, pid, orig_regs.eip-2, old_insn) < 0) {
+		perror("ptrace poketext");
 		return 0;
 	}
 
@@ -369,66 +385,30 @@ int get_i387_data(pid_t target_pid, struct user_i387_struct* i387_data) {
 	return 1;
 }
 
-off_t get_file_offset(pid_t tpid, int fd, off_t offset, int whence)
+off_t get_file_offset(pid_t pid, int fd, off_t offset, int whence)
 {
-	/* XXX FIXME TODO TODO FIXME XXX XXX FIXME TODO TODO FIXME XXX */
-	unsigned int orig_insn, new_insn;
-	unsigned int saved_data1, saved_data2;
-	unsigned int returned_data1, returned_data2;
-	struct user_regs_struct orig_regs, new_regs;
+	struct user_regs_struct r;
 	off_t result;
 
-	new_insn = 0x000080CD; /* "int 0x80" */
+	if (ptrace(PTRACE_GETREGS, pid, 0, &r) == -1) {
+		perror("ptrace(GETREGS)");
+        return 0;
+    }
 
-	if ((orig_insn = ptrace(PTRACE_PEEKTEXT, tpid, 0x08048000, &orig_insn)) < 0)
-		perror("ptrace peektext");
-	if (ptrace(PTRACE_POKETEXT, tpid, 0x08048000, new_insn) < 0)
-		perror("ptrace poketext");
-	saved_data1 = ptrace(PTRACE_PEEKDATA, tpid, 0x08048008, &saved_data1);
-	saved_data2 = ptrace(PTRACE_PEEKDATA, tpid, 0x0804800c, &saved_data2);
+	r.eax = __NR_lseek;
+	r.ebx = fd;
+    r.ecx = offset;
+    r.edx = whence;
 
-	if (ptrace(PTRACE_GETREGS, tpid, NULL, &orig_regs) < 0)
-		perror("ptrace getregs");
-
-	/* Set up registers for ptrace syscall */
-	memcpy(&new_regs, &orig_regs, sizeof(new_regs));
-	new_regs.eax = 140;    /* llseek a.k.a. lseek64 */
-	new_regs.orig_eax = 140;
-	new_regs.ebx = fd;
-	new_regs.ecx = (unsigned long)(offset >> 32);
-	new_regs.edx = (unsigned long)(offset & 0xFFFFFFFF);
-	new_regs.esi = 0x08048008;  /* random location in data segment */
-	new_regs.edi = whence;
-	new_regs.eip = 0x08048000;
-
-	/* Execute call */
-	if (ptrace(PTRACE_SETREGS, tpid, NULL, &new_regs) < 0)
-		perror("ptrace setregs");
-	if (ptrace(PTRACE_SYSCALL, tpid, NULL, NULL) < 0)
-		perror("ptrace syscall");
-	if (ptrace(PTRACE_SYSCALL, tpid, NULL, NULL) < 0)
-		perror("ptrace syscall");
-
-	/* Get data back */
-	returned_data1 = ptrace(PTRACE_PEEKDATA, tpid, 0x08048008, &returned_data1);
-	returned_data2 = ptrace(PTRACE_PEEKDATA, tpid, 0x0804800c, &returned_data2);
-	ptrace(PTRACE_GETREGS, tpid, NULL, &new_regs);
+    if (!do_syscall(pid, &r)) return 0;
 
 	/* Error checking! */
-	if (new_regs.eax != 0) {
-		errno = -new_regs.eax;
+	if (r.eax < 0) {
+		errno = -r.eax;
 		return (off_t)(-1);
 	}
 
-	/* Return everything back to normal */
-	ptrace(PTRACE_POKETEXT, tpid, 0x08048000, orig_insn);
-	ptrace(PTRACE_POKEDATA, tpid, 0x08048008, saved_data1);
-	ptrace(PTRACE_POKEDATA, tpid, 0x0804800c, saved_data2);
-	ptrace(PTRACE_SETREGS, tpid, NULL, &orig_regs);
-
-	/* Put the returned offset back together */
-	result = ((off_t)(returned_data1) | ((off_t)(returned_data2) << 32));
-	return result;
+	return r.eax;
 }
 
 int get_file_contents(char *filename, struct fd_entry_t *out_buf)
