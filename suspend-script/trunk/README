@@ -19,6 +19,8 @@ This will install the following files and directories:
 /etc/hibernate/hibernate.conf    <--- main configuration file
 /etc/hibernate/scriptlets.d/     <--- contains "scriptlets" (or plugins)
   and the various scriptlets that live in /etc/hibernate/scriptlets.d/
+/usr/local/man/man8/hibernate.8
+/usr/local/man/man5/hibernate.conf.5
 
 If you already have a configuration file at /etc/hibernate/hibernate.conf, the
 new configuation file will be installed at /etc/hibernate/hibernate.conf.dist
