@@ -132,12 +132,10 @@ static void fbsplash_prepare() {
 	}
 	memcpy(base_image, (void*)silent_img.data, base_image_size);
 
-	if (fb_fd != -1) {
-		frame_buffer = mmap(NULL, base_image_size, PROT_READ | PROT_WRITE,
-				MAP_SHARED, fb_fd, 0);
-		if (frame_buffer == MAP_FAILED) {
-			frame_buffer = NULL;
-		}
+	frame_buffer = mmap(NULL, base_image_size, PROT_READ | PROT_WRITE,
+			MAP_SHARED, fb_fd, 0);
+	if (frame_buffer == MAP_FAILED) {
+		frame_buffer = NULL;
 	}
 
 	/* Allow for the widest progress bar we might have updating 2px at a time */
