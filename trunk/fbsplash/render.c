@@ -277,7 +277,8 @@ void interpolate_box(box *a, box *b)
 	inter_color(a->c_ll, b->c_ll);
 	inter_color(a->c_lr, b->c_lr);
 
-	a->attr |= b->attr & BOX_ONECOLOR;
+	if (a->attr & BOX_ONECOLOR)
+		a->attr |= b->attr & BOX_ONECOLOR;
 }
 
 char *get_program_output(char *prg, unsigned char origin)
