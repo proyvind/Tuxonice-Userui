@@ -7,6 +7,7 @@
  - Added -n option to be equivalent to --no-suspend.
  - Added --dry-run option to just list what would get done.
  - Don't hardcode /sbin/splash.
+ - Fixed Bootsplash and LeaveXBeforeSuspend interactions.
  - Don't assume /proc/swsusp/reboot exists (2.0 w/o debug doesn't have it).
 
 0.94 (12 July 2004)
