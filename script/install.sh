@@ -2,8 +2,8 @@
 # -*- sh -*-
 # vim:ft=sh:ts=8:sw=4:noet
 
-CONFIG_DIR=/etc/suspend
-CONFIG_FILE=$CONFIG_DIR/suspend.conf
+CONFIG_DIR=/etc/hibernate
+CONFIG_FILE=$CONFIG_DIR/hibernate.conf
 SCRIPTLET_DIR=$CONFIG_DIR/scriptlets.d
 SCRIPT_DEST=/usr/local/sbin/hibernate
 
@@ -18,13 +18,13 @@ if [ -d $CONFIG_DIR -o -f $SCRIPT_DEST ] ; then
     esac
 fi
 
-echo "Installing suspend script to $SCRIPT_DEST ..."
+echo "Installing hibernate script to $SCRIPT_DEST ..."
 mkdir -p `dirname $SCRIPT_DEST`
-cp -a suspend.sh $SCRIPT_DEST
+cp -a hibernate.sh $SCRIPT_DEST
 
 echo "Installing configuration file to $CONFIG_DIR ..."
 mkdir -p $CONFIG_DIR
-cp -a suspend.conf $CONFIG_FILE
+cp -a hibernate.conf $CONFIG_FILE
 
 echo "Installing scriptlets to $SCRIPTLET_DIR ..."
 mkdir -p $SCRIPTLET_DIR
