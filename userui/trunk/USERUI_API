@@ -143,5 +143,5 @@ Certain syscalls
    socket can be detrimental to suspending (causing things like several-second
    hangs whilst "Eating memory").
 
-Minimalism is good - the process shouldn't do too much other than play with
-it's own memory, respond to events and dump stuff to display.
+Minimalism is good - the process shouldn't do too much other than play with its
+own memory, respond to events and dump stuff to display.
