@@ -19,7 +19,8 @@ FAQ_TARGET = $(FAQ_BASENAME).html  \
 			$(FAQ_BASENAME)-3.html \
 			$(FAQ_BASENAME)-4.html \
 			$(FAQ_BASENAME)-5.html \
-			$(FAQ_BASENAME)-6.html
+			$(FAQ_BASENAME)-6.html \
+			$(FAQ_BASENAME)-7.html
 
 PAGES = style.css \
 		index.html \

@@ -142,8 +142,7 @@ suspension. This is why you can't have an SCSI root or swap partition with
 Software Suspend until SCSI is properly supported.
 
 <sect1>Why isn't software suspend a kernel module ?
-<p>Resuming must occur at the very beginning of kernel initialization. Modules
-are not available at such an early stage.
+<p>It can be! Since 2.0.0.102. See <ref id="modular" name="Modular Software Suspend">.
 
 <sect1>nVidia video cards
 <p>(See also the next 2 FAQs). Many people have had success getting Software Suspend 2 to
@@ -454,8 +453,8 @@ written to by the resumed kernel.
 resuming. This can be accomplished by an mkswap of the swap partition from
 Kernel B, or booting Kernel A with noresume2. 
 
-<sect1>Is there any way to convince Software Suspend 2 to free things like disk caches and
-buffers but nothing else?
+<sect1>Is there any way to convince Software Suspend 2 to free things like disk
+caches and buffers but nothing else?
 <p>In short, no. If you use the <tt>image_size_limit</tt> option, Software Suspend 2 will
 attempt to free memory until that constraint is met. Since disk caches are the
 easiest thing to free, the Linux VM will free it first. If you leave the value
@@ -508,7 +507,7 @@ Software Suspend 2.0.0.10: kswsuspd starting
 Disabling CONFIG_CC_OPTIMIZE_FOR_SIZE appears to resolve the issue. Thanks to
 Michael Schneider for recognising this problem and solution!
 
-<sect> Modular Software Suspend
+<label id="modular"><sect>Modular Software Suspend
 
 <sect1> Why would I want to compile suspend as modules?
 <p>
@@ -533,12 +532,24 @@ plugins.
 
 <p>In addition to this, you will need to compile initrd support so that
 suspend modules can be loaded from the initrd and suspend activated
-before any filesystems are mounted.
+before any filesystems are mounted. Your initrd will require a /sys directory
+in which a sysfs filesystem will be briefly mounted (if not already mounted
+by your linuxrc script).
 
-<p>At resume time, suspend needs to do its work before any filesystems are
-mounted. This implies that the modules for suspend must be put in the
-initrd and loaded before the initrd does any mounting of filesystems (the
-modules can be inserted, but the mount commands must come later).
+<p><bf>This paragraph not applicable since 2.0.0.103:</bf> When configuring
+your kernel, select the new option at the bottom of the Software Suspend 2
+section (Always resume during/after initrd is run). Without this, you'll need
+to add lateresume2 to the command line to get suspend to not try to resume
+earlier (particularly important if you compile as modules!). It is planned to
+get rid of this shortly: suspend will always resume later if you have initrd
+support.
+
+<p>At resume time, suspend needs to do its work in the <tt>linuxrc</tt> script,
+before any filesystems are mounted. This implies that the modules for suspend
+must be put in the initrd and loaded before the initrd does any mounting of
+filesystems (the modules can be inserted, but the mount commands must come
+later). Note: in Debian kernels, a script in /scripts/ is executed too late.
+See <url url="http://softwaresuspend.berlios.de/wiki/DebianInitrd" name="DebianInitrd on the wiki">.
 
 <sect1>Can you give me a checklist to follow in installing the new support?
 
@@ -546,14 +557,13 @@ modules can be inserted, but the mount commands must come later).
 
 <enum>
 <item> Apply the new patches to your kernel.
-<item> Configure (don't forget initrd support and don't forget to check that
-suspend support is selected. Changes to the Kconfig file mean it will be
+<item> Configure (don't forget initrd support and don't forget to check that suspend support is selected. Changes to the Kconfig file mean it will be
 treated as a new option).
 <item> make bzImage modules modules_install
 <item> Install the bzImage (make sure you can boot an old kernel, just in
 case) and run lilo if needed.
 <item> Mount or create your initrd and copy the suspend modules to the
-initrd.
+initrd. Also ensure that there is a /sys directory inside your initrd.
 <item> Edit your initrd's linuxrc to load the modules and then call echo >
 /proc/software_suspend/activate BEFORE any mounting of filesystems
 (apart from proc) is done.
@@ -596,6 +606,53 @@ to avoid 'Unable to parse resume device' messages
 
 <sect1> The modules are installed fine but the swapwriter complains about not being able to access the suspend device.
 <p>Did you insert IDE/SCSI/USB modules prior to the suspend modules?
+
+<sect1>How do I update my running kernel modules without rebooting into a new kernel?
+<p>
+<enum>
+<item>Check release notes to ensure you don't need to install a new bzImage.
+<item>Apply new patches to the kernel tree.
+<item>make menuconfig modules modules_install
+<item>Update your initrd. Sample script for updating /boot/mm.img (a gziped
+initrd with bootsplash concatenated) while running the matching kernel version:
+<verb>
+#!/bin/bash
+# Assumes /mnt/initrd exists and that modules are located in /lib.
+
+MOUNT=/boot/mm.img
+echo Updating $MOUNT.
+mv -f $MOUNT $MOUNT.gz
+gunzip $MOUNT.gz
+mount $MOUNT /mnt/initrd -o loop
+rm -f /mnt/initrd/lib/*
+cp -f /lib/modules/`uname -r`/kernel/kernel/power/* /mnt/initrd/lib/
+umount /mnt/initrd
+gzip $MOUNT
+splash -s -f /etc/bootsplash/themes/Mandrake-tux/config/bootsplash-1024x768.cfg >> $MOUNT.gz
+mv $MOUNT.gz $MOUNT
+</verb>
+
+<item> Save settings if needed:
+<verb>
+cat /proc/software_suspend/all_settings > /etc/suspend_settings
+</verb>
+
+<item> Unload old modules:
+<verb>
+for NAME in `lsmod | grep suspend | awk '{print $1}'`; do rmmod $NAME; done
+</verb>
+
+<item> Load new modules:
+<verb>
+modprobe suspend_text; modprobe suspend_swap; modprobe suspend_lzf
+</verb>
+
+<item> Restore settings (if required):
+<verb>
+cat /etc/suspend_settings > /proc/software_suspend/all_settings
+</verb>
+
+</enum>
 
 <sect>Miscellaneous
 
