@@ -40,7 +40,7 @@ SplashStart() {
 	SPLASH_PROGRESS=10
 	    
 	# go
-	/sbin/splash -s -u 0 "$SPLASH_CONFIG_FILE"
+	/sbin/splash -s -u 0 "$SPLASH_CONFIG_FILE" | $LOGPIPE
 	echo "silent" > /proc/splash 
 	echo "show 0" > /proc/splash
 
@@ -48,12 +48,12 @@ SplashStart() {
 }
 
 SplashResume() {
-    SplashStart | $LOGPIPE
+    SplashStart
     # XXX add text output
 }
 
 SplashSuspend() {
-    SplashStart | $LOGPIPE
+    SplashStart
     # XXX add text output
 }
 
