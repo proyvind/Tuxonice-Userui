@@ -11,6 +11,8 @@ else
     SWSUSP_ROOT="/proc/swsusp"
 fi
 
+SWSUSP_DEFAULT_ALL_SETTINGS_FILE="$SWSUSP_D/swsusp2-all-settings.conf"
+
 AddConfigHandler Swsusp2ConfigEnabler
 AddOptionHandler Swsusp2OptionHandler
 
@@ -31,6 +33,8 @@ AddConfigHelp "AsyncIOLimit <N> (requires UseSwsusp2 on)" "Limit the number of I
 
 AddConfigHelp "Swsusp2AllSettings <params> (requires UseSwsusp2 on)" "If specified, sets all of the settings for Software Suspend 2 at once. The parameter should be the contents of $SWSUSP_ROOT/all_settings after you have set your desired settings manually."
 
+AddConfigHelp "Swsusp2AllSettingsFile <filename> (requires UseSwsusp2 on)" "If specified, sets all of the settings for Software Suspend 2 and all its plugins at once, from the given file. The parameter should be the path to a file containing the result of \"cat $SWSUSP_ROOT/all_settings > <filename>\"after you have set your desired settings manually."
+
 AddConfigHelp "SuspendDevice <device> (requires UseSwsusp2 on)" "If specified, sets the suspend device by writing to the resume2 entry in $SWSUSP_ROOT. This does not automatically set the resuming device - you will need to make sure your bootloader or initrd script does this."
 
 AddConfigHelp "LoadSuspendModules <module name> [...] (requires UseSwsusp2 on)" "Loads the given modules before even detecting Software Suspend. This may be required when Software Suspend is compiled as modules that need to be loaded prior to suspending."
@@ -38,11 +42,14 @@ AddConfigHelp "UnloadSuspendModulesAfterResume <boolean> (requires UseSwsusp2 on
 
 AddConfigHelp "PowerdownMethod <3|4|5> (requires UseSwsusp2 on)" "Allows you to choose what Software Suspend 2 should do after writing its image to disk. This only works if you have ACPI enabled in your kernel. 3/4/5 correspond to the ACPI states S3 (suspend-to-RAM), S4 (suspend-to-disk), and S5 (power off). Choosing 3 will request your machine to enter the S3 Suspend-to-RAM state if it is supported - this allows you drastically cut the resume time waiting for your BIOS but still consumes power whilst hibernated (though the image is not lost should power run out). Choosing 4 will cause your machine to enter an S4 sleep state which may also reduce the resume time without using any power whilst hibernated. Choosing 5 will cause your machine to switch off after suspending (traditional method)."
 
-AddConfigHelp "ProcSetting <entry name> <value> (requires UseSwsusp2 on)" "Sets the value of /proc/software_suspend/<entry_name> to <value> upon suspending. You can use this setting to set parameters that can't be configured anywhere else in this script. This is executed after all other settings have been set."
+AddConfigHelp "ProcSetting <entry name> <value> (requires UseSwsusp2 on)" "Sets the value of $SWSUSP_ROOT/<entry_name> to <value> upon suspending. You can use this setting to set parameters that can't be configured anywhere else in this script. This is executed after all other settings have been set."
 
 AddShortOption "n"
 AddLongOption "no-suspend"
 AddOptionHelp "-n, --no-suspend (requires UseSwsusp2 on)" "Disables actually suspending the system. This is useful for testing the suspend script itself."
+
+AddLongOption "save-settings::"
+AddOptionHelp "--save-settings [filename] (requires UseSwsusp2 on)" "Saves all the current settings for Software Suspend 2 into a file (default: $SWSUSP_DEFAULT_ALL_SETTINGS_FILE)"
 
 Swsusp2ConfigEnabler() {
     [ "$1" != "useswsusp2" ] && return 1
@@ -73,6 +80,14 @@ Swsusp2OptionHandler() {
 	-n|--no-suspend)
 	    SWSUSP2_NO_SUSPEND=1
 	    ;;
+	--save-settings)
+	    if [ -n "$2" ] ; then
+		SWSUSP2_SAVE_SETTINGS_FILE="$2"
+	    else
+		SWSUSP2_SAVE_SETTINGS_FILE="$SWSUSP_DEFAULT_ALL_SETTINGS_FILE"
+	    fi
+	    AddSuspendHook 00 Swsusp2SaveSettings
+	    ;;
 	*)
 	    return 1
     esac
@@ -102,6 +117,13 @@ Swsusp2ConfigOptions() {
 	    ;;
 	swsusp2allsettings)
 	    SWSUSP_ALL_SETTINGS=$2
+	    ;;
+	swsusp2allsettingsfile)
+	    SWSUSP_ALL_SETTINGS_FILE=$2
+	    if ! [ -r "$SWSUSP_ALL_SETTINGS_FILE" ] ; then
+		echo "$EXE: Cannot read all_settings file $SWSUSP_ASYNC_IO_LIMIT."
+		return 0
+	    fi
 	    ;;
 	suspenddevice)
 	    SWSUSP_RESUME2=$2
@@ -151,6 +173,17 @@ EOT
     return 0
 }
 
+Swsusp2SaveSettings() {
+    if ! [ -r "$SWSUSP_ROOT/all_settings" ] ; then
+	echo "$EXE: Could not read $SWSUSP_ROOT/all_settings."
+    elif ! cat "$SWSUSP_ROOT/all_settings" > $SWSUSP2_SAVE_SETTINGS_FILE ; then
+	echo "$EXE: Could not save settings. cat failed."
+    else
+	echo "$EXE: Settings saved to $SWSUSP2_SAVE_SETTINGS_FILE."
+    fi
+    return 3
+}
+
 RemoveSwsuspProcCruft() {
     [ -f "$SWSUSP_EXTRA_PROC_SETTINGS" ] && rm -f $SWSUSP_EXTRA_PROC_SETTINGS
     return 0
@@ -187,6 +220,9 @@ Swsusp2ConfigSet() {
 
     [ -n "$SWSUSP_ALL_SETTINGS" ] && [ -f $SWSUSP_ROOT/all_settings ] && \
     	echo $SWSUSP_ALL_SETTINGS > $SWSUSP_ROOT/all_settings
+
+    [ -n "$SWSUSP_ALL_SETTINGS_FILE" ] && [ -f $SWSUSP_ROOT/all_settings ] && \
+    	cat $SWSUSP_ALL_SETTINGS_FILE > $SWSUSP_ROOT/all_settings
 
     [ -n "$SWSUSP_RESUME2" ] && [ -f $SWSUSP_ROOT/resume2 ] && \
     	echo $SWSUSP_RESUME2 > $SWSUSP_ROOT/resume2

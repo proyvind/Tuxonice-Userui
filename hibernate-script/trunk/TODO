@@ -1,4 +1,6 @@
 - Option to write a default config file
 - DownInterfaces auto
+- OnFailure event
+- Locking
 
 $Id$

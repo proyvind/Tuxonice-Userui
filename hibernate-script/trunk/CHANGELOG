@@ -3,6 +3,7 @@
  - Fix missing mawk compatibility bug in lock.
  - Rename LeaveXBeforeSuspend to SwitchToTextMode.
  - Rename nVidiaHack to UseDummyXServer.
+ - Added Swsusp2AllSettingsFile option (and command-line option --save-settings)
 
 1.00 (7 November 2004)
  - Fix a long standing bug when printing error result codes.
