@@ -1,17 +1,18 @@
 #!/bin/sh
 
+# Version: $Id$
+
 # For zsh sanity...
 #   allows splitting strings on whitespace in zsh.
 setopt SH_WORD_SPLIT 2>/dev/null || true
 #   allows sourced files to know they're sourced in zsh.
 unsetopt FUNCTION_ARGZERO 2>/dev/null || true
 
-SWSUSP_ROOT="/proc/swsusp"
 SWSUSP_D="/etc/suspend"
 SCRIPTLET_DIR="$SWSUSP_D/scriptlets.d/"
 CONFIG_FILE="$SWSUSP_D/suspend.conf"
 EXE=`basename $0`
-VERSION="0.2"
+VERSION="0.8"
 
 vecho() {
     [ $VERBOSITY -ge "$1" ] || return 0
