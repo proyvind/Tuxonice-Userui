@@ -12,7 +12,7 @@ SWSUSP_D="/etc/suspend"
 SCRIPTLET_DIR="$SWSUSP_D/scriptlets.d/"
 CONFIG_FILE="$SWSUSP_D/suspend.conf"
 EXE=`basename $0`
-VERSION="0.8"
+VERSION='$Rev$'
 
 vecho() {
     [ $VERBOSITY -ge "$1" ] || return 0
