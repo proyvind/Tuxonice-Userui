@@ -25,7 +25,7 @@ VbetoolSuspend() {
     umask 077
 
     # save the vbe state
-    vbetool 
+    vbetool vbestate save >$VBETOOL_FILE
 
     # restore shell settings
     umask ${ORIG_UMASK}
