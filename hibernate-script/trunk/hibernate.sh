@@ -29,7 +29,7 @@ SWSUSP_D="/etc/hibernate"
 SCRIPTLET_PATH="$SWSUSP_D/scriptlets.d /usr/local/share/hibernate/scriptlets.d /usr/share/hibernate/scriptlets.d"
 CONFIG_FILE="$SWSUSP_D/hibernate.conf"
 EXE=`basename $0`
-VERSION="1.01-svn"
+VERSION="1.02"
 
 # Add these to the $PATH just in case.
 PATH="$PATH:/sbin:/usr/sbin"
@@ -648,7 +648,7 @@ if [ -n "$HELP_ONLY" ] ; then
     AddInbuiltHelp
     LoadScriptlets
     Usage
-    exit 1
+    exit 0
 fi
 DISABLE_HELP=1
 

@@ -29,8 +29,6 @@ You will have to merge your changes manually.
 
 CONFIGURATION
 -------------
-Since v0.90 of the hibernate script, the configuration file syntax is
-completely different (and much more readable!).
 
 The default configuration does nothing but save and restore your clock, and
 unload some modules that will potentially cause suspending to fail. If you have
