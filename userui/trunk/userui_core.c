@@ -122,9 +122,15 @@ static void reserve_memory(unsigned long bytes) {
 	start = (unsigned long)sbrk(bytes);
 	end = (unsigned long)sbrk(0);
 
-	/* and now set a hard limit so future brk's fail */
+	/* and now set a hard limit on the data segment so future brk's fail */
 	r.rlim_max = r.rlim_cur = end - start;
 	setrlimit(RLIMIT_DATA, &r);
+
+	/* Do it for RLIMIT_AS as well to cover future mmap() allocations too.
+	 * Note that RLIMIT_AS is set to much smaller than the actual address
+	 * space. This is all that's needed to ensure we don't allocate any more.
+	 */
+	setrlimit(RLIMIT_AS, &r);
 }
 
 /* A generic signal handler to ensure we don't quit in times of desperation */
