@@ -16,6 +16,7 @@ SplashProgress()
 	echo "show $CURRENT_PROGRESS" > /proc/splash
 	SPLASH_PROGRESS=$(($SPLASH_PROGRESS+10));
     fi
+    return 0
 }
 
 SplashStart() {
@@ -65,6 +66,7 @@ SplashStop() {
     if [ x"$USE_BOOTSPLASH" = "x1" ] ; then
 	splash -s -u 0 -n
     fi
+    return 0
 }
 
 SplashOptions() {
