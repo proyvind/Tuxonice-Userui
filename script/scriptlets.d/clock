@@ -19,8 +19,8 @@ ClockOptions() {
 	case $1 in
 		saveclock)
 			if [ -n "$2" ] && BoolIsOn "$1" "$2" ; then
-				AddSuspendHook 99 ClockSave
-				AddResumeHook 99 ClockRestore
+				AddSuspendHook 98 ClockSave
+				AddResumeHook 98 ClockRestore
 			fi
 			;;
 		*)

@@ -8,16 +8,22 @@ A scriptlet can request both extra command-line arguments, or extra
 configuration file options. It can execute arbitrary commands during the
 suspend and resume process.
 
-A scriplet should use vecho rather than echo, and choose a verbosity level
+STDOUT/STDERR
+-------------
+
+A scriptlet should use vecho rather than echo, and choose a verbosity level
 appropriately (see vecho, below). It should also either redirect subprocess's
 output to /dev/null if irrelevant, or pipe to $LOGPIPE if worth logging.
+
+FUNCTIONS
+---------
 
 AddSuspendHook NN function_name
   This will add the given function to the chain of functions called at suspend.
   NN must be a number between 10 and 99, inclusive (see ORDERING section
   below).
 
-  A scriplet should only add a function to the suspend chain until it knows
+  A scriptlet should only add a function to the suspend chain until it knows
   that it is going to do work (eg, it parses a config option to do something).
 
   eg: AddSuspendHook 55 SuspendHair

@@ -49,7 +49,7 @@ Swsusp2ConfigOptions() {
 	case $1 in
 		reboot)
 			if [ -z "$OPT_REBOOT" ] ; then
-				BoolIsOn "$option" "$params" && OPT_REBOOT=1 || OPT_REBOOT=0
+				BoolIsOn "$1" "$2" && OPT_REBOOT=1 || OPT_REBOOT=0
 			fi
 			;;
 		*)

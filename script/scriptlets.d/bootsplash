@@ -79,7 +79,7 @@ SplashOptions() {
 
 	if [ -z "$BOOTSPLASH_HOOKED" ] ; then
 		# in call order
-		AddSuspendHook 10 SplashSuspend
+		AddSuspendHook 11 SplashSuspend
 		AddSuspendHook 20 SplashProgress
 		AddSuspendHook 30 SplashProgress
 		AddSuspendHook 40 SplashProgress
@@ -98,7 +98,7 @@ SplashOptions() {
 		AddResumeHook 40 SplashProgress
 		AddResumeHook 30 SplashProgress
 		AddResumeHook 20 SplashProgress
-		AddResumeHook 10 SplashStop
+		AddResumeHook 11 SplashStop
 		BOOTSPLASH_HOOKED=1
 	fi
 
