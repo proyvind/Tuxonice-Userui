@@ -1,7 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 
 # For zsh sanity...
+#   allows splitting strings on whitespace in zsh.
 setopt SH_WORD_SPLIT 2>/dev/null || true
+#   allows sourced files to know they're sourced in zsh.
+unsetopt FUNCTION_ARGZERO 2>/dev/null || true
 
 SWSUSP_ROOT="/proc/swsusp"
 SWSUSP_D="/etc/suspend.d"
