@@ -1,3 +1,6 @@
+1.03 (unreleased)
+ - Add ndiswrapper to blacklist
+
 1.02 (24 November 2004)
  - Make misc launch scriptlets more robust.
  - Change /proc/sys/kernel/{modprobe,hotplug} to a non-existant executable
