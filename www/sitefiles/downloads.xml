@@ -1,0 +1,23 @@
+<downloads>
+
+ <section name="Development Patches">
+
+  <release name="2.1.7.2">
+   <kernel name="2.6.11-rc5">
+    <filename>software-suspend-2.1.7.2-for-2.6.11-rc5.tar.bz2</filename>
+   </kernel>
+  </release>
+
+ </section>
+
+ <section name="Stable Patches">
+
+  <release name="2.1.7">
+   <kernel name="2.6.11-rc4"></kernel>
+   <kernel name="2.6.10"></kernel>
+   <kernel name="2.6.8.1"></kernel>
+  </release>
+
+ </section>
+
+</downloads>
