@@ -44,7 +44,9 @@ Swsusp2ConfigEnabler() {
     [ -n "$USING_SWSUSP2" ] && return 0
     AddConfigHandler Swsusp2ConfigOptions
     AddSuspendHook 10 EnsureSwsusp2Capable
+    AddSuspendHook 97 ChangeToSwsuspVT
     AddSuspendHook 99 DoSwsusp2
+    AddResumeHook 97 ChangeFromSwsuspVT
     USING_SWSUSP2=1
     return 0
 }
@@ -164,24 +166,33 @@ DoSwsusp2() {
     return 0
 }
 
+ChangeToSwsuspVT() {
+    if [ -n "$SWSUSP_FORCE_CHVT" ] ; then
+	if which fgconsole > /dev/null 2>&1 ; then
+	    SWSUSP_ORIGINAL_VT=`fgconsole`
+	else
+	    SWSUSP_ORIGINAL_VT=1
+	fi
+	vecho 3 "swsusp2_15: changing console from $SWSUSP_ORIGINAL_VT to 63"
+	chvt 63
+    fi
+    return 0
+}
+
+ChangeFromSwsuspVT() {
+    if [ -n "$SWSUSP_ORIGINAL_VT" ] ; then
+	vecho 3 "swsusp2_15: changing console back to $SWSUSP_ORIGINAL_VT"
+	chvt $SWSUSP_ORIGINAL_VT
+    fi
+    return 0
+}
+
 # DoSuspend: activates the suspend and echo's the error code to be processed by
 # PrintErrors. We can't just return it, because error codes may be > 255
 DoSuspend() {
-    # Since 2.0.0.103 (= 0x02000067) we need to chvt manually.
-    if SwsuspIsAtLeastVersion $((0x02000067)) ; then
-	# Wish this and xhacks weren't doubling up on work.  This will co-exist
-	# with XHacksSuspend because we need to support both old, new and other
-	# versions of suspend that do/don't chvt. This code simulates what the
-	# old swsusp did.
-	which fgconsole > /dev/null 2>&1 && SWSUSP_ORIGINAL_VT=`fgconsole` || SWSUSP_ORIGINAL_VT=1
-	chvt 63
-    fi
-
     echo > $SWSUSP_ROOT/activate
     read REPLY < $SWSUSP_ROOT/last_result
     echo $REPLY
-
-    [ -n "$SWSUSP_ORIGINAL_VT" ] && chvt $SWSUSP_ORIGINAL_VT
 
     return 0
 }
@@ -272,7 +283,8 @@ EOT
     if [ -f "$SWSUSP_ROOT/activate" -a ! -f "$SWSUSP_ROOT/version" ] ; then
 	cat <<EOT
 Can not find $SWSUSP_ROOT/version. Have you loaded the suspend_core
-module?  Continuing anyway, but don't expect this to work...
+module?  Proceeding anyway, but don't expect this to work...
+
 EOT
     fi
 
@@ -287,6 +299,10 @@ WARNING: The swsusp2 scriptlet was written for a different swsusp2 interface
 
 EOT
     fi
+
+    # Figure out if we need to handle VT switching ourselves (if version
+    # >= 2.0.0.103)
+    SwsuspIsAtLeastVersion $((0x02000067)) && SWSUSP_FORCE_CHVT=1
 
     # If we have the resume2 proc entry, we can do some further tests
     # Otherwise, bail gracefully
