@@ -24,7 +24,7 @@ vecho() {
 ##############################################################################
 
 # AddSuspendHook NN name: Adds a function to the suspend chain. NN must be a
-# number between 10 and 99, inclusive. Smaller numbers get called earlier on
+# number between 11 and 98, inclusive. Smaller numbers get called earlier on
 # suspend.
 AddSuspendHook() {
     SUSPEND_BITS="$1$2\\n$SUSPEND_BITS"
@@ -32,7 +32,7 @@ AddSuspendHook() {
 SUSPEND_BITS=""
 
 # AddResumeHook NN name: Adds a function to the resume chain. NN must be a number
-# between 10 and 99, inclusive. Smaller numbers get called later on resume.
+# between 11 and 98, inclusive. Smaller numbers get called later on resume.
 AddResumeHook() {
     RESUME_BITS="$1$2\\n$RESUME_BITS"
 }
