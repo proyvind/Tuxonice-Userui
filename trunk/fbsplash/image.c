@@ -190,7 +190,7 @@ int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *h
 #endif
 	png_read_update_info(png_ptr, info_ptr);
 
-	if (info_ptr->color_type != PNG_COLOR_TYPE_RGB && info_ptr->color_type != PNG_COLOR_TYPE_RGBA)
+	if (!cmap && info_ptr->color_type != PNG_COLOR_TYPE_RGB && info_ptr->color_type != PNG_COLOR_TYPE_RGBA)
 		goto failed;
 
 	if (cmap) {
