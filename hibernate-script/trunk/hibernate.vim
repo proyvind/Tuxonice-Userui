@@ -145,6 +145,9 @@ syntax keyword hibernate_conf enableescape contained nextgroup=hibernate_boolean
 syntax keyword hibernate_conf defaultconsolelevel contained nextgroup=hibernate_integer skipwhite
 syntax keyword hibernate_conf imagesizelimit contained nextgroup=hibernate_imagesizelimit skipwhite
 syntax keyword hibernate_conf swsusp2allsettings contained nextgroup=hibernate_swsusp2allsettings skipwhite
+syntax keyword hibernate_conf suspenddevice contained nextgroup=hibernate_filenames skipwhite
+syntax keyword hibernate_conf loadsuspendmodules contained nextgroup=hibernate_modules skipwhite
+syntax keyword hibernate_conf unloadsuspendmodulesafterresume contained nextgroup=hibernate_boolean skipwhite
 
 " sysfspowerstate
 syntax keyword hibernate_conf usesysfspowerstate contained nextgroup=hibernate_sysfspowerstate skipwhite

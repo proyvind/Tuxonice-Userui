@@ -29,6 +29,11 @@ AddConfigHelp "ImageSizeLimit nocache|<NN> (requires UseSwsusp2 on)" "If specifi
 
 AddConfigHelp "Swsusp2AllSettings <params> (requires UseSwsusp2 on)" "If specified, sets all of the settings for Software Suspend 2 at once. The parameter should be the contents of $SWSUSP_ROOT/all_settings after you have set your desired settings manually."
 
+AddConfigHelp "SuspendDevice <device> (requires UseSwsusp2 on)" "If specified, sets the suspend device by writing to the resume2 entry in $SWSUSP_ROOT. This does not automatically set the resuming device - you will need to make sure your bootloader or initrd script does this."
+
+AddConfigHelp "LoadSuspendModules <module name> [...] (requires UseSwsusp2 on)" "Loads the given modules before even detecting Software Suspend. This may be required when Software Suspend is compiled as modules that need to be loaded prior to suspending."
+AddConfigHelp "UnloadSuspendModulesAfterResume <boolean> (requires UseSwsusp2 on)" "If yes, will unload the Software Suspend modules mentioned above after resuming."
+
 AddShortOption "n"
 AddLongOption "no-suspend"
 AddOptionHelp "-n, --no-suspend (requires UseSwsusp2 on)" "Disables actually suspending the system. This is useful for testing the suspend script itself."
@@ -89,6 +94,18 @@ Swsusp2ConfigOptions() {
 	swsusp2allsettings)
 	    SWSUSP_ALL_SETTINGS=$2
 	    ;;
+	suspenddevice)
+	    SWSUSP_RESUME2=$2
+	    ;;
+	loadsuspendmodules)
+	    AddSuspendHook 05 Swsusp2LoadModules
+	    shift
+	    SWSUSP_LOAD_MODULES=$@
+	    ;;
+	unloadsuspendmodulesafterresume)
+	    BoolIsOn "$1" "$2" || return 0
+	    AddResumeHook 05 Swsusp2UnloadModules
+	    ;;
 	*)
 	    return 1
     esac
@@ -126,6 +143,7 @@ Swsusp2ConfigSet() {
     [ -n "$OPT_ESCAPE" ] && echo $OPT_ESCAPE > $SWSUSP_ROOT/enable_escape
     [ -n "$OPT_CONSOLELEVEL" ] && echo $OPT_CONSOLELEVEL > $SWSUSP_ROOT/default_console_level
     [ -n "$SWSUSP_ALL_SETTINGS" ] && echo $SWSUSP_ALL_SETTINGS > $SWSUSP_ROOT/all_settings
+    [ -n "$SWSUSP_RESUME2" ] && echo $SWSUSP_RESUME2 > $SWSUSP_ROOT/resume2
     return 0
 }
 
@@ -249,6 +267,9 @@ EOT
     # Otherwise, bail gracefully
     [ -f $SWSUSP_ROOT/resume2 ] || return 0
 
+    # If we're going to set resume2, we needed care about this.
+    [ -n "$SWSUSP_RESUME2" ] && return 0
+
     # See if we have been given a resume2 line
     read REPLY < $SWSUSP_ROOT/resume2
     if [ -z "$REPLY" ] ; then
@@ -262,6 +283,32 @@ after doing so or set it manually (this time only) using:
 EOT
 	return 2
     fi
+    return 0
+}
+
+Swsusp2LoadModules() {
+    local i
+    local ret
+    ret=0
+    for i in $SWSUSP_LOAD_MODULES ; do
+	vecho 2 -n "Loading suspend module $i ... "
+	if modprobe $i > /dev/null 2>&1 ; then
+	    vecho 2
+	else
+	    vecho 2 "failed."
+	    ret=1
+	    # Don't abort immediately, because we might be using force.
+	    # So we may as well load all the modules.
+	fi
+    done
+    return $ret
+}
+
+Swsusp2UnloadModules() {
+    for i in $SWSUSP_LOAD_MODULES ; do
+	vecho 2 "Unloading suspend module $i ... "
+	modprobe -r `FindModuleDeps $i` > /dev/null 2>&1
+    done
     return 0
 }
 
