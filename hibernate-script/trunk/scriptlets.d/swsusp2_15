@@ -6,7 +6,7 @@ AddOptionHandler Swsusp2OptionHandler
 
 AddConfigHelp "UseSwsusp2 <boolean>" "Enable/disable the use of Software Suspend 2 to suspend."
 
-AddConfigHelp "Reboot <boolean> (requires UseSwsusp2 on)" "Controls whether or not swsusp should reboot after suspending. Setting this to yes will force a reboot. Setting this to no will force shutting down. Omitting this option will leave rebooting behaviour unchanged."
+AddConfigHelp "Reboot <boolean> (requires UseSwsusp2 on)" "Controls whether or not Software Suspend 2 should reboot after suspending. Setting this to yes will force a reboot. Setting this to no will force shutting down. Omitting this option will leave rebooting behaviour unchanged."
 AddShortOption "r::"
 AddLongOption "reboot::"
 AddOptionHelp "-r[0|1], --reboot[=<0|1>] (requires UseSwsusp2 on)" "If 0 is specified, disables rebooting after suspend, regardless of the Reboot option in the configuration file. If 1 or omitted, will force a reboot after suspending."
@@ -94,7 +94,7 @@ Swsusp2ConfigSet() {
     # In earlier versions, /proc/swsusp/reboot was only available when
     # compiled with debugging. Unfortunately the interface version didn't
     # change when this was made available always :(
-    [ -n "$OPT_REBOOT" ] && [ -f "/proc/swsusp/reboot" ] && \
+    [ -n "$OPT_REBOOT" ] && [ -f "$SWSUSP_ROOT/reboot" ] && \
 	echo $OPT_REBOOT > $SWSUSP_ROOT/reboot
 
     [ -n "$OPT_ESCAPE" ] && echo $OPT_ESCAPE > $SWSUSP_ROOT/enable_escape
@@ -185,8 +185,8 @@ PrintErrors() {
 # implementation in the kernel. This returns 0 if there is no swsusp in the
 # kernel (note, this is interpreted as "true" in shell-speak)
 GetInterfaceVersion() {
-    [ -d "/proc/swsusp" ] || return 0
-    [ -f "/proc/swsusp/interface_version" ] || return 0
+    [ -d "$SWSUSP_ROOT" ] || return 0
+    [ -f "$SWSUSP_ROOT/interface_version" ] || return 0
     read REPLY < $SWSUSP_ROOT/interface_version
     return $REPLY
 }
@@ -233,7 +233,7 @@ You haven't specified a resume2= parameter on your kernel command line
 Your GRUB or LILO config should have something like resume2=swap:/dev/hdaX
 where /dev/hdaX is your swap partition. You will then need to either reboot
 after doing so or set it manually (this time only) using:
-    echo swap:/dev/hdaX > /proc/swsusp/resume2
+    echo swap:/dev/hdaX > $SWSUSP_ROOT/resume2
 EOT
 	return 2
     fi
