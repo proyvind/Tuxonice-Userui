@@ -136,12 +136,7 @@ LockOptions() {
 	    LOCK_CONSOLE_USER="$2"
 
 	    if [ -z "$CONSOLELOCK_HOOKED" ] ; then
-		# call vlock just after resuming to avoid switching consoles
-		# and ask for password
 		AddResumeHook 96 LockConsole
-
-		# This ensures the console we switch back to will have vlock on
-		# it. (and not go via X first, or something)
 		AddSuspendHook 96 SwitchToLockConsole
 
 		CONSOLELOCK_HOOKED=1
