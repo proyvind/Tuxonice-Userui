@@ -1,0 +1,70 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
+AddConfigHandler GentooModulesOptions
+AddConfigHelp "GentooModulesAutoload <boolean>" "Try to load default modules after resuming (from /etc/modules.autoload)"
+
+GentooModulesAutoload() {
+    [ x"$MODULES_GENTOO_AUTOLOAD" = "x1" ] || return 0
+
+    if [ ! -f /sbin/functions.sh ] ; then
+	vecho 1 "/sbin/functions.sh not found - not running Gentoo? gentoo-modules disabled."
+	return 1
+    fi
+
+    . /sbin/functions.sh
+    # taken from gentoo's /etc/init.d/modules
+    if [ -f /etc/modules.autoload ] && [ ! -L /etc/modules.autoload ] ; then
+	modules_autoload_file= /etc/modules.autoload
+    else
+	local KV="$(uname -r)"
+	local KV_MAJOR="`KV_major "${KV}"`"
+	local KV_MINOR="`KV_minor "${KV}"`"
+
+	# New support for /etc/modules.autoload/kernel-$KV
+	if [ "$(get_KV)" -ge "$(KV_to_int '2.5.48')" ] && \
+	[ -f /etc/modules.autoload.d/kernel-"${KV_MAJOR}.${KV_MINOR}" ]
+	then
+	    modules_autoload_file="/etc/modules.autoload.d/kernel-${KV_MAJOR}.${KV_MINOR}"
+	elif [ ! -f /etc/modules.autoload.d/kernel-"${KV_MAJOR}.${KV_MINOR}" ]
+	then
+	    ewarn "Missing /etc/modules.autoload.d/kernel-${KV_MAJOR}.${KV_MINOR}"
+	    modules_autoload_file="/etc/modules.autoload.d/kernel-2.4"
+	else
+	    modules_autoload_file="/etc/modules.autoload.d/kernel-2.4"
+	fi
+    fi
+
+    local MOD
+    local args
+    # Loop over every line in $modules_autoload_file.
+    vecho 1 "Loading modules listed $modules_autoload_file"
+    while : ; do
+	read MOD args
+	[ $? -ne 0 ] && [ -z "$MOD" ] && break
+	case "${MOD}" in
+	    \#*|"") continue ;;
+	esac
+	vecho 1 "Loading $MOD"
+	modprobe ${MOD} ${args}
+    done < $modules_autoload_file
+
+    return 0
+}
+
+
+GentooModulesOptions() {
+    case $1 in
+	gentoomodulesautoload)
+	    if BoolIsOn "$1" "$2" ; then
+		MODULES_GENTOO_AUTOLOAD=1
+		AddResumeHook 91 GentooModulesAutoload
+	    fi
+	    ;;
+	*)
+	    return 1
+    esac
+    return 0
+}
+
+# $Id$
