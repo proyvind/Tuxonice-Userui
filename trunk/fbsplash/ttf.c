@@ -37,7 +37,7 @@ char *boot_message = NULL;
 
 static int alpha = 100;
 
-unsigned char* TTF_RenderUNICODE_Shaded(u8 *target, const unsigned short *text,
+void TTF_RenderUNICODE_Shaded(u8 *target, const unsigned short *text,
 					TTF_Font* font, int x, int y, color fcol);
 
 
@@ -174,7 +174,7 @@ int TTF_Init(void)
 	status = 0;
 	error = FT_Init_FreeType(&library);
 	if (error) {
-		fprintf(stderr, "Couldn't init FreeType engine %d\n", error);
+		fprintf(stderr, "Couldn't init FreeType engine %x\n", error);
 		status = -1;    
 	} else {
 		TTF_initialized = 1;
@@ -266,7 +266,7 @@ TTF_Font* TTF_OpenFontIndex(const char *file, int ptsize, long index)
 //		error=FT_New_Memory_Face(library, (const FT_Byte*)luxisri_ttf, LUXISRI_SIZE, 0, &font->face);
 
 	if (error) {
-		printf("Couldn't load font file: Error %d\n", error);
+		printf("Couldn't load font file: Error %x\n", error);
 		free(font);
 		return NULL;
 	}
@@ -276,12 +276,12 @@ TTF_Font* TTF_OpenFontIndex(const char *file, int ptsize, long index)
 			FT_Done_Face(font->face);
 			error = FT_New_Face(library, file, index, &font->face);
 			if(error) {
-				printf("Couldn't get font face: Error %d\n", error);
+				printf("Couldn't get font face: Error %x\n", error);
 				free(font);
 				return NULL;
 			}
 		} else {
-			fprintf(stderr, "No such font face: Error %d\n", error);
+			fprintf(stderr, "No such font face: Error %x\n", error);
 			free(font);
 			return NULL;
 		}
@@ -608,7 +608,7 @@ int TTF_SizeUNICODE(TTF_Font *font, const unsigned short *text, int *w, int *h)
 }
 
 
-unsigned char* TTF_RenderUNICODE_Shaded(u8 *target, const unsigned short *text,
+void TTF_RenderUNICODE_Shaded(u8 *target, const unsigned short *text,
 					TTF_Font* font, int x, int y, color fcol)
 {
 	int rlen, glen, blen;
@@ -628,7 +628,7 @@ unsigned char* TTF_RenderUNICODE_Shaded(u8 *target, const unsigned short *text,
 	/* Get the dimensions of the text surface */
 	if((TTF_SizeUNICODE(font, text, &width, NULL) < 0) || !width) {
 		fprintf(stderr,"Text has zero width\n");
-		return NULL;
+		return;
 	}
 	height = font->height;
 
@@ -636,7 +636,7 @@ unsigned char* TTF_RenderUNICODE_Shaded(u8 *target, const unsigned short *text,
 	textbuf=malloc(width*height*bytespp);
 	
 	if(textbuf == NULL) {
-		return NULL;
+		return;
 	}
 
 	if (fb_fix.visual == FB_VISUAL_DIRECTCOLOR) {
@@ -655,7 +655,7 @@ unsigned char* TTF_RenderUNICODE_Shaded(u8 *target, const unsigned short *text,
 		error = Find_Glyph(font, *ch, CACHED_METRICS|CACHED_PIXMAP);
 		if(error) {
 			free(textbuf);
-			return NULL;
+			return;
 		}
 		glyph = font->current;
 
@@ -768,7 +768,7 @@ unsigned char* TTF_RenderUNICODE_Shaded(u8 *target, const unsigned short *text,
 			dst += width*bytespp;
 		}
 	}
-	return textbuf;
+	free(textbuf);
 }
 
 
