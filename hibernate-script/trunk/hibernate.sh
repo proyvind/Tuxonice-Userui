@@ -272,7 +272,7 @@ $CMDLINE_OPTIONS_HELP
 The following config file options are available (module name in brackets):
 
 $CONFIGURATION_OPTIONS_HELP
-Suspend Script $VERSION                     (C) 2004 Bernard Blackham
+Hibernate Script $VERSION                           (C) 2004 Bernard Blackham
 EOT
     return
 }
@@ -502,7 +502,7 @@ AddInbuiltHelp() {
     AddOptionHelp "-F<file>, --config-file=<file>" "Use the given configuration file instead of the default ($CONFIG_FILE)"
     AddOptionHelp "--dry-run" "Don't actually do anything."
 
-    AddConfigHelp "SwsuspVT N" "If specified, output from the suspend script is rediredirected to the given VT instead of stdout."
+    AddConfigHelp "SwsuspVT N" "If specified, output from the suspend script is redirected to the given VT instead of stdout."
     AddConfigHelp "Verbosity N" "Determines how verbose the output from the suspend script should be:
    0: silent except for errors
    1: print steps

@@ -35,7 +35,8 @@ The default configuration does nothing but save and restore your clock. If you
 have kernel modules that need to be unloaded, filesystems unmounted, network
 interfaces brought down, etc, you will want to customise the configuration file
 in /etc/hibernate/hibernate.conf. Run hibernate -h for help on the possible
-options.
+options. There is also a man page for hibernate.conf as well as hibernate
+itself.
 
 RUNNING
 -------
@@ -67,7 +68,7 @@ This script was written by Bernard Blackham, with contributions from:
  - Carsten Rietzschel (modules, devices, bootsplash, lock and grub scriptlets.
    many ideas and bugfixes)
  - Cameron Patrick (sysfs_power_state, xscreensaver support for lock, many
-   bugfixes and ideas, Debian packaging)
+   bugfixes and ideas, man pages and Debian packaging)
  - Kevin Fenzi (rpm packaging, ideas)
 
 LICENSE
