@@ -584,7 +584,7 @@ DoWork() {
 	new_CHAIN_UP_TO="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)}\"`" || break
 	[ -n "$new_CHAIN_UP_TO" ] && CHAIN_UP_TO=$new_CHAIN_UP_TO
 	bit=${bit##$CHAIN_UP_TO}
-	vecho 1 "$EXE: Executing $bit ... "
+	vecho 1 "$EXE: [$CHAIN_UP_TO] Executing $bit ... "
 	[ -n "$OPT_DRY_RUN" ] && continue
 	$bit
 	ret="$?"
@@ -617,7 +617,7 @@ DoWork() {
 	[ -z "$THIS_POS" ] && continue
 	bit=${bit##$THIS_POS}
 	[ "$THIS_POS" -gt "$CHAIN_UP_TO" ] && continue
-	vecho 1 "$EXE: Executing $bit ... "
+	vecho 1 "$EXE: [$THIS_POS] Executing $bit ... "
 	[ -n "$OPT_DRY_RUN" ] && continue
 	$bit
     done
