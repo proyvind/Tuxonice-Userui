@@ -142,9 +142,9 @@ int mng_display_next(mng_handle mngh, char* dest, int x, int y, int width, int h
 		dispwidth = mng->canvas_w;
 
 	if (y + mng->canvas_h > height)
-		dispwidth = height - y;
+		dispheight = height - y;
 	else
-		dispwidth = mng->canvas_h;
+		dispheight = mng->canvas_h;
 
 	for (line = 0; line < dispheight; line++) {
 		memcpy(dest + (x * bpp), src, dispwidth * bpp);
