@@ -38,7 +38,7 @@ sub get_latest_dev_patches {
 $DATEFILE = "";
 $DATEFILE = " -r ".$ARGV[0] if $#ARGV >= 0;
 $ENV{"TZ"} = "AWST-8";
-$SUBSTS{"WIKI_URL"} = "http://wiki.suspend2.net";
+$SUBSTS{"WIKI_URL"} = "http://wiki.suspend2.net/";
 $SUBSTS{"BASE"} = "";
 $SUBSTS{"DATE"} = `date -R$DATEFILE`;
 chop $SUBSTS{"DATE"};

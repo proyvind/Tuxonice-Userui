@@ -748,7 +748,7 @@ before any filesystems are mounted. This implies that the modules for suspend
 must be put in the initrd and loaded before the initrd does any mounting of
 filesystems (the modules can be inserted, but the mount commands must come
 later). Note: in Debian kernels, a script in /scripts/ is executed too late.
-See <url url="http://softwaresuspend.berlios.de/wiki/DistroAndHardwareSetup/DebianInitrd" name="DebianInitrd on the wiki">.
+See <url url="###WIKI_URL###DistroAndHardwareSetup/DebianInitrd" name="DebianInitrd on the wiki">.
 
 <sect2>Sample linuxrc
 <p>
