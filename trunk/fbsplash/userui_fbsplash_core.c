@@ -41,7 +41,7 @@ static void reset_silent_img() {
 		return;
 	memcpy((void*)silent_img.data, base_image, base_image_size);
 	strncpy(rendermessage, lastmessage, 512);
-	render_objs('s', (u8*)silent_img.data, FB_SPLASH_IO_ORIG_USER);
+	render_objs('s', (u8*)silent_img.data, FB_SPLASH_IO_ORIG_USER, 0);
 	rendermessage[0] = '\0';
 }
 
@@ -252,7 +252,7 @@ static void fbsplash_update_progress(unsigned long value, unsigned long maximum,
 		progress_text = msg;
 
 render:
-	render_objs('s', (u8*)silent_img.data, FB_SPLASH_IO_ORIG_USER);
+	render_objs('s', (u8*)silent_img.data, FB_SPLASH_IO_ORIG_USER, 1);
 	update_fb_img();
 
 	progress_text = NULL;

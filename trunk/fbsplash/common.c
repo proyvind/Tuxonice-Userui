@@ -140,9 +140,9 @@ int do_getpic(unsigned char origin, unsigned char do_cmds, char mode)
 #endif
 	
 	if (mode == 'v') {
-		render_objs(mode, (u8*)verbose_img.data, origin);
+		render_objs(mode, (u8*)verbose_img.data, origin, 0);
 	} else {
-		render_objs(mode, (u8*)silent_img.data, origin);
+		render_objs(mode, (u8*)silent_img.data, origin, 0);
 	}
 
 	if (do_cmds) {

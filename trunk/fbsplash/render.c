@@ -234,7 +234,7 @@ char *get_program_output(char *prg, unsigned char origin)
 	return buf;
 }
 
-void render_objs(char mode, u8* target, unsigned char origin)
+void render_objs(char mode, u8* target, unsigned char origin, int progress_only)
 {
 	item *i;
 	obj *o;
@@ -249,7 +249,10 @@ void render_objs(char mode, u8* target, unsigned char origin)
 
 		if (o->type == o_box) {
 			b = (box*)o->p;
-				
+
+			if (progress_only && (b->attr & BOX_NOOVER))
+				continue;
+
 			if (b->attr & BOX_SILENT && mode != 's')
 				continue;
 
@@ -268,6 +271,9 @@ void render_objs(char mode, u8* target, unsigned char origin)
 				render_box(b, target);
 			}
 		} else if (o->type == o_icon && mode == 's') {
+			if (progress_only)
+				continue;
+
 			c = (icon*)o->p;
 
 			if (c->status == 0)
@@ -292,6 +298,9 @@ void render_objs(char mode, u8* target, unsigned char origin)
 			text *ct = (text*)o->p;
 			char *txt;
 					
+			if (progress_only && !(ct->flags & F_TXT_PROGRESS))
+				continue;
+
 			if (mode == 's' && !(ct->flags & (F_TXT_SILENT | F_TXT_PROGRESS)))
 				continue;
 
@@ -319,7 +328,7 @@ void render_objs(char mode, u8* target, unsigned char origin)
 	}
 
 #if (defined(CONFIG_TTY_KERNEL) && defined(TARGET_KERNEL)) || defined(CONFIG_TTF)
-	if (mode == 's') {
+	if (mode == 's' && !progress_only) {
 		if (!boot_message)
 			TTF_Render(target, DEFAULT_MESSAGE, global_font, TTF_STYLE_NORMAL, cf.text_x, cf.text_y, cf.text_color);
 		else
