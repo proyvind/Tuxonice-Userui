@@ -14,10 +14,12 @@
 #include "splash.h"
 #include "../userui.h"
 
+#define PROGRESS_BAR_GRANULARITY (PROGRESS_MAX/40)
+
 int fb_fd, fbsplash_fd;
 static char lastheader[512];
 static int lastloglevel;
-static unsigned long cur_value, cur_maximum;
+static unsigned long cur_value, cur_maximum, last_pos;
 static int video_num_lines, video_num_columns;
 
 static inline void clear_display() { write(1, "\2332J", 3); }
@@ -62,6 +64,7 @@ static void fbsplash_prepare() {
 
 	fb_fd = -1;
 	fbsplash_fd = -1;
+	last_pos = 0;
 	lastloglevel = SUSPEND_ERROR; /* start in verbose mode */
 
 	/* Find out the screen size */
@@ -125,6 +128,11 @@ static void fbsplash_message(unsigned long type, unsigned long level, int normal
 		fbsplash_put_message_silent();
 }
 
+static void fbsplash_redraw() {
+	silent_on();
+	fbsplash_put_message_silent();
+}
+
 static void fbsplash_update_progress(unsigned long value, unsigned long maximum, char *msg) {
 	int bitshift, tmp;
 
@@ -149,6 +157,14 @@ static void fbsplash_update_progress(unsigned long value, unsigned long maximum,
 
 	cur_value = value;
 	cur_maximum = maximum;
+
+	if (last_pos < tmp && tmp < last_pos + PROGRESS_BAR_GRANULARITY)
+		return;
+
+	if (tmp < last_pos)
+		fbsplash_redraw();
+
+	last_pos = tmp;
 
 	arg_progress = tmp;
 	arg_task = paint;
@@ -180,9 +196,6 @@ static void fbsplash_log_level_change(int loglevel) {
 	}
 	
 	lastloglevel = console_loglevel;
-}
-
-static void fbsplash_redraw() {
 }
 
 static void fbsplash_keypress(int key) {

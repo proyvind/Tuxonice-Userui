@@ -11,6 +11,7 @@
  *
  */
 
+#include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
 //#include <linux/types.h>
@@ -233,6 +234,8 @@ int load_png(struct png_data *data, struct fb_image *img, char mode)
 				}
 			}
 		}
+		if (i%500 == 0)
+			sched_yield();
 	}
 
 	if (fb_var.bits_per_pixel == 8) {
