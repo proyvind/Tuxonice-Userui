@@ -54,10 +54,6 @@ LockXScreensaver() {
 	DISPLAY=:$display XAUTHORITY=$xauth xscreensaver-command -lock
     done
 
-    # it takes a while for xscreensaver to actually lock
-    # FIXME is this ideal behaviour? it slows down suspending :(
-    sleep 2
-
     return 0
 }
 
