@@ -24,6 +24,7 @@ FAQ_TARGET = $(FAQ_BASENAME).html  \
 
 PAGES = style.css \
 		index.html \
+		olddownloads.html \
 		oldnews.html \
 		status.html \
 		quickstart.html \
@@ -60,6 +61,23 @@ rawfiles: $(patsubst %,$(SITEBASE)/%,$(filter-out %.html,$(PAGES)))
 directories:
 	mkdir -p $(patsubst %,$(SITEBASE)/%,$(DIRS))
 
+olddownloads.html:
+	@#cat /tmp/index.html | perl -e 
+	wget -O - http://download.berlios.de/softwaresuspend/ | perl -e \
+		'print "TITLE=Older downloads\n<h1>Software Suspend - Older downloads</h1>\n"; \
+		$$width = 60; \
+		sub max { my ($$a, $$b) = @_; return ($$a>$$b)?$$a:$$b; } \
+		while (<>) { \
+			if (not $$havebody){/^<PRE>/and$$havebody = 1 or next; } \
+			last if m#^</PRE><HR>$$#; \
+			m#">Parent Directory<# and next; \
+			m#">apply<# and next; \
+			s#A HREF="([^\?][^"]*)">[^<]+</A>#sprintf "A HREF=\"http://download.berlios.de/softwaresuspend/$$1\">$$1</A>%".(max(($$width-length($$1)),0))."s", ""#e; \
+			s#IMG SRC="#IMG SRC="http://download.berlios.de/#; \
+			print; \
+		} \
+		print "</PRE>\n"' > $@
+
 # HTML files need a bit of processing.
 $(SITEBASE)/%.html: %.html $(PREREQS)
 	./Prettify $< > $@
@@ -90,7 +108,8 @@ push:
 demo: 
 	cd .. && rsync -azve ssh --exclude=.svn sitefiles mussel-w:public-html/swsusp/ && ssh mussel-w make -C public-html/swsusp/sitefiles
 
-berlios: 
-	cd .. && rsync -azve ssh --exclude=.svn sitefiles berlios:softwaresuspend/ && ssh berlios make -C softwaresuspend/sitefiles
+berlios: all
+	cd .. && rsync -azve ssh --exclude=.svn htdocs/* berlios:softwaresuspend/htdocs/
+	#cd .. && rsync -azve ssh --exclude=.svn sitefiles berlios:softwaresuspend/ && ssh berlios make -C softwaresuspend/sitefiles
 
 .PHONY: directories htmlfiles rawfiles howto clean backup push demo

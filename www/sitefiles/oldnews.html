@@ -2,6 +2,137 @@ TITLE=Software Suspend - Older News
 
 <h1>###TITLE###</h1>
 
+<b>27 January 2003: swsusp 2.0-rc5 core patch</b>
+<p>Nigel writes:
+<i>Core patch 2.0rc5 is now available on Sourceforge. I'm really truly
+expecting it to be the last rc. This is not to say that I think we've
+got it completely bug free, but that it's close enough for me to feel
+happy about calling it 2.0.  The main changes since rc4:</i>
+<ul>
+<li> Console printing calls reworked in response to discussions on LKML.</li>
+<li> Initial SCSI support. Your mileage will vary, depending upon
+how/whether your SCSI driver implemented power management support.</li>
+<li> Confirmed success running on an 8 processor box (except that SCSI
+power management was broken on the box, so I couldn't get past starting
+to try to re-read the caches).</li>
+<li> Fixed an issue with reserved Highmem pages causing an oops in
+copy_pageset1.</li>
+<li> Fixed preemption issues with 2.6.</li>
+<li> Keys for debugging reworked so serial console and normal keyboard use
+the same keys: P for pausing, S for single step, Space to continue when
+paused.</li>
+</ul>
+
+</p>
+
+
+
+<b>17 January 2003: swsusp 2.0-rc4 available!</b>
+<p><a href="http://marc.theaimsgroup.com/?l=swsusp-devel&m=107428204512719&w=2">Nigel writes</a>: <i><a href="http://prdownloads.sourceforge.net/swsusp/software-suspend-core-2.0-rc4-whole.bz2?download">Release candidate 4</a> is ready for you to test. It should be
+used with the following updated version specific patches, which are also now
+available:
+<ul>
+<li><a href="http://prdownloads.sourceforge.net/swsusp/software-suspend-linux-2.4.21-rev1-whole.bz2?download">2.4.21 revision 1</a></li>
+<li><a href="http://prdownloads.sourceforge.net/swsusp/software-suspend-linux-2.4.22-rev1-whole.bz2?download">2.4.22 revision 1</a></li>
+<li><a href="http://prdownloads.sourceforge.net/swsusp/software-suspend-linux-2.4.23-rev5-whole.bz2?download">2.4.23 revision 5</a></li>
+<li><a href="http://prdownloads.sourceforge.net/swsusp/software-suspend-linux-2.4.24-whole.bz2?download">2.4.24</a></li>
+</ul>
+</i>
+The major changes since rc3 are fixes for preemption in 2.6, LZF compression
+(Really Fast!), serial port power management support, numerous other bugfixes,
+code documentation and cleanups.
+</p>
+
+<b>30 December 2003: Comparison table</b>
+<p>A <a href="features.html#compare">comparison table</a> has been compiled by Harry
+Rockefeller and Nigel comparing the 3 different implementations available in
+the 2.6 kernel and may clear up some confusion.</p>
+
+<b>10 December 2003: swsusp 2.0-rc3 is out for 2.4 <i>AND</i> 2.6!</b>
+<p>
+No, it hasn't been quiet at all! Thanks to many test patches and our bleeding edge
+testers, <a href="http://marc.theaimsgroup.com/?l=swsusp-devel&m=107103023307010&w=2">Nigel has announced swsusp 2.0-rc3</a>. There are now two patches one needs to apply to
+obtain swsusp. The first is a version-specific patch for your kernel, whether it
+be
+<a href="http://prdownloads.sourceforge.net/swsusp/software-suspend-2.0-linux-2.4.23.bz2?download">2.4.23</a>
+<a href="http://prdownloads.sourceforge.net/swsusp/software-suspend-2.0-linux-2.4.22.bz2?download">2.4.22</a>
+<a href="http://prdownloads.sourceforge.net/swsusp/software-suspend-2.0-linux-2.4.21.bz2?download">2.4.21</a> or
+<a href="http://prdownloads.sourceforge.net/swsusp/software-suspend-2.0-linux-2.6.0-test11-rev2.bz2?download">2.6.0-test11</a>.
+
+The second is the 
+<a href="http://prdownloads.sourceforge.net/swsusp/software-suspend-2.0-core-rc3A.bz2?download">core patch</a>
+to be applied regardless of your kernel version.</p>
+
+<p><b>NOTE:</b> The kernel command line parameters have changed. <tt>resume=</tt>
+and <tt>noresume</tt> have been deprecated, in favour of <tt>resume2=</tt> and
+<tt>noresume2</tt> to avoid clashing with other 2.6 parameters, and which will
+allow for alternate methods of storing the suspend image (eg, on an NFS mount)
+in the future.  If your resume line currently reads <tt>resume=/dev/hda1</tt>
+then it should be changed to <tt>resume2=swap:/dev/hda1</tt>. For swap files,
+similar changes have occured - read 
+<a href="http://marc.theaimsgroup.com/?l=swsusp-devel&m=107103023307010&w=2">Nigel's announcement</a> for the details.
+</p>
+<p>Furthermore, <tt>/proc/sys/kernel/swsusp</tt> has finally been moved into 
+<tt>/proc/swsusp/all_settings</tt>. This means you will need to update your
+suspend scripts accordingly too.
+</p>
+<p>For more gory details, <a href="http://marc.theaimsgroup.com/?l=swsusp-devel&m=107103023307010&w=2">read Nigel's announcement</a>.
+</p>
+
+<b>28 October 2003: swsusp 2.0-alpha2 for 2.6</b>
+<p>
+This version removes lots of unneeded code leftover from 2.4, fixes some compilation errors, documentation updates and more.
+For more details, see <a href="http://marc.theaimsgroup.com/?l=swsusp-devel&m=106732559122481&w=2">Nigel's announcement</a>, including release notes.<br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-2.0-2.6-alpha2-incremental.bz2?download">Download it here (incremental patch against 2.0-2.6-alpha1)</a>.
+</p>
+
+<b>25 October 2003: swsusp 2.0-alpha1 for the 2.6 kernel!</b>
+<p>
+Nigel writes: <i>"I'm pleased to be able to announce the first test release of
+a port of the current 2.0 pre-release Software Suspend code to 2.6."</i><br>
+For more details, see <a href="http://sourceforge.net/mailarchive/message.php?msg_id=6361426">Nigel's announcement</a>, including release notes.<br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-2.0-2.6alpha1.bz2?download">Download it here (patch against 2.6.0-test8)</a>.
+</p>
+
+<b>20 October 2003: swsusp 2.0-rc2</b>
+<p>2.0-rc2 fixes and squashes more bugs, including:
+<ul>
+<li>Various fixes/improvements to the freezer
+<li>Fix for ACPI continually generating lid events post-resume (subject to further investigation, but this works and has no negative side effects)
+<li>Fix for no progress bar during reading kernel image back
+<li>Fix for bug in switching from bootsplash to text mode progress bar
+<li>Fix/rework for allocating zlib memory when compression support enabled
+<li>Fixing support for swapfiles on file systems with blocksize != 1024 and not aligned on 4096 byte boundaries
+<li>Fix for memory corruption when number of range pages == 53
+</ul>
+</p>
+<p>
+<a href="http://marc.theaimsgroup.com/?l=swsusp-devel&m=106660860226851&w=2">Read Nigel's announcement</a><br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-2.0-rc2-incremental.bz2?download">Download incremental patch from 2.0-rc1</a><br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-2.0-rc2-whole.bz2?download">Download whole patch against 2.4.22</a><br>
+</p>
+
+
+<b>9 October 2003: swsusp 2.0-rc1</b>
+<p>
+Due to the many substantial changes in swsusp since 1.0, it was decided that
+the next release be called 2.0, not 1.1 as originally planned. There will be no
+1.1 release.</p>
+<p>This patch adds:
+<ul>
+<li>support for suspending lots of <a href="http://sourceforge.net/mailarchive/message.php?msg_id=6202070">kernel daemons</a> (so that modules do not need to be unloaded)
+<li>the Control key now acts as if the <tt>noresume</tt> option had been passed on the kernel command line
+<li>a "softer" power down (switching off no longer ends in a "clunk" for some users)
+<li>a slight speed increase
+<li>more bugfixes &amp; code cleanups
+</ul></p>
+<p>
+<a href="http://sourceforge.net/mailarchive/message.php?msg_id=6241575">Read Nigel's announcement</a><br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-2.0-rc1-incremental.bz2?download">Download incremental patch from 1.1-rc10</a><br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-2.0-rc1-whole.bz2?download">Download whole patch against 2.4.22</a><br>
+</p>
+
+
 <b>3 October 2003: swsusp 1.1-rc10</b>
 <p>
 Improvements on the freezer, extra documentation, shuffling of options patches,
