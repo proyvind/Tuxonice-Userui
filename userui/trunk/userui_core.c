@@ -21,7 +21,7 @@
 #define bail(x...) { perror(x); fflush(stderr); _exit(1); }
 
 static char buf[4096];
-static int nlsock;
+static int nlsock = -1;
 static int test_run = 0;
 
 char software_suspend_version[32];
@@ -29,13 +29,16 @@ char software_suspend_version[32];
 int console_loglevel = 1;
 int suspend_action = 0;
 
-extern struct userui_ops userui_text_ops;
+extern struct userui_ops userui_dummy_ops;
 
-static struct userui_ops *userui_ops = &userui_text_ops; /* default */
+static struct userui_ops *userui_ops = &userui_dummy_ops; /* default */
 
 int send_message(int type, void* buf, int len) {
 	struct nlmsghdr nl;
 	struct iovec iovec[2];
+
+	if (nlsock < 0)
+		return 0;
 
 	nl.nlmsg_len = NLMSG_LENGTH(len);
 	nl.nlmsg_type = type;
