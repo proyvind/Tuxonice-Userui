@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include <asm/types.h>
 
-#include "../linux-2.6.11-rc2-userui/kernel/power/suspend_userui.h"
+#include "linux/kernel/power/suspend_userui.h"
 #include "userui.h"
 
 #define NETLINK_SUSPEND2_USERUI 10
