@@ -8,7 +8,28 @@
 AddConfigHandler VbetoolOptions
 AddConfigHelp "VbetoolEnable <boolean>" "Save and restore video state using vbetool before and after suspending."
 
+# hopefully this is a good choice and nothing else uses it :-/
+VBETOOL_VT=61
+
+# pick a file to save state into
+VBETOOL_FILE="/tmp/hibernate-vbestate-$$"
+
 VbetoolSuspend() {
+    chvt $VBETOOL_VT
+    tput clear
+
+    # avoid race condition and potential local root exploit
+    rm -f $VBETOOL_FILE
+    ORIG_UMASK=$(umask)
+    set -C noclobber
+    umask 077
+
+    # save the vbe state
+    vbetool 
+
+    # restore shell settings
+    umask ${ORIG_UMASK}
+    set +C noclobber
 }
 
 VbetoolResume() {
