@@ -27,6 +27,7 @@ fbanim/userui_fbanim.o:
 
 clean:
 	rm -f *.o $(TARGETS)
+	make -C fbsplash clean
 	make -C fbanim clean
 
 .PHONY: all clean
