@@ -242,7 +242,11 @@ ChangeFromSwsuspVT() {
 # DoSuspend: activates the suspend and echo's the error code to be processed by
 # PrintErrors. We can't just return it, because error codes may be > 255
 DoSuspend() {
-    echo > $SWSUSP_ROOT/activate
+    if [ -f $SWSUSP_ROOT/do_suspend ] ; then
+	echo > $SWSUSP_ROOT/do_suspend
+    else
+	echo > $SWSUSP_ROOT/activate
+    fi
     read REPLY < $SWSUSP_ROOT/last_result
     echo $REPLY
 
@@ -337,13 +341,15 @@ EOT
 	return 2
     fi
 
-    if [ -f "$SWSUSP_ROOT/activate" -a ! -f "$SWSUSP_ROOT/version" ] ; then
-	cat <<EOT
+    if [ -f "$SWSUSP_ROOT/activate" -o -f "$SWSUSP_ROOT/do_suspend" ] ; then
+	if [ ! -f "$SWSUSP_ROOT/version" ] ; then
+	    cat <<EOT
 Can not find $SWSUSP_ROOT/version. Have you loaded the suspend_core
 module?
 
 EOT
-	return 1 # abort unless forced
+	    return 1 # abort unless forced
+	fi
     fi
 
     # Check the interface version matches. Warn if it doesn't.

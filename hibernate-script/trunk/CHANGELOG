@@ -5,6 +5,7 @@
  - Add the PowerdownMethod option for Software Suspend 2.1.
  - Add a ProcSetting option to allow setting any arbitrary entry in
    /proc/software_suspend.
+ - Support suspending using do_suspend instead of activate.
 
 0.99 (10 October 2004)
  - Make SCRIPTLET_PATH work again so that user-defined scriptlets can
