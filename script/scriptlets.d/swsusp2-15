@@ -18,6 +18,7 @@ AddLongOption "no-suspend"
 AddOptionHelp "--no-suspend" "Disables actually suspending the system. This is useful for testing the suspend script itself."
 
 SWSUSP_ROOT="/proc/swsusp"
+SWSUSP_INTERFACE_VERSION=15
 
 Swsusp2ConfigEnabler() {
     [ "$1" != "useswsusp2" ] && return 1
@@ -184,13 +185,27 @@ GetInterfaceVersion() {
 # (even though the actual suspend might not need it, everything else will)
 EnsureSwsusp2Capable() {
     # Test for *any* recent swsusp support
-    if GetInterfaceVersion ; then
+    local ver
+    GetInterfaceVersion
+    ver=$?
+    if [ "$ver" -eq 0 ] ; then
 	cat <<EOT
 Your kernel does not have any recent Software Suspend 2 support compiled in.
 Please follow the HOWTO linked from http://swsusp.sourceforge.net/ for
 instructions on how compile Software Suspend into your kernel.
 EOT
 	return 2
+    fi
+
+    # Check the interface version matches. Warn if it doesn't.
+    if [ $ver -ne "$SWSUSP_INTERFACE_VERSION" ] ; then
+	cat <<EOT
+WARNING: The swsusp2 scriptlet was written for a different swsusp2 interface
+	 version from the one in your running kernel. This scriptlet was
+	 written for version ${SWSUSP_INTERFACE_VERSION}, where as the version running in your kernel
+	 is $ver. Things may not work as expected, but proceeding anyway ...
+
+EOT
     fi
 
     # If we have the resume2 proc entry, we can do some further tests
