@@ -31,14 +31,13 @@
 #include <assert.h>
 #include "process.h"
 
-/* Somewhere in the child process to scribble on */
-#define PROCESS_START 0x08048000 /* FIXME choose me dynamically */
+long scribble_zone = 0; /* somewhere to scribble on in child */
 
 char* backup_page(pid_t target, void* addr) {
 	long* page = malloc(PAGE_SIZE);
 	int i;
 	long ret;
-	for(i = 0; i < PAGE_SIZE/sizeof(long); i) {
+	for(i = 0; i < PAGE_SIZE/sizeof(long); i++) {
 		ret = ptrace(PTRACE_PEEKTEXT, target, (void*)((long)addr+(i*sizeof(long))), 0);
 		if (errno) {
 			perror("ptrace(PTRACE_PEEKTEXT)");
@@ -46,16 +45,22 @@ char* backup_page(pid_t target, void* addr) {
 			return NULL;
 		}
 		page[i] = ret;
+		if (ptrace(PTRACE_POKETEXT, target, (void*)((long)addr+(i*sizeof(long))), 0xdeadbeef) == -1) {
+			perror("ptrace(PTRACE_POKETEXT)");
+			free(page);
+			return NULL;
+		}
 	}
 
 	return (char*)page;
 }
 
-int restore_page(pid_t target, void* addr, long* page) {
-	assert(page);
+int restore_page(pid_t target, void* addr, char* page) {
+    long *p = (long*)page;
 	int i;
+	assert(page);
 	for (i = 0; i < PAGE_SIZE/sizeof(long); i++) {
-		if (ptrace(PTRACE_POKETEXT, target, (void*)((long)addr+(i*sizeof(long))), page[i]) == -1) {
+		if (ptrace(PTRACE_POKETEXT, target, (void*)((long)addr+(i*sizeof(long))), p[i]) == -1) {
 			perror("ptrace(PTRACE_POKETEXT)");
 			free(page);
 			return 0;
@@ -82,7 +87,7 @@ int memcpy_into_target(pid_t pid, void* dest, const void* src, size_t n) {
 }
 
 int memcpy_from_target(pid_t pid, void* dest, const void* src, size_t n) {
-	/* just like memcpy, but copies it into the space of the target pid */
+	/* just like memcpy, but copies it from the space of the target pid */
 	/* n must be a multiple of 4, or will otherwise be rounded down to be so */
 	int i;
 	long *d, *s;
@@ -122,14 +127,14 @@ int do_syscall(pid_t pid, struct user_regs_struct *regs) {
 		return 0;
 	}
 
-    loc = orig_regs.eip; /* FIXME get somewhere guaranteed writable */
+    loc = scribble_zone+0x10;
 
 	old_insn = ptrace(PTRACE_PEEKTEXT, pid, loc, 0);
     if (errno) {
 		perror("ptrace peektext");
 		return 0;
 	}
-    printf("original instruction at 0x%lx was 0x%lx\n", loc, old_insn);
+    //printf("original instruction at 0x%lx was 0x%lx\n", loc, old_insn);
 
 	if (ptrace(PTRACE_POKETEXT, pid, loc, 0x80cd) < 0) {
 		perror("ptrace poketext");
@@ -137,6 +142,7 @@ int do_syscall(pid_t pid, struct user_regs_struct *regs) {
 	}
 
 	/* Set up registers for ptrace syscall */
+    regs->eip = loc;
 	if (ptrace(PTRACE_SETREGS, pid, NULL, regs) < 0) {
 		perror("ptrace setregs");
 		return 0;
@@ -144,7 +150,7 @@ int do_syscall(pid_t pid, struct user_regs_struct *regs) {
 
 	/* Execute call */
 	if (ptrace(PTRACE_SINGLESTEP, pid, NULL, NULL) < 0) {
-		perror("ptrace syscall-entry");
+		perror("ptrace singlestep");
 		return 0;
 	}
 	ret = waitpid(pid, &status, 0);
@@ -338,6 +344,16 @@ int get_one_vma(pid_t target_pid, char* map_line, struct map_entry_t* m, int get
 			m->inode,
 			m->filename);
 
+    /* Decide if it's scribble worthy - find a nice anonymous mapping */
+    if (scribble_zone == 0 &&
+            !*m->filename &&
+            (m->flags & MAP_PRIVATE) &&
+            !(m->flags & MAP_SHARED) &&
+            ((m->prot & (PROT_READ|PROT_WRITE)) == (PROT_READ|PROT_WRITE))) {
+        scribble_zone = m->start;
+        printf("[+] Found scribble zone: 0x%lx\n", scribble_zone);
+    }
+
 	if (get_library_data) {
 		/* forget the fact it came from a file. Pretend it was just
 		 * some arbitrary anonymous writeable VMA.
@@ -491,6 +507,40 @@ int is_in_syscall(pid_t pid, void* eip) {
 	return (inst&0xffff) == 0x80cd;
 }
 
+int get_signal_handler(pid_t pid, int sig, struct sigaction *sa) {
+	struct user_regs_struct r;
+    char* pagebackup;
+
+	if (ptrace(PTRACE_GETREGS, pid, 0, &r) == -1) {
+		perror("ptrace(GETREGS)");
+        return 0;
+    }
+
+	r.eax = __NR_sigaction;
+	r.ebx = sig;
+    r.ecx = 0;
+    r.edx = scribble_zone+0x100;
+
+    pagebackup = backup_page(pid, (void*)scribble_zone);
+
+    if (!do_syscall(pid, &r)) return 0;
+
+	/* Error checking! */
+	if (r.eax < 0) {
+		errno = -r.eax;
+        perror("target sigaction");
+        restore_page(pid, (void*)scribble_zone, pagebackup);
+		return 0;
+	}
+
+    memcpy_from_target(pid, sa, (void*)(scribble_zone+0x100), sizeof(struct sigaction));
+    printf("sigaction is 0x%lx mask 0x%x flags 0x%x restorer 0x%x\n", sa->sa_handler, sa->sa_mask, sa->sa_flags, sa->sa_restorer);
+
+    restore_page(pid, (void*)scribble_zone, pagebackup);
+
+	return 1;
+}
+
 /* FIXME: split this into several functions */
 struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 	FILE *f;
@@ -512,13 +562,12 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 	/* FIXME being liberal here: */
 	proc_image->maps = malloc(sizeof(struct map_entry_t)*1000);
 
-	//if (kill(target_pid, SIGSTOP) == -1) perror("kill");
 	start_ptrace(target_pid);
 	snprintf(tmp_fn, 1024, "/proc/%d/maps", target_pid);
 	f = fopen(tmp_fn, "r");
 	while (fgets(map_line, 1024, f)) {
 		if (!get_one_vma(target_pid, map_line, &(proc_image->maps[map_count]), flags & GET_PROC_FULL_IMAGE))
-			fprintf(stderr, "Error parsing map: %s", map_line);
+			fprintf(stderr, "     Error parsing map: %s", map_line);
 		else
 			if (proc_image->maps[map_count].start >= 0x10000 &&
 					proc_image->maps[map_count].start <= 0x11000)
@@ -554,6 +603,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 
     /* Get TLS info */
     int z;
+	fprintf(stderr, "[+] Reading TLS data\n", map_count);
     proc_image->num_tls = 0;
     proc_image->tls = malloc(sizeof(struct user_desc*)*256);
     for (z = 0; z < 256; z++) {
@@ -675,6 +725,17 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 	memset(proc_image->cmdline, 0, sizeof(proc_image->cmdline));
 	proc_image->cmdline_length = fread(proc_image->cmdline, sizeof(char), 1024, f);
 	fclose(f);
+
+    /* Get process's signal handlers */
+    printf("[+] Getting signal handlers: ");
+    fflush(stdout);
+    for (z = 1; z <= MAX_SIGS; z++) {
+        if (z == SIGKILL || z == SIGSTOP) continue;
+        get_signal_handler(target_pid, z, &proc_image->sigs[z-1]);
+        printf(".");
+        fflush(stdout);
+    }
+    printf("\n");
 
 	end_ptrace(target_pid);
 	return proc_image;

@@ -54,6 +54,8 @@ int write_proc_image_to_file(struct proc_image_t* p, int fd) {
 
 	fwrite(p->cwd, sizeof(p->cwd), 1, f);
 
+	fwrite(p->sigs, sizeof(p->sigs), 1, f);
+
 	fclose(f);
 	return 1;
 }

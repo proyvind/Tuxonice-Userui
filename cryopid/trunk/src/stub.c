@@ -91,6 +91,7 @@ int resume_image_from_file(int fd) {
 	pid_t pid;
 	struct user user_data;
 	struct user_i387_struct i387_data;
+    struct sigaction sa;
 	sigset_t zeromask;
 	char dir[1024];
 	int cmdline_length;
@@ -148,11 +149,13 @@ int resume_image_from_file(int fd) {
         short savegs;
 		safe_read(fd, &tls, sizeof(struct user_desc), "tls info");
 
+        if (!tls.base_addr) continue;
+
 		if (verbosity > 0)
 			fprintf(stderr, "Restoring TLS entry %d (0x%lx limit 0x%lx)\n",
 					tls.entry_number, tls.base_addr, tls.limit);
 
-		syscall_check(set_thread_area(&tls), 0, "set_thread_area");
+        syscall_check(set_thread_area(&tls), 0, "set_thread_area");
 	}
 
 	stdinfd = 0; /* we'll use stdin for stdout/stderr later if needed */
@@ -218,6 +221,12 @@ int resume_image_from_file(int fd) {
 	if (verbosity > 0)
 		fprintf(stderr, "Changing directory to %s\n", dir);
 	syscall_check(chdir(dir), 0, "chdir %s", dir);
+
+    for (i = 1; i <= MAX_SIGS; i++) {
+        safe_read(fd, &sa, sizeof(sa), "sigaction");
+        if (i == SIGKILL || i == SIGSTOP) continue;
+        sigaction(i, &sa, NULL);
+    }
 
 	close(fd);
 

@@ -20,6 +20,8 @@
 
 #define IMAGE_VERSION 0x01
 
+#define MAX_SIGS 64
+
 struct map_entry_t {
 	long start, length;
 	int prot;
@@ -62,6 +64,8 @@ struct proc_image_t {
 
 	char cmdline[1024]; /* FIXME arbitrary */
 	int cmdline_length;
+
+    struct sigaction sigs[MAX_SIGS];
 };
 
 struct proc_image_t* get_proc_image(pid_t target_pid, int flags);
