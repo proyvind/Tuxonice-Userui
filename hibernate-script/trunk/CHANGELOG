@@ -4,6 +4,8 @@
  - Fix random services-stopping-twice bug.
  - Add --bug-report option.
  - Support unloading particular versions of modules.
+ - Use the hwclock.sh init script on Debian.
+ - Restart services in reverse order to stopping them.
 
 1.02 (24 November 2004)
  - Make misc launch scriptlets more robust.
