@@ -41,7 +41,7 @@ GentooModulesAutoload() {
 	    \#*|"") continue ;;
 	esac
 	vecho 1 "Loading $MOD" 
-	modprobe ${MOD} ${args} | $LOGPIPE
+	modprobe ${MOD} ${args}
     done < $modules_autoload_file
 
     return 0

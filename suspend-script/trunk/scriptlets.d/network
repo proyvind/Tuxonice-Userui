@@ -8,7 +8,7 @@ AddConfigHelp "UpInterfaces auto|<ifname> [...]" "The names of network interface
 NetworkStop() {
     # If the script stops networking altogether, there's not much we can do.
     if [ -n "$NETWORK_CALL_ONCE" ] ; then
-	network_ifdown 2>&1 | $LOGPIPE > /dev/null # log, but not to stdout
+	network_ifdown
 	[ $? -eq 0 ] && return 0
 	return 1
     fi
@@ -19,7 +19,7 @@ NetworkStop() {
     NETWORK_DOWNEDIFS="" # for saving the downed interfaces, for "auto"
     for int in $NETWORK_DOWNIFS ; do
 	vecho 2 "Bringing down interface $int"
-	network_ifdown $int 2>&1 | $LOGPIPE > /dev/null # log, but not to stdout
+	network_ifdown $int
 	[ $? -ne 0 ] && ret=1
 	NETWORK_DOWNEDIFS="$int $NETWORK_DOWNEDIFS"
     done
@@ -29,7 +29,7 @@ NetworkStop() {
 NetworkStart() {
     # If the script starts networking altogether, there's not much we can do.
     if [ -n "$NETWORK_CALL_ONCE" ] ; then
-	network_ifup 2>&1 | $LOGPIPE > /dev/null # log, but not to stdout.
+	network_ifup
 	[ $? -eq 0 ] && return 0
 	return 1
     fi
@@ -41,13 +41,13 @@ NetworkStart() {
 	if [ "$int" = "auto" ] ; then
 	    for int in $NETWORK_DOWNEDIFS ; do
 		vecho 2 "Bringing up interface $int (from auto)"
-		network_ifup $int 2>&1 | $LOGPIPE > /dev/null # log, but not to stdout.
+		network_ifup $int
 		[ $? -ne 0 ] && ret=1
 	    done
 	    continue
 	fi
 	vecho 2 "Bringing up interface $int"
-	network_ifup $int 2>&1 | $LOGPIPE > /dev/null # log, but not to stdout.
+	network_ifup $int
 	[ $? -ne 0 ] && ret=1
     done
     return 0

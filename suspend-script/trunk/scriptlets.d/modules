@@ -28,7 +28,7 @@ ModulesUnload() {
 	    continue
 	fi
 
-	if modprobe -r $mod > /dev/null 2>&1 ; then # FIXME - use $LOGPIPE
+	if modprobe -r $mod > /dev/null 2>&1 ; then
 	    vecho 1
 	    MOD_UNLOADED="$MOD_UNLOADED $mod"
 	else
@@ -47,12 +47,12 @@ ModulesLoad() {
 	if [ "$mod" = "auto" ] ; then
 	    for mod in $MOD_UNLOADED ; do 
 		vecho 1 "Loading module $mod (from auto)..."
-		modprobe $mod | $LOGPIPE
+		modprobe $mod
 	    done
 	    continue
 	fi
 	vecho 1 "Loading module $mod..."
-	modprobe $mod | $LOGPIPE
+	modprobe $mod
     done
     return 0
 }
@@ -61,7 +61,7 @@ ModulesUnloadAllOnce() {
     local module
     for module in `awk '($3==0){print $1}' /proc/modules` ;do
 	vecho 1 "Unloading module $module..."
-	modprobe -r $module | $LOGPIPE
+	modprobe -r $module
     done
 }
 
@@ -113,7 +113,7 @@ ModulesLoadFromFile() {
 	    \#*|"") continue ;;
 	esac
 	vecho 1 "Loading $MOD" 
-	modprobe ${MOD} ${args} | $LOGPIPE
+	modprobe ${MOD} ${args}
     done < $MODULES_FROMFILE
 
     return 0

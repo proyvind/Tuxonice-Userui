@@ -48,7 +48,7 @@ ProgramsStop() {
     [ -z "$pids" ] && return 0
 
     vecho 0 "The following processes are still running and marked as incompatible:
-$pids" | $LOGPIPE
+$pids"
     return 1
 }
 

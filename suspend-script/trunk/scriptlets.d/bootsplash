@@ -43,7 +43,7 @@ SplashStart() {
 	SPLASH_PROGRESS=10
 	    
 	# go
-	/sbin/splash -s -u 0 "$SPLASH_CONFIG_FILE" | $LOGPIPE
+	/sbin/splash -s -u 0 "$SPLASH_CONFIG_FILE"
 	echo "silent" > /proc/splash 
 	echo "show 0" > /proc/splash
 
@@ -62,7 +62,7 @@ SplashSuspend() {
 
 SplashStop() {
     if [ x"$USE_BOOTSPLASH" = "x1" ] ; then
-	/sbin/splash -s -u 0 -n "$SPLASH_CONFIG_FILE" | $LOGPIPE
+	/sbin/splash -s -u 0 -n "$SPLASH_CONFIG_FILE"
     fi
 }
 
