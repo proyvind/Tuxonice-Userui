@@ -32,7 +32,6 @@ PAGES = style.css \
 		bad-drivers.html \
 		compare.html \
 		features.html \
-		download.html \
 		options.html \
 		howto.html \
 		lists.html \
