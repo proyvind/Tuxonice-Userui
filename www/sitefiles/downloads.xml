@@ -43,4 +43,14 @@
 
  </section>
 
+ <section name="Userspace UI">
+
+  <release name="0.3.0">
+   <kernel name="">
+    <filename>userui-0.3.0.tar.gz</filename>
+   </kernel>
+  </release>
+
+ </section>
+
 </downloads>
