@@ -1,0 +1,10 @@
+Sooner:
+- eflags
+- tid
+- debug registers
+- FPU state
+- file offsets
+- termcaps
+
+Later:
+- compressor support
