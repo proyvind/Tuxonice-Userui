@@ -3,7 +3,10 @@ TARGET = userui_program
 OBJECTS = userui_text.o userui_core.o splash/userui_fbsplash.o
 LDFLAGS = -ljpeg -lpng -lz -lm
 
-all: $(TARGET)
+all: $(TARGET) linux
+
+linux:
+	@[ ! -d linux ] && cat README && false
 
 userui_program: $(OBJECTS)
 	gcc $(LDFLAGS) $^ -o $@
