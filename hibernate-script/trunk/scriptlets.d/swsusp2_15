@@ -329,7 +329,7 @@ PrintErrors() {
     code="$1"
     [ -n "$code" ] && [ "$code" -eq 0 ] && return 0
 
-    echo "$EXE: Suspend was not completed because:"
+    echo "$EXE: Suspend reported the following errors:"
 
     if [ -z "$code" ] ; then
 	echo " - No status was returned. Might be a buggy or incompatible kernel?"
