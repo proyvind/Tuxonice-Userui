@@ -121,7 +121,7 @@ Swsusp2ConfigOptions() {
 	swsusp2allsettingsfile)
 	    SWSUSP_ALL_SETTINGS_FILE=$2
 	    if ! [ -r "$SWSUSP_ALL_SETTINGS_FILE" ] ; then
-		echo "$EXE: Cannot read all_settings file $SWSUSP_ASYNC_IO_LIMIT."
+		echo "$EXE: Cannot read all_settings file $SWSUSP_ALL_SETTINGS_FILE"
 		return 0
 	    fi
 	    ;;
@@ -222,6 +222,7 @@ Swsusp2ConfigSet() {
     	echo $SWSUSP_ALL_SETTINGS > $SWSUSP_ROOT/all_settings
 
     [ -n "$SWSUSP_ALL_SETTINGS_FILE" ] && [ -f $SWSUSP_ROOT/all_settings ] && \
+	[ -f "$SWSUSP_ALL_SETTINGS_FILE" ] && \
     	cat $SWSUSP_ALL_SETTINGS_FILE > $SWSUSP_ROOT/all_settings
 
     [ -n "$SWSUSP_RESUME2" ] && [ -f $SWSUSP_ROOT/resume2 ] && \
