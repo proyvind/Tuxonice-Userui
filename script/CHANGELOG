@@ -5,6 +5,7 @@
  - Bleeding obvious bugfixes to bootsplash, misclaunch and modules scriptlets.
  - Avoid sourcing editor backup files (ignore scriptlets *~ *.bak).
  - ash compatibility fix in install script.
+ - Remove some unnecessary sleep calls.
  - Thanks to Cameron Patrick and Carsten Rietzschel for most of these fixes.
 
 0.9 (9 July 2004)
