@@ -153,6 +153,18 @@ static void reserve_memory(unsigned long bytes) {
 	setrlimit(RLIMIT_AS, &r);
 }
 
+static void enforce_lifesavers() {
+	struct rlimit r;
+
+	/* Set RLIMIT_NOFILE to prevent files being opened */
+	r.rlim_cur = r.rlim_max = 0;
+	setrlimit(RLIMIT_NOFILE, &r);
+
+	/* Set RLIMIT_NPROC to prevent process forks */
+	r.rlim_cur = r.rlim_max = 0;
+	setrlimit(RLIMIT_NPROC, &r);
+}
+
 /* A generic signal handler to ensure we don't quit in times of desperation,
  * risking corrupting the image. */
 static void sig_hand(int sig) {
@@ -318,6 +330,8 @@ int main(int argc, char **argv) {
 		reserve_memory(userui_ops->memory_required());
 	else
 		reserve_memory(4*1024*1024); /* say 4MB */
+
+	enforce_lifesavers();
 
 	if (test_run) {
 		do_test_run();
