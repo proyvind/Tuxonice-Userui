@@ -374,7 +374,7 @@ LoadScriptlets() {
 
 	    # And now source it!
 
-	    CURRENT_SOURCED_SCRIPTLET="$scriptlet"
+	    CURRENT_SOURCED_SCRIPTLET="$scriptlet_name"
 	    . $scriptlet
 	done
     done
