@@ -100,8 +100,16 @@ ModulesUnloadAllOnce() {
     done
 }
 
+Get26ModulesFile() {
+    if grep '^2\.4' /proc/sys/kernel/osrelease >/dev/null; then
+	cat /proc/modules | sed -n -e '/\[\(.*\)\]/ { s/^\([^ ]\+\).*\[\(.*\)\].*$/\1:0:0:\2 /g; y/ :/, /; p; d }; { s/^\([^ ]\+\).*$/\1 0 0 -/g; p }'
+    else
+	cat /proc/modules
+    fi
+}
+
 FindModuleDeps() {
-    awk -v "module=$1" '
+    Get26ModulesFile | awk -v "module=$1" '
 function find_related_modules(mod, i, a) {
     modules[mod] = deps[mod]
     split(deps[mod], a, ",")
@@ -147,7 +155,7 @@ END {
         top_sort(modules)
     }
 }
-    ' < /proc/modules
+    '
 }
 
 IsInKernelRange() {
