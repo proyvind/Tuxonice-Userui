@@ -29,6 +29,8 @@ static void show_cursor() { write(1, "\033[?0c", 5); }
 
 static void silent_on() {
 	move_cursor_to(0,0);
+	if (!pic.data)
+		return;
 	lseek(fb_fd, 0, SEEK_SET);
 	write(fb_fd, pic.data, pic.width * pic.height * (pic.depth >> 3));
 }
@@ -67,6 +69,7 @@ static void fbsplash_prepare() {
 	fbsplash_fd = -1;
 	last_pos = 0;
 	lastloglevel = SUSPEND_ERROR; /* start in verbose mode */
+	memset(&pic, 0, sizeof(pic));
 
 	/* Find out the screen size */
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz);
@@ -80,16 +83,20 @@ static void fbsplash_prepare() {
 	/* Read theme config file */
 	arg_theme = DEFAULT_THEME;
 	config_file = get_cfg_file(arg_theme);
-	if (config_file)
+	if (config_file) {
 		parse_cfg(config_file);
-	else
+		free(config_file);
+	} else
 		return;
 
 	arg_vc = get_active_vt();
 
 	fb_fd = open("/dev/fb0", O_WRONLY);
-	if (fb_fd == -1)
-		perror("open(\"/dev/fb0\")");
+	if (fb_fd == -1) {
+		fb_fd = open("/dev/fb/0", O_WRONLY);
+		if (fb_fd == -1)
+			perror("open(\"/dev/fb0\")");
+	}
 
 	fbsplash_fd = open(SPLASH_DEV, O_WRONLY);
 	if (fbsplash_fd == -1)
@@ -99,7 +106,10 @@ static void fbsplash_prepare() {
 	do_getpic(FB_SPLASH_IO_ORIG_USER, 1, 'v');
 	cmd_setstate(1, FB_SPLASH_IO_ORIG_USER);
 
-	do_getpic(FB_SPLASH_IO_ORIG_USER, 0, 's');
+	if (fb_var.bits_per_pixel == 8)
+		do_getpic(FB_SPLASH_IO_ORIG_USER, 0, 'v');
+	else
+		do_getpic(FB_SPLASH_IO_ORIG_USER, 0, 's');
 
 	/* Allow for the widest progress bar we might have */
 	set_progress_granularity(fb_var.xres);
@@ -113,6 +123,12 @@ static void fbsplash_cleanup() {
 		close(fbsplash_fd);
 	if (fb_fd >= 0)
 		close(fb_fd);
+
+	if (pic.data)
+		free((void*)pic.data);
+
+	if (pic.cmap.red)
+		free(pic.cmap.red);
 }
 
 static void fbsplash_put_message_silent() {
@@ -139,6 +155,10 @@ static void fbsplash_redraw() {
 	} else {
 		printf("\n** %s\n", lastheader);
 	}
+
+	if (!pic.data)
+		return;
+
 	arg_progress = PROGRESS_MAX;
 	arg_task = paint;
 	draw_boxes((u8*)pic.data, (console_loglevel < SUSPEND_ERROR)?'s':'v', FB_SPLASH_IO_ORIG_USER);
@@ -183,7 +203,8 @@ static void fbsplash_update_progress(unsigned long value, unsigned long maximum,
 	arg_progress = tmp;
 	arg_task = paint;
 
-	draw_boxes((u8*)pic.data, (console_loglevel < SUSPEND_ERROR)?'s':'v', FB_SPLASH_IO_ORIG_USER);
+	if (pic.data)
+		draw_boxes((u8*)pic.data, (console_loglevel < SUSPEND_ERROR)?'s':'v', FB_SPLASH_IO_ORIG_USER);
 }
 
 static void fbsplash_log_level_change(int loglevel) {
@@ -230,8 +251,8 @@ static void fbsplash_keypress(int key) {
 }
 
 static unsigned long fbsplash_memory_required() {
-	/* Reserve enough for another frame buffer */
-	return (fb_var.xres * fb_var.yres * (fb_var.bits_per_pixel >> 3));
+	/* Shouldn't need any more. */
+	return 0;
 }
 
 static struct userui_ops userui_fbsplash_ops = {
