@@ -2,7 +2,7 @@
 # vim:ft=sh:ts=8:sw=4:noet
 
 AddConfigHandler NetworkConfigOptions
-AddConfigHelp "DownInterfaces <ifname> [...]" "The names of network interfaces to bring down before suspending."
+AddConfigHelp "DownInterfaces auto|<ifname> [...]" "The names of network interfaces to bring down before suspending. If the parameter \"auto\" is given, all interfaces which are not lo are brought down."
 AddConfigHelp "UpInterfaces auto|<ifname> [...]" "The names of network interfaces to bring up after suspending. If the parameter \"auto\" is given, the interfaces stoped before suspending will be started in reverse order."
 
 NetworkStop() {
@@ -18,6 +18,16 @@ NetworkStop() {
     ret=0
     NETWORK_DOWNEDIFS="" # for saving the downed interfaces, for "auto"
     for int in $NETWORK_DOWNIFS ; do
+	if [ "$int" = "auto" ] ; then
+	    for int in `/sbin/ifconfig|sed -e 's/^\([^ \t]*\).*/\1/;/^$/d'` ; do
+		[ "$int" = "lo" ] && continue
+		vecho 2 "Bringing down interface $int (from auto)"
+		network_ifdown $int
+		[ $? -ne 0 ] && ret=1
+		NETWORK_DOWNEDIFS="$int $NETWORK_DOWNEDIFS"
+	    done
+	    continue
+	fi
 	vecho 2 "Bringing down interface $int"
 	network_ifdown $int
 	[ $? -ne 0 ] && ret=1

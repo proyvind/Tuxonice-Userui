@@ -124,7 +124,7 @@ highlight link hibernate_interfaces Constant
 syntax keyword hibernate_network_auto auto contained nextgroup=hibernate_interfaces skipwhite
 highlight link hibernate_network_auto Constant
 
-syntax keyword hibernate_conf downinterfaces contained nextgroup=hibernate_interfaces skipwhite
+syntax keyword hibernate_conf downinterfaces contained nextgroup=hibernate_interfaces,hibernate_network_auto skipwhite
 syntax keyword hibernate_conf upinterfaces contained nextgroup=hibernate_interfaces,hibernate_network_auto skipwhite
 
 " programs
