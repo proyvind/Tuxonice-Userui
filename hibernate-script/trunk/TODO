@@ -1,5 +1,4 @@
 - More software suspend options (image_size_limit)
-- Stop RPMs blowing away hibernate.conf
 - Option to write a default config file
 
 $Id$

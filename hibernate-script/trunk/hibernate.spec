@@ -39,7 +39,7 @@ rm -rf $RPM_BUILD_ROOT
 %doc
 /usr/share/doc/hibernate-%version-%release/*
 /usr/man/*
-%config
+%config(noreplace)
 /etc/hibernate/*
 
 %changelog
