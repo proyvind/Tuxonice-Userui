@@ -172,7 +172,7 @@ syntax match hibernate_sysfspowerstate /\(disk\|mem\|standby\)/ contained skipwh
 highlight link hibernate_sysfspowerstate Special
 
 " xhacks
-syntax keyword hibernate_conf leavexbeforesuspend contained nextgroup=hibernate_boolean skipwhite
+syntax keyword hibernate_conf switchtotextmode contained nextgroup=hibernate_boolean skipwhite
 syntax keyword hibernate_conf nvidiahack contained nextgroup=hibernate_boolean skipwhite
 
 " Full-line comments:

@@ -1,6 +1,7 @@
 1.01 (unreleased)
  - New acpi_sleep module to utilise /proc/acpi/sleep for vanilla swsusp.
  - Fix missing mawk compatibility bug in lock.
+ - Rename LeaveXBeforeSuspend to SwitchToTextMode
 
 1.00 (7 November 2004)
  - Fix a long standing bug when printing error result codes.
