@@ -114,6 +114,7 @@ static void fbsplash_prepare() {
 			perror("open(\"/dev/fb0\")");
 	}
 
+	do_getpic(FB_SPLASH_IO_ORIG_USER, 1, 'v');
 	do_getpic(FB_SPLASH_IO_ORIG_USER, 0, 's');
 	do_config(FB_SPLASH_IO_ORIG_USER);
 	cmd_setstate(1, FB_SPLASH_IO_ORIG_USER);
@@ -267,6 +268,12 @@ static void fbsplash_keypress(int key) {
 		case 57:
 			console_loglevel = key - 48;
 			send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
+			break;
+		case 2:
+			if (console_loglevel < SUSPEND_ERROR) {
+				console_loglevel = 5;
+				send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
+			}
 			break;
 	}
 }
