@@ -24,24 +24,24 @@
 #define MAX_SIGS 31
 
 struct k_sigaction {
-        __sighandler_t sa_hand;
-        unsigned long sa_flags;
-        void (*sa_restorer)(void);
-        struct {
-            unsigned long sig[2];
-        } sa_mask;       /* mask last for extensibility */
+    __sighandler_t sa_hand;
+    unsigned long sa_flags;
+    void (*sa_restorer)(void);
+    struct {
+	unsigned long sig[2];
+    } sa_mask;       /* mask last for extensibility */
 };
 
 
 struct map_entry_t {
-	long start, length;
-	int prot;
-	int flags;
-	int dev;
-	long pg_off;
-	long inode;
-	char filename[1024];
-	void* data; /* length end-start */ /* in file, simply true if is data */
+    long start, length;
+    int prot;
+    int flags;
+    int dev;
+    long pg_off;
+    long inode;
+    char filename[1024];
+    void* data; /* length end-start */ /* in file, simply true if is data */
 };
 
 struct fcntl_data_t {
@@ -50,18 +50,18 @@ struct fcntl_data_t {
 };
 
 struct fd_entry_t {
-	char filename[1024];
-	int fd;
-	int mode;
-	off_t position;
-	int flags;
+    char filename[1024];
+    int fd;
+    int mode;
+    off_t position;
+    int flags;
 
     struct termios termios;
 
     struct fcntl_data_t fcntl_data;
 
-	int data_length;
-	char *data;
+    int data_length;
+    char *data;
 };
 
 /* Flags for fd_entry_t.flags */
@@ -71,21 +71,21 @@ struct fd_entry_t {
 
 struct proc_image_t {
     pid_t pid;
-	struct user user_data;
-	struct user_i387_struct i387_data;
-	int num_maps;
-	struct map_entry_t *maps;
-	int num_tls;
+    struct user user_data;
+    struct user_i387_struct i387_data;
+    int num_maps;
+    struct map_entry_t *maps;
+    int num_tls;
     struct user_desc **tls;
 
-	char cwd[1024];
+    char cwd[1024];
 
-	/* something about fds */
-	int num_fds;
-	struct fd_entry_t *fds;
+    /* something about fds */
+    int num_fds;
+    struct fd_entry_t *fds;
 
-	char *cmdline;
-	int cmdline_length;
+    char *cmdline;
+    int cmdline_length;
     char *environ;
     int environ_length;
 
@@ -103,3 +103,5 @@ int write_proc_image(int fd, struct proc_image_t* p);
 #define RESUMER_END   0x00200000 /* Highest location resume will be at */
 
 #endif /* __PROCESS_H__ */
+
+/* vim:set ts=8 sw=4 noet: */

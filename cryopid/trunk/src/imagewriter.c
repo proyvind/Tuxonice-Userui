@@ -19,50 +19,51 @@
 #include "process.h"
 
 int write_proc_image_to_file(struct proc_image_t* p, int fd) {
-	FILE* f;
-	int i;
+    FILE* f;
+    int i;
 
-	if (!(f = fdopen(fd, "w"))) {
-		perror("fopen()");
-		return 0;
-	}
-
-	fwrite(&p->pid, sizeof(p->pid), 1, f);
-
-	fwrite(&p->cmdline_length, sizeof(p->cmdline_length), 1, f);
-	fwrite(p->cmdline, p->cmdline_length, 1, f);
-
-	fwrite(&p->environ_length, sizeof(p->environ_length), 1, f);
-	fwrite(p->environ, p->environ_length, 1, f);
-
-	fwrite(&p->user_data, sizeof(p->user_data), 1, f);
-	fwrite(&p->i387_data, sizeof(p->i387_data), 1, f);
-
-	fwrite(&p->num_maps, sizeof(p->num_maps), 1, f);
-    fwrite(&p->num_tls, sizeof(p->num_tls), 1, f);
-
-	for (i = 0; i < p->num_maps; i++) {
-		fwrite(&p->maps[i], sizeof(p->maps[i]), 1, f);
-		if (p->maps[i].data)
-			fwrite(p->maps[i].data, p->maps[i].length, 1, f);
-	}
-
-    for (i = 0; i < p->num_tls; i++) {
-        fwrite(p->tls[i], sizeof(struct user_desc), 1, f);
+    if (!(f = fdopen(fd, "w"))) {
+	perror("fopen()");
+	return 0;
     }
 
-	fwrite(&p->num_fds, sizeof(p->num_fds), 1, f);
-	for (i=0; i<p->num_fds; i++) {
-		fwrite(&p->fds[i], sizeof(p->fds[i]), 1, f);
-		if (p->fds[i].data > 0)
-			fwrite(p->fds[i].data, p->fds[i].data_length, 1, f);
-	}
-	
-	fwrite(p->cwd, sizeof(p->cwd), 1, f);
+    fwrite(&p->pid, sizeof(p->pid), 1, f);
 
-	fwrite(p->sigs, sizeof(p->sigs), 1, f);
+    fwrite(&p->cmdline_length, sizeof(p->cmdline_length), 1, f);
+    fwrite(p->cmdline, p->cmdline_length, 1, f);
 
-	fclose(f);
-	return 1;
+    fwrite(&p->environ_length, sizeof(p->environ_length), 1, f);
+    fwrite(p->environ, p->environ_length, 1, f);
+
+    fwrite(&p->user_data, sizeof(p->user_data), 1, f);
+    fwrite(&p->i387_data, sizeof(p->i387_data), 1, f);
+
+    fwrite(&p->num_maps, sizeof(p->num_maps), 1, f);
+    fwrite(&p->num_tls, sizeof(p->num_tls), 1, f);
+
+    for (i = 0; i < p->num_maps; i++) {
+	fwrite(&p->maps[i], sizeof(p->maps[i]), 1, f);
+	if (p->maps[i].data)
+	    fwrite(p->maps[i].data, p->maps[i].length, 1, f);
+    }
+
+    for (i = 0; i < p->num_tls; i++) {
+	fwrite(p->tls[i], sizeof(struct user_desc), 1, f);
+    }
+
+    fwrite(&p->num_fds, sizeof(p->num_fds), 1, f);
+    for (i=0; i<p->num_fds; i++) {
+	fwrite(&p->fds[i], sizeof(p->fds[i]), 1, f);
+	if (p->fds[i].data > 0)
+	    fwrite(p->fds[i].data, p->fds[i].data_length, 1, f);
+    }
+
+    fwrite(p->cwd, sizeof(p->cwd), 1, f);
+
+    fwrite(p->sigs, sizeof(p->sigs), 1, f);
+
+    fclose(f);
+    return 1;
 }
 
+/* vim:set ts=8 sw=4 noet: */
