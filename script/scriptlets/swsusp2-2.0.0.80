@@ -8,6 +8,9 @@ AddShortOption "r::"
 AddLongOption "reboot::"
 AddOptionHelp "-r[0|1], --reboot[=<0|1>]" "If 0 is specified, disables rebooting after suspend, regardless of the Reboot option in the configuration file. If 1 or omitted, will force a reboot after suspending."
 
+AddLongOption "no-suspend"
+AddOptionHelp "--no-suspend" "Disables actually suspending the system. This is useful for testing the suspend script itself."
+
 
 Swsusp2ConfigEnable() {
 	[ "$1" = "useswsusp2" ] || return 1
@@ -26,6 +29,8 @@ Swsusp2OptionHandler() {
 				BoolIsOn "-r" "$2" && OPT_REBOOT=1 || OPT_REBOOT=0
 			fi
 			;;
+		--no-suspend)
+			SWSUSP2_NO_SUSPEND=1
 		*)
 			return 1
 	esac
@@ -65,9 +70,13 @@ Swsusp2ConfigRestore() {
 }
 
 ZZZDoSwsusp2() {
-	vecho 1 "$EXE: Activating suspend ..."
-	error=`DoSuspend` && SUSPEND_SUCCESS=1 || SUSPEND_SUCCESS=0
-	PrintErrors $error
+	if [ -n "$SWSUSP2_NO_SUSPEND" ] ; then
+		vecho 1 "$EXE: Activating suspend ..."
+		error=`DoSuspend` && SUSPEND_SUCCESS=1 || SUSPEND_SUCCESS=0
+		PrintErrors $error
+	else
+		vecho 1 "$EXE: Not actually suspending (--no-suspend given)"
+	fi
 }
 
 # DoSuspend: activates the suspend and echo's the error code to be processed by

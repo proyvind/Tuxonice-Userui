@@ -17,7 +17,7 @@ SkeletonOptions() {
 	if [ -z "$SKELETON_HOOKED" ] ; then
 		AddSuspendHook 20 SkeletonSuspend
 		AddResumeHook 20 SkeletonResume
-        SKELETON_HOOKED=1
+		SKELETON_HOOKED=1
 	fi
 	return 0
 }

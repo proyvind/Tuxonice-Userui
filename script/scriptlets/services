@@ -1,6 +1,6 @@
 AddConfigHandler ServicesOptions
-AddConfigHelp "StopServices <service name> [...]   " "The services listed are stopped prior to suspending. The service name must correspond to the name of an init.d script that is active in the current runlevel."
-AddConfigHelp "StartServices <service name> [...]  " "The services listed are started after resuming. The service name must correspond to the name of an init.d script that is active in the current runlevel."
+AddConfigHelp "StopServices <service name> [...]" "The services listed are stopped prior to suspending. The service name must correspond to the name of an init.d script that is active in the current runlevel."
+AddConfigHelp "StartServices <service name> [...]" "The services listed are started after resuming. The service name must correspond to the name of an init.d script that is active in the current runlevel."
 AddConfigHelp "RestartServices <service name> [...]" "The services listed are stopped before suspending and started after resuming. The service name must correspond to the name of an init.d script that is active in the current runlevel."
 
 # ExecuteServices <action> <services ...>
@@ -48,7 +48,7 @@ ServicesOptions() {
 	if [ -z "$SERVICES_HOOKED" ] ; then
 		AddSuspendHook 30 ServicesStop
 		AddResumeHook 30 ServicesStart
-        SERVICES_HOOKED=1
+		SERVICES_HOOKED=1
 	fi
 	return 0
 }

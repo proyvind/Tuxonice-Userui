@@ -1,6 +1,6 @@
 AddConfigHandler XHacksOptions
 AddConfigHelp "LeaveXBeforeSuspend <boolean>" "If your X driver is unable to resume properly, you can try switching to a text console first by setting this to yes."
-AddConfigHelp "nVidiaHack <boolean>         " "Some X drivers can be reinitialised by launching a fake X server after resuming to restore the state of the graphics card. Set this to yes to do so."
+AddConfigHelp "nVidiaHack <boolean>" "Some X drivers can be reinitialised by launching a fake X server after resuming to restore the state of the graphics card. Set this to yes to do so."
 
 XHacksSuspend() {
 	if [ x"$XHACK_LEAVE_X" = "x1" ] ; then
@@ -42,7 +42,7 @@ XHacksOptions() {
 	if [ -z "$XHACKS_HOOKED" ] ; then
 		AddSuspendHook 10 XHacksSuspend
 		AddResumeHook 10 XHacksResume
-        XHACKS_HOOKED=1
+		XHACKS_HOOKED=1
 	fi
 	return 0
 }

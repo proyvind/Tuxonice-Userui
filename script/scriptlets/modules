@@ -1,17 +1,119 @@
-#AddSuspendHook 90 ModulesUnload
-#AddResumeHook 90 ModulesLoad
 AddConfigHandler ModulesOptions
+AddConfigHelp "ModulesUnload <modname> [...]" "Names of modules to unload prior to suspending."
+AddConfigHelp "ModulesLoad <modname> [...]" "Names of modules to load after resumimg."
+AddConfigHelp "ModulesUnloadAll <boolean>" "Try to remove all modules loaded prior to suspending."
+AddConfigHelp "ModulesAutoLoad <boolean>" "Try to load default modules after resuming (distribution specific)."
 
 ModulesUnload() {
+	[ -z "$MOD_UNLOAD" ] && return 0
+	for mod in $MOD_UNLOAD ; do 
+		vecho 1 "Unloading module $mod..."
+		modprobe -r $mod | $LOGPIPE
+	done
 	return 0
 }
 
 ModulesLoad() {
+	[ -z "$MOD_LOAD" ] && return 0
+	for mod in $MOD_LOAD ; do 
+		vecho 1 "Loading module $mod..."
+		modprobe $mod | $LOGPIPE
+	done
 	return 0
 }
 
+ModulesUnloadAll() {
+	if [ x"$MODULES_UNLOADALL" = "x1" ] ; then
+		# read from /proc/modules which modules are loaded
+		modules=`awk '($3==0){print $1}' /proc/modules`
+		for module in $modules ;do
+			vecho 1 "Removing $module"
+			modprobe -r $module | $LOGPIPE
+		done
+		# check which are still loaded and retry until nothing changes
+		modaft=`awk '($3==0){print $1}' /proc/modules`
+		while [ "$modaft" != "$modules" ] ; do
+			modules=$modaft
+			usleep 200000
+			for module in $modules ;do
+				vecho 1 "Removing $module"
+				modprobe -r $module | $LOGPIPE
+			done
+			modaft=`awk '($3==0){print $1}' /proc/modules`
+		done
+		vecho 1 "modules failed to unload: `cat /proc/modules` "
+	fi
+	return 0
+}
+
+ModulesAutoLoad() {
+	if [ x"$MODULES_AUTOLOAD" = "x1" ] ; then
+		# This is distribution specific	
+		# XXX - add code for other distros
+		
+		if [ "$DISTRIBUTION" == "Gentoo" ] ;then
+			# for gentoo users
+			source /sbin/functions.sh
+			# taken from gentoo's /etc/init.d/modules
+			if [ -f /etc/modules.autoload -a ! -L /etc/modules.autoload ] ; then
+				modules_autoload_file= /etc/modules.autoload
+			else
+				local KV="$(uname -r)"
+				local KV_MAJOR="`KV_major "${KV}"`"
+				local KV_MINOR="`KV_minor "${KV}"`"
+
+				# New support for /etc/modules.autoload/kernel-$KV
+				if [ "$(get_KV)" -ge "$(KV_to_int '2.5.48')" ] && \
+				[ -f /etc/modules.autoload.d/kernel-"${KV_MAJOR}.${KV_MINOR}" ]
+				then
+					modules_autoload_file="/etc/modules.autoload.d/kernel-${KV_MAJOR}.${KV_MINOR}"
+				elif [ ! -f /etc/modules.autoload.d/kernel-"${KV_MAJOR}.${KV_MINOR}" ]
+				then
+					ewarn "Missing /etc/modules.autoload.d/kernel-${KV_MAJOR}.${KV_MINOR}"
+					modules_autoload_file="/etc/modules.autoload.d/kernel-2.4"
+				else
+					modules_autoload_file="/etc/modules.autoload.d/kernel-2.4"
+				fi
+			fi
+
+			# Loop over every line in $modules_autoload_file.
+			vecho 1 "Loading modules listed $modules_autoload_file" 
+			(cat "$modules_autoload_file"; echo) | # make sure there is a LF at the end
+
+			while read MOD args ; do
+				case "${MOD}" in
+					#*|"") continue ;;
+				esac
+				vecho 1 "Loading $MOD" 
+				modprobe ${MOD} ${args} | $LOGPIPE
+			done
+		
+		fi
+	fi
+	return 0
+}
+
+
 ModulesOptions() {
 	case $1 in
+		modulesunload)
+			[ -z "$MOD_UNLOAD" ] && AddSuspendHook 90 ModulesUnload
+			shift
+			MOD_UNLOAD="$MOD_UNLOAD $@"
+			;;
+		modulesload)
+			[ -z "$MOD_LOAD" ] && AddResumeHook 90 ModulesLoad
+			shift
+			MOD_LOAD="$MOD_LOAD $@"
+			;;
+		modulesunloadall)
+			BoolIsOn "$1" "$2" && MODULES_UNLOADALL=1 || return 0
+			AddSuspendHook 91 ModulesUnloadAll
+			;;
+		modulesautoload)
+			BoolIsOn "$1" "$2" && MODULES_AUTOLOAD=1 || return 0
+			AddResumeHook 91 ModulesAutoLoad
+			;;
 		*)
 			return 1
 	esac
