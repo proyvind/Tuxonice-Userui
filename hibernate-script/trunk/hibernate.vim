@@ -185,6 +185,8 @@ highlight link hibernate_sysfspowerstate Special
 
 " vbetool
 syntax keyword hibernate_conf enablevbetool contained nextgroup=hibernate_boolean skipwhite
+syntax keyword hibernate_conf restorevbestatefrom contained nextgroup=hibernate_filenames skipwhite
+syntax keyword hibernate_conf vbetoolpost contained nextgroup=hibernate_boolean skipwhite
 
 " xhacks
 syntax keyword hibernate_conf switchtotextmode contained nextgroup=hibernate_boolean skipwhite

@@ -8,11 +8,16 @@
 
 AddConfigHandler VbetoolOptions
 AddConfigHelp "EnableVbetool <boolean>" "Save and restore video state using vbetool before and after suspending."
+AddConfigHelp "RestoreVbeStateFrom <filename>" "If set, will restore the VBE state with the data stored in <filename>. Use this if your card requires you to restore it with a state captured at boot (from single user mode, run \"vbetool vbestate save > /var/lib/vbetool/vbestate\"). If this option is not set, the state is saved just before suspending."
+AddConfigHelp "VbetoolPost <boolean>" "If yes, will call the video BIOS's POST routine to reinitialise the video card. Some cards need this to turn on the backlight back and be useful after resuming. Other video cards will hang if you attempt to POST them. Try it with yours and see."
 
 # hopefully this is a good choice and nothing else uses it :-/
 VBETOOL_VT=61
+VBETOOL_ENABLED=
+VBETOOL_POST=
+VBETOOL_SAVED_STATE=
 
-VbetoolSuspend() {
+VbetoolSaveState() {
     # if we're switched off, don't do nuffin
     [ x"$VBETOOL_ENABLED" = "x1" ] || return 0
 
@@ -23,11 +28,13 @@ VbetoolSuspend() {
 	return 0
     fi
 
+    # If we already have a saved state, don't bother saving it now.
+    [ -z "$VBETOOL_SAVED_STATE" ] && return 0
+
     # save our previous VT and switch to a new one
     VBETOOL_ORIG_VT=`fgconsole 2>/dev/null` || VBETOOL_ORIG_VT=1
     chvt $VBETOOL_VT
-    tput clear
-
+    TERM=linux tput clear 
     VBETOOL_FILE=`mktemp /tmp/tmp.hibernate.XXXXXX`
 
     # save the vbe state
@@ -36,7 +43,7 @@ VbetoolSuspend() {
     return 0
 }
 
-VbetoolResume() {
+VbetoolRestoreState() {
     # if we're switched off, don't do nuffin
     [ x"$VBETOOL_ENABLED" = "x1" ] || return 0
 
@@ -44,22 +51,37 @@ VbetoolResume() {
     vbetool vbestate restore < $VBETOOL_FILE
     rm -f $VBETOOL_FILE
 
+    # POST if we're asked to
+    [ x"$VBETOOL_POST" = "x1" ] && vbetool post
+
     # change back to our original VT
     chvt $VBETOOL_ORIG_VT
 }
 
 VbetoolOptions() {
     case $1 in
-        enablevbetool)
-            BoolIsOn "$1" "$2" && VBETOOL_ENABLED=1 || return 0
-            ;;
-        *)
-            return 1
+	enablevbetool)
+	    BoolIsOn "$1" "$2" && VBETOOL_ENABLED=1 || return 0
+	    ;;
+	vbetoolpost)
+	    BoolIsOn "$1" "$2" && VBETOOL_POST=1 || return 0
+	    ;;
+	restorevbestatefrom)
+	    VBETOOL_SAVED_STATE=$2
+	    if ! [ -r "$VBETOOL_SAVED_STATE" ] ; then
+		vecho 0 "$EXE: vbetool: Saved state file does not exist ($VBETOOL_SAVED_STATE)"
+		vecho 0 "$EXE: vbetool: Saving state on suspend instead."
+		VBETOOL_SAVED_STATE=
+		return 0
+	    fi
+	    ;;
+	*)
+	    return 1
     esac
 
     if [ -z "$VBETOOL_HOOKED" ] ; then
-	AddSuspendHook 97 VbetoolSuspend
-	AddResumeHook 97 VbetoolResume
+	AddSuspendHook 97 VbetoolSaveState
+	AddResumeHook 97 VbetoolRestoreState
 	VBETOOL_HOOKED=1
     fi
 
