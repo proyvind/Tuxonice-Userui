@@ -436,8 +436,8 @@ toggle various settings.
 Escape will abort a suspend and restore the machine back to the previous state.
 Perfect for those "Oh, but I just forgot to ..." situations.
 
-<item> <bf>R</bf> - toggles rebooting (same as the <tt>reboot</tt> /proc
-entry). This requires that debugging be enabled (compiled in).
+<item> <bf>R</bf> - toggles rebooting at the end of suspending (same as the
+<tt>reboot</tt> /proc entry).
 
 <item> <bf>P</bf> (Requires debug enabled) - toggles pausing between major steps when log level > 1.
 
@@ -454,7 +454,82 @@ entry). This requires that debugging be enabled (compiled in).
 resume. This requires that debugging be enabled (compiled in).
 </itemize>
 
+<sect1>Avoiding data loss
 
+<p>While much care has gone into Software Suspend to ensure reliability and
+safety of your data, there are some unusual scenarios which may lead to
+filesystem corruption and data loss. With a modern journalled filesystem (eg,
+ext3, reiserfs, xfs, jfs) a failed resume should not cause filesystem
+corruption, as this is the equivalent of simply losing power which should be
+dealt with gracefully.
+
+<p>Other more dangerous situations are described below, with ways to workaround
+and avoid them:
+
+<sect2>Booting non-Software Suspend aware kernels
+<p><bf>Problem</bf>: Booting a second kernel that does not recognise the
+suspended image in your swap partition.
+<p>This is very dangerous as there is no warning. For example, you have two
+kernels, Kernel A and Kernel B. Kernel A has Software Suspend support, and
+Kernel B does not.
+<p>The danger comes when suspending with Kernel A, you then decide to boot
+Kernel B, that does not recognize the swap image. It ignores the "bad" swap
+partition and runs without it as if nothing happened (except it may run low on
+memory).
+<p>The problem to the suspended Kernel A is that since Kernel B mounted the
+filesystem r/w, it no longer matches the suspended kernel and will be corrupted
+on resume. Thus, severe damage to the filesystem will result once the disk is
+written to by the resumed kernel. 
+<p>This problem has bitten unsuspecting users when, for example, a new kernel
+is released for their distribution and automatically installed, or if you boot
+a live CD (eg, Knoppix) and try to mount filesystems from there.
+
+<p><bf>Solution</bf>: Should this scenario occur, the suspended kernel must be
+prevented from resuming. This can be accomplished by an mkswap of the swap
+partition from Kernel B, or booting Kernel A with noresume2. To make sure this
+always happens, you can putting a line like this in the script that enables your
+swap partitions (or another one called earlier in the boot process):
+
+<quote><verb>
+for i in `awk '((substr($0,1,1) != "#") && ($3 == "swap")) { print $1 }' /etc/fstab` ; do
+	mkswap $i
+done
+</verb></quote>
+
+<sect2>Windows touches your FAT partitions whilst Linux is suspended
+<p><bf>Problem</bf>: Similar to the scenario above, if you have mounted FAT drives
+or partitions when suspending and you then boot into Windows, as soon as you
+boot back into Linux you will probably end up corrupting your FAT drives.
+
+<p><bf>Solution</bf>: Unmount your FAT drives before suspending. If you are using
+the Hibernate Script, you can use the following line in your hibernate.conf:
+<quote><verb>
+UnmountFSTypes vfat fat msdos
+</verb></quote>
+
+<sect2>An initrd mounts your filesystem before resuming
+<p><bf>Problem</bf>: An incorrectly setup initrd can corrupt your filesystem if it
+tries to mount it before resuming.
+<p>If your filesystem is touched in any way before resuming, your data will risk
+serious corruption. This even includes mounting the filesystem in read-only mode
+as many journalling filesystems (ext3, reiserfs, xfs) will replay the journal.
+
+<p><bf>Solution</bf>: Ensure your initrd is setup correctly - attempting to
+resume should be the first thing it tries to do after mounting /proc. If you
+are using an initrd, enable the "Warn if possibility of filesystem corruption"
+in the Software Suspend 2 kernel configuration. This will throw a BIG FAT
+WARNING if you try to resume after a filesystem has been mounted read/write. It
+won't catch all cases, but will probably get the most common ones.
+<p>You may find this will throw spurious BIG FAT WARNINGs at your initrd being
+mounted read-write (which is safe in itself, as it is not linked to the hard
+disk). To avoid the warning here, you should mount your initrd as read-only
+whilst trying to resume, by putting the two mount lines below into your linuxrc
+script:
+<quote><verb>
+mount -n -o remount,ro /
+echo > /proc/software_suspend/do_resume
+mount -n -o remount,rw /
+</verb></quote>
 
 <sect>Troubleshooting<label id="trouble">
 
@@ -481,7 +556,7 @@ either during suspending or resuming. Hangs while resuming have two sources:
 <p>Type 1 issues will generally affect areas other than the point where you see
 "<tt>Copying original kernel back</tt>". There are known issues with Software
 Suspend itself (type 1 issues) in the 2.1.5 series which should be fixed in
-2.1.6.
+2.1.7.
 
 <p>Type 2 issues are more common, and affect particular hardware (and therefore
 some computers/configurations, but not others). There are usually workarounds
