@@ -539,6 +539,11 @@ Swsusp2LoadModules() {
 	    # So we may as well load all the modules.
 	fi
     done
+    # Ensure we really have loaded the modules (avoid race conditions)
+    i=0
+    while ! [ -f $SWSUSP_ROOT/resume2 ] && [ $i -lt 3 ] ; do
+	sleep 1
+    done
     return $ret
 }
 

@@ -1,3 +1,7 @@
+1.05 (unreleased)
+ - Wait after loading suspend modules until the relevant proc entries are
+   found.
+
 1.04 (8 February 2004)
  - Avoid making spurious temporary files.
  - Relax permissions on install directory to 755 instead of 700.
