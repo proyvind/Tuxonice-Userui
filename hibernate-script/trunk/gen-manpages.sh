@@ -53,7 +53,7 @@ memory will be saved to disc, and your computer will switch off.  When
 you switch it back on again, it will resume exactly as it was when you
 hibernated.  This script currently requires Software Suspend 2, which
 is not yet included in the main kernel tree and must be downloaded
-from the Software Suspend web site at \fIhttp://swsusp.sf.net/\fR.
+from the Software Suspend web site at \fIhttp://softwaresuspend.berlios.de/\fR.
 Instructions on setting up the kernel can also be found on that web
 site.
 .PP
