@@ -1,0 +1,56 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
+AddConfigHandler ACPISleepConfigEnabler
+AddOptionHandler ACPISleepOptionHandler
+
+AddConfigHelp "UseACPISleep <state>" "Enables the use of /proc/acpi/sleep for suspending the machine. Be aware that this method is deprecated in favour of using /sys/power/state (with the sysfs_power_state scriptlet). This requires a kernel with ACPI support built in. <state> should generally be 3 (for suspend-to-RAM), or 4 (for suspend-to-disk). Note: You should not use this if you want to use Software Suspend 2."
+
+AddShortOption "n"
+AddLongOption "no-suspend"
+AddOptionHelp "-n, --no-suspend (requires UseACPISleep to be set)" "Disables actually suspending the system via /proc/acpi/sleep. This is useful for testing the suspend script itself."
+
+ACPI_SLEEP_FILE=/proc/acpi/sleep
+
+ACPISleepConfigEnabler() {
+    [ "$1" != "useacpisleep" ] && return 1
+    [ -n "$USING_ACPI_SLEEP" ] && return 0
+    AddSuspendHook 10 EnsureACPISleepCapable
+    AddSuspendHook 99 DoACPISleep
+    USING_ACPI_SLEEP=$2
+    return 0
+}
+
+ACPISleepOptionHandler() {
+    [ -z "$USING_ACPI_SLEEP" ] && return 1
+    case $1 in
+	-n|--no-suspend)
+	    ACPI_SLEEP_NO_SUSPEND=1
+	    ;;
+	*)
+	    return 1
+    esac
+    return 0
+}
+
+DoACPISleep() {
+    if [ -z "$ACPI_SLEEP_NO_SUSPEND" ] ; then
+	vecho 1 "$EXE: Activating ACPI sleep state $USING_ACPI_SLEEP ..."
+	echo -n $USING_ACPI_SLEEP > $ACPI_SLEEP_FILE
+    else
+	vecho 1 "$EXE: Not actually suspending (--no-suspend given)"
+    fi
+    return 0
+}
+
+# EnsureACPISleepCapable: makes sure we have /proc/acpi/sleep.
+EnsureACPISleepCapable() {
+    if ! test -f $ACPI_SLEEP_FILE ; then
+	vecho 0 "Your kernel does not appear to have ACPI sleep support."
+	return 2
+    fi
+
+    return 0
+}
+
+# $Id$
