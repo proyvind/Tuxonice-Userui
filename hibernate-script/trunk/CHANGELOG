@@ -1,6 +1,7 @@
 1.00 (unreleased)
  - Fix a long standing bug when printing error result codes.
  - Add AsyncIOLimit option (Lorenzo Colitti).
+ - Make DefaultConsoleLevel not expect a boolean value.
 
 0.99 (10 October 2004)
  - Make SCRIPTLET_PATH work again so that user-defined scriptlets can

@@ -148,6 +148,7 @@ syntax keyword hibernate_conf swsusp2allsettings contained nextgroup=hibernate_s
 syntax keyword hibernate_conf suspenddevice contained nextgroup=hibernate_filenames skipwhite
 syntax keyword hibernate_conf loadsuspendmodules contained nextgroup=hibernate_modules skipwhite
 syntax keyword hibernate_conf unloadsuspendmodulesafterresume contained nextgroup=hibernate_boolean skipwhite
+syntax keyword hibernate_conf asynciolimit contained nextgroup=hibernate_integer skipwhite
 
 " sysfspowerstate
 syntax keyword hibernate_conf usesysfspowerstate contained nextgroup=hibernate_sysfspowerstate skipwhite
