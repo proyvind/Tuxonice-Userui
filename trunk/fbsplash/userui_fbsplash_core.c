@@ -114,8 +114,12 @@ static void fbsplash_prepare() {
 
 	fbsplash_fd = open(SPLASH_DEV, O_WRONLY); /* Don't worry if it fails */
 
-	do_getpic(FB_SPLASH_IO_ORIG_USER, 1, 'v');
-	do_getpic(FB_SPLASH_IO_ORIG_USER, 0, 's');
+	do_getpic(FB_SPLASH_IO_ORIG_USER, 1, 'v'); /* Don't worry if it fails */
+	if (do_getpic(FB_SPLASH_IO_ORIG_USER, 0, 's') == -1)
+		return; /* We do care if this fails. */
+
+	/* These next two touch the kernel and are needed even for silent mode, to
+	 * get the colours right (even on 32-bit depth displays funnily enough. */
 	do_config(FB_SPLASH_IO_ORIG_USER);
 	cmd_setstate(1, FB_SPLASH_IO_ORIG_USER);
 
