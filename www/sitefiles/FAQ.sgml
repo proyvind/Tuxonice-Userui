@@ -35,7 +35,7 @@ Under the <bf>Current Kernel Patches</bf> package, grab the latest core patch
 
 <sect1>What kernel do I need for the latest Software Suspend 2?
 
-<p>For the 2.4 series, you will need a relatively clean 2.4.24 kernel source
+<p>For the 2.4 series, you will need a relatively clean 2.4.26 kernel source
 tree (eg, not Red Hat's kernel source). There are a number of optional patches
 that are convenient if you have extras in your kernel such as 
 <url url="http://www.bootsplash.org/" name="bootsplash"> (not always needed, see <ref id="bootsplash" name="Bootsplash help">)
@@ -45,11 +45,11 @@ or <url url="http://lwn.net/Articles/32037/" name="laptop-mode">
 have any of these, you might want to download the relevant option patch which
 helps Software Suspend 2 integrate nicely.
 
-<p>2.6 kernels come with their own version of Software Suspend (referred to on
-the mailing lists as Software Suspend v1). This is in the process of being
-merged with Nigel's work on Software Suspend 2 (referred as v2, or swsusp2).
-Generally speaking, more people have had success with Software Suspend 2 than
-the stock kernel version in 2.6.
+<p>2.6 kernels come with their own versions of Software Suspend (referred to on
+the mailing lists as Software Suspend v1 and pmdisk). This is in the process of
+being merged with Nigel's work on Software Suspend 2 (referred as v2, or
+swsusp2).  Generally speaking, more people have had success with Software
+Suspend 2 than the stock kernel version in 2.6.
 
 <sect1>How can I tell what version of Software Suspend my distro's stock kernel came with?
 
@@ -62,7 +62,7 @@ be less likely to help when dealing with unknowns.
 
 <sect>Patching the kernel sources
 
-<sect1>cpufreq: I get rejected hunks in processor.h when merging cpufreq patch and swsusp. What can I do?
+<sect1>cpufreq: I get rejected hunks in processor.h when merging cpufreq patch and Software Suspend. What can I do?
 <p>This was posted by Karol Kozimor:
 
 <quote><verb>
@@ -497,7 +497,7 @@ in /etc/suspend.conf and add your extra NFS mounts into SWSUSP_UMOUNTS.
 <p>Alternately, upgrade to the new hibernate script which does not call the
 init script in question.
 
-<sect1>System hangs on booting a swsusp kernel (2.6)
+<sect1>System hangs on booting a Software Suspend 2 kernel (2.6)
 <p>If CONFIG_CC_OPTIMIZE_FOR_SIZE is enabled, you may get a hang on boot just after:
 <quote><verb>
 Software Suspend 2.0.0.10: Swap space signature found.
@@ -507,6 +507,95 @@ Software Suspend 2.0.0.10: kswsuspd starting
 </verb></quote>
 Disabling CONFIG_CC_OPTIMIZE_FOR_SIZE appears to resolve the issue. Thanks to
 Michael Schneider for recognising this problem and solution!
+
+<sect> Modular Software Suspend
+
+<sect1> Why would I want to compile suspend as modules?
+<p>
+<enum>
+<item> Compiling suspend as modules lets you have a smaller base kernel. The
+code will not be taking up memory when it's not being used.
+<item> Certain upgrades of suspend code become possible without rebooting,
+by simply recompiling and reloading the modules. Even so, some code is still
+built into the kernel, and changes to these parts will require a reboot.
+<item> This also allows for loading other modules from the initrd that might
+help overcome power management issues.
+<item> This also allows for encryption support to be included (crypto loop)
+<item> Support for storage devices can be made modular as well (Debian's default
+kernels do this).
+</enum>
+
+<sect1> What options do I need to select in my kernel configuration?
+
+<p>In configuring suspend itself, you can compile as much or as little as
+modules as you like. The core code can be built as a module, or just the
+plugins.
+
+<p>In addition to this, you will need to compile initrd support so that
+suspend modules can be loaded from the initrd and suspend activated
+before any filesystems are mounted.
+
+<p>At resume time, suspend needs to do its work before any filesystems are
+mounted. This implies that the modules for suspend must be put in the
+initrd and loaded before the initrd does any mounting of filesystems (the
+modules can be inserted, but the mount commands must come later).
+
+<sect1>Can you give me a checklist to follow in installing the new support?
+
+<p>Sure!
+
+<enum>
+<item> Apply the new patches to your kernel.
+<item> Configure (don't forget initrd support and don't forget to check that
+suspend support is selected. Changes to the Kconfig file mean it will be
+treated as a new option).
+<item> make bzImage modules modules_install
+<item> Install the bzImage (make sure you can boot an old kernel, just in
+case) and run lilo if needed.
+<item> Mount or create your initrd and copy the suspend modules to the
+initrd.
+<item> Edit your initrd's linuxrc to load the modules and then call echo >
+/proc/software_suspend/activate BEFORE any mounting of filesystems
+(apart from proc) is done.
+<item> Unmount your initrd.
+<item> Reboot to init S.
+<item> Check dmesg or /var/log/messages to confirm that your initrd ran
+fine, that you see the modules installed and that they report all being
+well with the world.
+<item> Try a suspend. Remember that /proc/swsusp is now /proc/software_suspend/
+</enum>
+
+<p><bf>WHEN YOU BUILD A NEW KERNEL, DON'T FORGET TO UPDATE THE MODULES IN THE
+INITRD!!</bf>
+
+<sect1> Can you provide a sample linuxrc?
+<p>
+<verb>
+#!/bin/sh
+/bin/mount none /proc -t proc
+/bin/insmod -q /lib/suspend2_core.ko
+/bin/insmod -q /lib/suspend2_lzf.ko
+/bin/insmod -q /lib/suspend2_block_io.ko
+/bin/insmod -q /lib/suspend2_swap.ko
+echo > /proc/software_suspend/activate
+/bin/umount /proc
+</verb>
+
+<p>Notes:
+<itemize>
+<item> You need to mount /proc so you can do the activate (which doesn't
+suspend! When called from the initrd, it checks whether to resume.)
+<item> Any support for storage devices should be installed before the writer
+to avoid 'Unable to parse resume device' messages
+<item> Normal filesystems should be mounted afterwards.
+</itemize>
+
+<sect1> I get messages about the size of struct module not agreeing when the initrd tries to insert my suspend modules.
+
+<p>You built a new kernel and forgot the update the modules in the initrd.
+
+<sect1> The modules are installed fine but the swapwriter complains about not being able to access the suspend device.
+<p>Did you insert IDE/SCSI/USB modules prior to the suspend modules?
 
 <sect>Miscellaneous
 
@@ -518,7 +607,7 @@ thinks it is. For the kernel, the hardware is reinitialized although it has
 been reset by BIOS. Sometimes, this may be solved by setting the BIOS option
 (if it exists) to non PnP OS.
 
-<sect1>Swsusp seems nice, but can I use it for doing snapshots?
+<sect1>Software Suspend seems nice, but can I use it for doing snapshots?
 <p>No you can't because the image you save is linked to your filesystem state,
 including root. You can only do that if the two systems are completely
 independent. It may be possible (but not guaranteed) that you could do that if
