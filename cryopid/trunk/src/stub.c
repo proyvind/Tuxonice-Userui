@@ -13,6 +13,7 @@ int verbosity = 0;
 int do_pause = 0;
 int want_pid = 0;
 int new_cs = 0;
+int translate_pids = 0;
 
 int syscall_check(int retval, int can_be_fake, char* desc, ...) {
 	va_list va_args;
@@ -279,9 +280,6 @@ int resume_image_from_file(int fd) {
 
 	close(fd);
 
-	if (verbosity > 0)
-		fprintf(stderr, "Ready to go!\n");
-
 	syscall_check(
 			(int)mmap((void*)0x10000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC,
 			MAP_FIXED|MAP_PRIVATE|MAP_ANONYMOUS, 0, 0), 0, "mmap");
@@ -290,6 +288,14 @@ int resume_image_from_file(int fd) {
     *(long*)user_data.regs.esp = user_data.regs.eflags;
     
 	put_shell_code(user_data.regs, (void*)0x10000);
+
+	if (verbosity > 0)
+		fprintf(stderr, "Ready to go!\n");
+
+    if (translate_pids) {
+        extern int supervise_me(pid_t);
+        supervise_me(pid);
+    }
 
 	if (do_pause)
 		sleep(2);
@@ -387,7 +393,7 @@ void real_main(int argc, char** argv) {
 			{0, 0, 0, 0},
 		};
 		
-		c = getopt_long(argc, argv, "vpPc:",
+		c = getopt_long(argc, argv, "vpPc:t",
 				long_options, &option_index);
 		if (c == -1)
 			break;
@@ -403,6 +409,9 @@ void real_main(int argc, char** argv) {
                 break;
             case 'c':
                 new_cs = atoi(optarg);
+                break;
+            case 't':
+                translate_pids = 1;
                 break;
 			case '?':
 				/* invalid option */

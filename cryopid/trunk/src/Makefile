@@ -21,7 +21,7 @@ stub-image.S: stub src2asm.pl
 
 freeze: freeze.o process.o imagewriter.o elfwriter.o stub-image.o
 
-stub: stub.o stub-linking.x
-	gcc -static -Tstub-linking.x -o $@ $< $(LIBC)
+stub: stub.o supervisor.o
+	gcc -static -Tstub-linking.x -o $@ $^ $(LIBC)
 	strip $@
 
