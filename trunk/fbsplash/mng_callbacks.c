@@ -156,6 +156,6 @@ mng_retcode mng_init_callbacks(mng_handle handle) {
 	set_cb(traceproc);
 #endif
 
-	return MNG_NOERROR;
 #undef set_cb
+	return MNG_NOERROR;
 }
