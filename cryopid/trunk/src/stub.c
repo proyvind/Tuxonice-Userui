@@ -12,6 +12,7 @@
 int verbosity = 0;
 int do_pause = 0;
 int want_pid = 0;
+int new_cs = 0;
 
 int syscall_check(int retval, int can_be_fake, char* desc, ...) {
 	va_list va_args;
@@ -75,6 +76,7 @@ void put_shell_code(struct user_regs_struct r, char* code) {
     /* jump back to where we were. */
 	*cp++=0xea;
 	*(unsigned long*)(cp) = r.eip; cp+= 4;
+    if (new_cs) r.cs = new_cs;
 	*(unsigned short*)(cp) = r.cs; cp+= 2; /* jmp cs:foo */
 }
 
@@ -385,7 +387,7 @@ void real_main(int argc, char** argv) {
 			{0, 0, 0, 0},
 		};
 		
-		c = getopt_long(argc, argv, "vpP",
+		c = getopt_long(argc, argv, "vpPc:",
 				long_options, &option_index);
 		if (c == -1)
 			break;
@@ -398,6 +400,9 @@ void real_main(int argc, char** argv) {
 				break;
             case 'P':
                 want_pid = 1;
+                break;
+            case 'c':
+                new_cs = atoi(optarg);
                 break;
 			case '?':
 				/* invalid option */
