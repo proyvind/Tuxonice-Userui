@@ -1,4 +1,4 @@
-1.05 (unreleased)
+1.05 (9 February 2004)
  - Wait after loading suspend modules until the relevant proc entries are
    found.
  - Fix numerous bugs in xstatus.
