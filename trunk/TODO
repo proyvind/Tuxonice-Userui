@@ -1,2 +1,3 @@
+- Rename package to suspend2-userui
 - Fix jerkiness of fbanim
 - Fix memory usage - either use it, or get rid of it.
