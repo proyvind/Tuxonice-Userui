@@ -204,7 +204,7 @@ static void setup_signal_handlers() {
 static void open_console() {
 	int fd;
 
-	if ((fd = open("/dev/console", O_RDWR, 0644)) == -1)
+	if ((fd = open("/dev/console", O_RDWR)) == -1)
 		bail_err("open(\"/dev/console\")");
 
 	if (dup2(fd, STDOUT_FILENO) == -1)
