@@ -16,12 +16,13 @@ XHacksSuspend() {
 XHacksResume() {
     if [ x"$XHACK_NVIDIA" = "x1" ] ; then
 	# Launch a fake X server to reinitialise the graphics card
+	PATH=$PATH:/usr/bin/X11:/usr/X11R6/bin
 	if ! which X ; then
 	    vecho 1 "X not in path. Not starting X server for nVidia hack."
 	else
 	    vecho 1 "Launching fake X server."
 	    unset XAUTHORITY   # Make sure we don't clobber the user's .Xauthority
-	    xinit /bin/true -- `which X` :3 -auth /dev/null -audit 0 -nolisten tcp
+	    xinit /bin/true -- `which X` :3 -auth /dev/null -audit 0 -nolisten tcp > /dev/null 2>&1
 	fi
     fi
 
