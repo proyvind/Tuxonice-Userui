@@ -64,7 +64,7 @@ ModulesUnload() {
 	    continue
 	fi
 
-	if modprobe -r `FindModuleDeps $mod` > /dev/null 2>&1 ; then
+	if rmmod `FindModuleDeps $mod` > /dev/null 2>&1 ; then
 	    vecho 2
 	else
 	    ret=1
@@ -233,7 +233,7 @@ ModulesUnloadBlacklist() {
 	local i
 	for i in $deps ; do
 	    vecho 3 "Unloading $i ..."
-	    if modprobe -r $i > /dev/null 2>&1 ; then
+	    if rmmod $i > /dev/null 2>&1 ; then
 		MOD_UNLOADED="$MOD_UNLOADED $i"
 	    else
 		failedmods="$failedmods $i"

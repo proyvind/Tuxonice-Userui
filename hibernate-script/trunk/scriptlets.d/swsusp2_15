@@ -550,7 +550,7 @@ Swsusp2LoadModules() {
 Swsusp2UnloadModules() {
     for i in $SWSUSP_LOAD_MODULES ; do
 	vecho 2 "Unloading suspend module $i ... "
-	modprobe -r `FindModuleDeps $i` > /dev/null 2>&1
+	rmmod `FindModuleDeps $i` > /dev/null 2>&1
     done
     return 0
 }
