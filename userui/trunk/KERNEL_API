@@ -1,0 +1,25 @@
+This file describes the API between suspend_userui kernel module and
+userui_core.
+
+userui communicates with the kernel over a netlink socket. The sequence of events
+when suspending with userui activated goes something like:
+
+1. suspend_userui creates a netlink socket over which processes can communicate
+with it.
+
+2. suspend_userui forks off the userui process (pointed to by
+/proc/software_suspend/userui_program) and waits until it sends a USERUI_MSG_READY
+message or a timeout expires (10 seconds).
+
+3. userui runs, does the necessary preparation, and sends a USERUI_MSG_READY
+message with the pid of the process in the netlink message. It then simply
+waits for events to occur and process them.
+
+4. suspend_userui sets the PF_NOFREEZE flag on the userui process and proceeds
+with suspending as normal.
+
+5. suspend_userui sends messages to the userui process to inform it about the
+progress of suspending and any keypress events (if HANDLE_KEYPRESSES_IN_KERNEL
+is not defined).
+
+Life goes on...
