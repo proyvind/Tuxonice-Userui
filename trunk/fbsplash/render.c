@@ -30,6 +30,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include "splash.h"
+#include "fbsplash_mng.h"
 
 void render_icon(icon *ticon, u8 *target)
 {
@@ -563,6 +564,7 @@ void render_objs(u8 *target, u8 *bgnd, char mode, unsigned char origin, int prog
 	item *i;
 	obj *o;
 	icon *c;
+	anim *a;
 	box tmp, *b, *n;
 
 	if (fb_var.bits_per_pixel == 8)
@@ -666,5 +668,14 @@ void render_objs(u8 *target, u8 *bgnd, char mode, unsigned char origin, int prog
 		}
 	}
 #endif
+
+	for (i = anims.head; i != NULL; i = i->next) {
+		a = (anim*)i->p;
+		if (!mng_render_next(a->mng)) {
+			mng_display_restart(a->mng);
+			mng_render_next(a->mng);
+		}
+		mng_display_next(a->mng, target, a->x, a->y);
+	}
 }
 
