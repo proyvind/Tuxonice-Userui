@@ -53,6 +53,7 @@ PAGES = style.css \
 		contrib/Swsusp2_and_Bootsplash_on_FC2.doc \
 		$(HOWTO_FILES) \
 		$(FAQ_FILES) \
+		mirror.tgz
 
 DIRS = contrib fedora downloads downloads/all
 
@@ -97,10 +98,13 @@ $(FAQ_TARGET): $(FAQ_BASENAME).sgml
 	linuxdoc -B html $< -H faq-top.txt -F /dev/null
 
 clean:
-	rm -f $(HOWTO_BASENAME)*.html $(FAQ_BASENAME)*.html index-download-snippet.html
+	rm -f $(HOWTO_BASENAME)*.html $(FAQ_BASENAME)*.html index-download-snippet.html $(SITEBASE)/mirror.tgz
 	# Not touching the site base directory!
 
 backup: clean
 	cd .. && tar czf sitefiles-`date +"%Y%m%d"`.tar.gz sitefiles/
+
+$(SITEBASE)/mirror.tgz:
+	cd $(SITEBASE) ; tar -czf $@ --exclude=mirror.tgz .
 
 .PHONY: directories htmlfiles rawfiles howto clean backup
