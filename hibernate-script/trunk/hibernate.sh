@@ -296,10 +296,9 @@ DoGetOpt() {
 	opt="$1"
 	shift
 	case $opt in
-	    -h|--help)
-		# In theory this should be caught by CheckIfHelpOnly and friends
-		Usage
-		exit 1
+	    -F|--config-file)
+		# Dealt with previously
+		shift
 		;;
 	    -f|--force)
 		FORCE_ALL=1
@@ -314,11 +313,6 @@ DoGetOpt() {
 		OPT_VERBOSITY="${1#\'}"
 		OPT_VERBOSITY="${OPT_VERBOSITY%\'}"
 		VERBOSITY="$OPT_VERBOSITY"
-		shift
-		;;
-	    -F|--config-file)
-		CONFIG_FILE="${1#\'}"
-		CONFIG_FILE="${CONFIG_FILE%\'}"
 		shift
 		;;
 	    -q)
@@ -352,17 +346,25 @@ ParseOptions() {
     DoGetOpt $opts
 }
 
-# CheckIfHelpOnly <options> : detects if the -h option was given on the
-# in <options>. If so returns 0, or 1 otherwise.
-CheckIfHelpOnly() {
+# PreliminaryGetopt <options> : detects a few command-line options that need to
+# be dealt with before scriptlets and before other command-line options.
+PreliminaryGetopt() {
     local opt
-    for opt in `getopt -q -o h -l help -- "$@"` ; do
+    local next_is_config
+    for opt in `getopt -q -o hF: -l help,config-file: -- "$@"` ; do
+	if [ -n "$next_is_config" ] ; then
+	    CONFIG_FILE="${opt#\'}"
+	    CONFIG_FILE="${CONFIG_FILE%\'}"
+	    next_is_config=
+	fi
+
 	case $opt in
-	    -h|--help) return 0 ;;
-	    --) return 1 ;;
+	    -h|--help) HELP_ONLY=1 ;;
+	    -F|--config-file) next_is_config=1 ;;
+	    --) return 0 ;;
 	esac
     done
-    return 1
+    return 0
 }
 
 # LoadScriptlets: sources all scriptlets in $SCRIPTLET_PATH directories
@@ -593,8 +595,11 @@ LOGPIPE="cat"
 EnsureHavePrerequisites
 EnsureHaveRoot
 
+# Test for options that will affect future choices (-h and -F currently)
+PreliminaryGetopt "$@"
+
 # Generating help text is slow. Avoid it if we can.
-if CheckIfHelpOnly "$@" ; then
+if [ -n "$HELP_ONLY" ] ; then
     AddInbuiltHelp
     LoadScriptlets
     Usage
