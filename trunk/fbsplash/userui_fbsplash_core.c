@@ -19,19 +19,20 @@ static char lastheader[512];
 static int lastloglevel;
 static unsigned long cur_value, cur_maximum, last_pos;
 static int video_num_lines, video_num_columns;
+static void* base_image;
+static int base_image_size;
 
 static inline void disable_utf8() { write(1, "\033%@", 3); }
 static inline void clear_display() { write(1, "\2332J", 3); }
 static inline void move_cursor_to(int c, int r) { printf("\233%d;%dH", r, c); }
-static void hide_cursor() { write(1, "\033[?1c", 5); }
-static void show_cursor() { write(1, "\033[?0c", 5); }
+static void hide_cursor() { write(1, "\233?25l\233?1c", 9); }
+static void show_cursor() { write(1, "\233?25h\233?0c", 9); }
 
-static void update_fb_img() {
-	move_cursor_to(0,0);
-	if (!silent_img.data)
+static void reset_silent_img() {
+	if (!base_image || !silent_img.data)
 		return;
-	lseek(fb_fd, 0, SEEK_SET);
-	write(fb_fd, silent_img.data, silent_img.width * silent_img.height * (silent_img.depth >> 3));
+	memcpy((void*)silent_img.data, base_image, base_image_size);
+	render_objs('s', (u8*)silent_img.data, FB_SPLASH_IO_ORIG_USER);
 }
 
 static void silent_off() {
@@ -80,13 +81,19 @@ static void fbsplash_prepare() {
 	/* Read theme config file */
 	arg_theme = DEFAULT_THEME;
 	config_file = get_cfg_file(arg_theme);
-	if (config_file) {
-		parse_cfg(config_file);
-		free(config_file);
-	} else
+	if (!config_file)
 		return;
 
+	parse_cfg(config_file);
+	free(config_file);
+
 	arg_vc = get_active_vt();
+
+	if (TTF_Init() < 0) {
+		fprintf(stderr, "Couldn't initialise TTF.\n");
+	}
+
+	boot_message = lastheader;
 
 	fb_fd = open("/dev/fb0", O_WRONLY);
 	if (fb_fd == -1) {
@@ -97,10 +104,21 @@ static void fbsplash_prepare() {
 
 	do_getpic(FB_SPLASH_IO_ORIG_USER, 0, 's');
 
+	/* copy the silent pic to base_image for safe keeping */
+	base_image_size = silent_img.width * silent_img.height * (silent_img.depth >> 3);
+	base_image = malloc(base_image_size);
+			
+	if (!base_image) {
+		fprintf(stderr, "Couldn't get enough memory for framebuffer image.\n");
+		return;
+	}
+	memcpy(base_image, (void*)silent_img.data, base_image_size);
+
 	/* Allow for the widest progress bar we might have */
 	set_progress_granularity(fb_var.xres);
 
 	disable_utf8();
+	move_cursor_to(0,0);
 	clear_display();
 }
 
@@ -111,20 +129,31 @@ static void fbsplash_cleanup() {
 	if (fb_fd >= 0)
 		close(fb_fd);
 
-	if (silent_img.data)
-		free((void*)silent_img.data);
+	free((void*)silent_img.data);
+	silent_img.data = NULL;
 
-	if (silent_img.cmap.red)
-		free(silent_img.cmap.red);
+	free(silent_img.cmap.red);
+	silent_img.cmap.red = NULL;
+
+	free(base_image);
+	base_image = NULL;
+
+	TTF_Quit();
 }
 
-static void fbsplash_put_message_silent() {
-	printf("\2330;0H" /* move cursor to 0,0 */
-			"\2330K"  /* clear to EOL */
-			"\2330;%dH" /* move cursor to 0,<pos> */
-			"%s",
-			(video_num_columns-strlen(lastheader)) / 2,
-			lastheader);
+static void update_fb_img() {
+	if (!silent_img.data)
+		return;
+	lseek(fb_fd, 0, SEEK_SET);
+	write(fb_fd, silent_img.data, base_image_size);
+}
+
+static void fbsplash_update_silent_message() {
+	if (!silent_img.data || !base_image)
+		return;
+
+	reset_silent_img();
+	update_fb_img();
 }
 
 static void fbsplash_message(unsigned long type, unsigned long level, int normally_logged, char *msg) {
@@ -132,32 +161,29 @@ static void fbsplash_message(unsigned long type, unsigned long level, int normal
 	if (console_loglevel >= SUSPEND_ERROR)
 		printf("\n** %s\n", msg);
 	else
-		fbsplash_put_message_silent();
+		fbsplash_update_silent_message();
 }
 
 static void fbsplash_redraw() {
-	if (console_loglevel < SUSPEND_ERROR) {
-		update_fb_img();
-		fbsplash_put_message_silent();
-	} else {
+	if (console_loglevel >= SUSPEND_ERROR) {
 		printf("\n** %s\n", lastheader);
 		return;
 	}
 
-	if (!silent_img.data)
-		return;
-
-	arg_progress = PROGRESS_MAX;
-	render_objs('s', (u8*)silent_img.data, FB_SPLASH_IO_ORIG_USER);
-	arg_progress = 0;
-	render_objs('s', (u8*)silent_img.data, FB_SPLASH_IO_ORIG_USER);
+	update_fb_img();
 }
 
 static void fbsplash_update_progress(unsigned long value, unsigned long maximum, char *msg) {
 	int bitshift, tmp;
 
-	if (!maximum)
+	if (console_loglevel >= SUSPEND_ERROR)
 		return;
+
+	if (!silent_img.data || !base_image)
+		return;
+
+	if (!maximum) /* just updating the screen */
+		goto render;
 
 	if (value < 0)
 		value = 0;
@@ -178,16 +204,15 @@ static void fbsplash_update_progress(unsigned long value, unsigned long maximum,
 	cur_value = value;
 	cur_maximum = maximum;
 
-	if (tmp < last_pos)
-		fbsplash_redraw();
+	if (tmp < last_pos) /* we need to blank out the progress bar */
+		reset_silent_img();
 
 	last_pos = tmp;
 	arg_progress = tmp;
 
-	if (silent_img.data) {
-		render_objs('s', (u8*)silent_img.data, FB_SPLASH_IO_ORIG_USER);
-		update_fb_img();
-	}
+render:
+	render_objs('s', (u8*)silent_img.data, FB_SPLASH_IO_ORIG_USER);
+	update_fb_img();
 }
 
 static void fbsplash_log_level_change() {
@@ -200,16 +225,13 @@ static void fbsplash_log_level_change() {
 
 		printf("\nSwitched to console loglevel %d.\n", console_loglevel);
 
-		if (lastloglevel < SUSPEND_ERROR) {
+		if (lastloglevel < SUSPEND_ERROR)
 			printf("\n** %s\n", lastheader);
-		}
 	
 	} else if (lastloglevel >= SUSPEND_ERROR) {
-		update_fb_img();
-	
 		/* Get the nice display or last action [re]drawn */
-		fbsplash_update_progress(cur_value, cur_maximum, NULL);
-		fbsplash_put_message_silent();
+		move_cursor_to(0,0);
+		fbsplash_redraw();
 	}
 	
 	lastloglevel = console_loglevel;
@@ -234,8 +256,8 @@ static void fbsplash_keypress(int key) {
 }
 
 static unsigned long fbsplash_memory_required() {
-	/* Shouldn't need any more. */
-	return 0;
+	/* FIXME */
+	return 4*1024*1024;
 }
 
 static struct userui_ops userui_fbsplash_ops = {
