@@ -12,6 +12,7 @@ struct userui_ops {
 	void (*log_level_change) (int loglevel);
 	void (*redraw) ();
 	void (*keypress) (int key);
+	unsigned long (*memory_required) ();
 };
 
 

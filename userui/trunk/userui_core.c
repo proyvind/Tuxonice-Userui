@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 
+#include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/mman.h>
 #include <sys/types.h>
@@ -17,6 +18,8 @@
 #include "userui.h"
 
 #define NETLINK_SUSPEND2_USERUI 10
+
+#define PAGE_SIZE 0x1000
 
 #define bail(x...) { perror(x); fflush(stderr); _exit(1); }
 
@@ -107,6 +110,21 @@ static void get_info() {
 	send_message(USERUI_MSG_GET_LOGLEVEL, NULL, 0);
 	send_message(USERUI_MSG_GET_STATE, NULL, 0);
 	/* We'll get the reply in our message loop */
+}
+
+static void reserve_memory(unsigned long bytes) {
+	struct rlimit r;
+	unsigned long start, end;
+	/* round up to the next page */
+	bytes = (bytes + PAGE_SIZE - 1) & ~PAGE_SIZE;
+
+	/* reserve this much memory now */
+	start = (unsigned long)sbrk(bytes);
+	end = (unsigned long)sbrk(0);
+
+	/* and now set a hard limit so future brk's fail */
+	r.rlim_max = r.rlim_cur = end - start;
+	setrlimit(RLIMIT_DATA, &r);
 }
 
 /* A generic signal handler to ensure we don't quit in times of desperation */
@@ -266,6 +284,11 @@ int main(int argc, char **argv) {
 	get_info();
 
 	userui_ops->prepare();
+
+	if (userui_ops->memory_required)
+		reserve_memory(userui_ops->memory_required());
+	else
+		reserve_memory(4*1024*1024); /* say 4MB */
 
 	if (test_run) {
 		do_test_run();
