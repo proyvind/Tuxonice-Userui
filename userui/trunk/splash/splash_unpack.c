@@ -115,7 +115,7 @@ void my_png_read_fn(png_structp png_ptr, png_bytep buf, png_size_t length)
 int load_png(struct png_data *data, struct fb_image *img, char mode)
 {
 	png_structp 	png_ptr;
-	png_infop 	info_ptr;
+	png_infop 	info_ptr, end_info;
 	png_bytep 	row_pointer;
 	png_colorp 	palette;
 	int 		num_palette;
@@ -131,18 +131,30 @@ int load_png(struct png_data *data, struct fb_image *img, char mode)
 		pal_len = 256;
 		
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	info_ptr = png_create_info_struct(png_ptr);
+	if (!png_ptr)
+		return -1;
 
-	if (setjmp(png_jmpbuf(png_ptr))) {
+	info_ptr = png_create_info_struct(png_ptr);
+	if (!info_ptr) {
+		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
 		return -1;
 	}
+
+	end_info = png_create_info_struct(png_ptr);
+	if (!end_info) {
+		png_destroy_read_struct(&png_ptr, (png_infopp)&info_ptr, (png_infopp)NULL);
+		return -1;
+	}
+
+	if (setjmp(png_jmpbuf(png_ptr)))
+		goto failed;
 
 	data->cur_pos = 0;
 	png_set_read_fn(png_ptr, data, my_png_read_fn);
 	png_read_info(png_ptr, info_ptr);
 
 	if (fb_var.bits_per_pixel == 8 && info_ptr->color_type != PNG_COLOR_TYPE_PALETTE)
-		return -2;
+		goto failed;
 
 	if (info_ptr->bit_depth == 16)
 		png_set_strip_16(png_ptr);
@@ -160,7 +172,7 @@ int load_png(struct png_data *data, struct fb_image *img, char mode)
 		/* we have a palette of 256 colors, but fbcon takes 16 of these for 
 		 * font colors, so we have 240 left for the picture */
 		if (num_palette > pal_len)
-			return -3;
+			goto failed;
 	}
 
 	rowbytes = png_get_rowbytes(png_ptr, info_ptr);	
@@ -168,7 +180,7 @@ int load_png(struct png_data *data, struct fb_image *img, char mode)
 	if (!img->data)
 		img->data = malloc(fb_var.xres * fb_var.yres * bytespp);
 	if (!img->data)
-		return -4;
+		goto failed;
 	
 	img->cmap.transp = NULL;
 	if (fb_var.bits_per_pixel == 8) {
@@ -176,7 +188,7 @@ int load_png(struct png_data *data, struct fb_image *img, char mode)
 	
 		if (!img->cmap.red) {
 			free((void*)img->data);
-			return -4;
+			goto failed;
 		}
 		
 		img->cmap.green = img->cmap.red + 2 * pal_len;
@@ -197,7 +209,7 @@ int load_png(struct png_data *data, struct fb_image *img, char mode)
 		free((void*)img->data);
 		if (img->cmap.red)
 			free((void*)img->cmap.red);
-		return -4;
+		goto failed;
 	}
 	
 	for (i = 0; i < info_ptr->height; i++) {
@@ -234,7 +246,11 @@ int load_png(struct png_data *data, struct fb_image *img, char mode)
 	
 	free(buf);
 	
+	png_destroy_read_struct(&png_ptr, (png_infopp)&info_ptr, (png_infopp)&end_info);
 	return 0;
+failed:
+	png_destroy_read_struct(&png_ptr, (png_infopp)&info_ptr, (png_infopp)&end_info);
+	return -1;
 }
 #endif /* PNG */
 
