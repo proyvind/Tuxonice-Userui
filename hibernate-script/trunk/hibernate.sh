@@ -579,7 +579,7 @@ DoWork() {
     done
 
     # Suicide if we must. Else we'll linger around forever.
-    [ "$1" = "hup" ] && kill -HUP $$
+    [ x"$1" = "xhup" ] && kill -HUP $$
 }
 
 ctrlc_handler() {
