@@ -17,8 +17,9 @@ By default, this will install the following files and directories:
 /usr/local/sbin/hibernate        <--- main executable script
 /etc/hibernate/
 /etc/hibernate/hibernate.conf    <--- main configuration file
-/etc/hibernate/scriptlets.d/     <--- contains "scriptlets" (or plugins)
-  and the various scriptlets that live in /etc/hibernate/scriptlets.d/
+/usr/local/share/hibernate/scriptlets.d/ <--- contains "scriptlets" (or plugins)
+  and the various scriptlets that live here
+/etc/hibernate/scriptlets.d/     <--- contains any extra scriptlets
 /usr/local/man/man8/hibernate.8
 /usr/local/man/man5/hibernate.conf.5
 
@@ -31,8 +32,9 @@ CONFIGURATION
 Since v0.90 of the hibernate script, the configuration file syntax is
 completely different (and much more readable!).
 
-The default configuration does nothing but save and restore your clock. If you
-have kernel modules that need to be unloaded, filesystems unmounted, network
+The default configuration does nothing but save and restore your clock, and
+unload some modules that will potentially cause suspending to fail. If you have
+other kernel modules that need to be unloaded, filesystems unmounted, network
 interfaces brought down, etc, you will want to customise the configuration file
 in /etc/hibernate/hibernate.conf. Run hibernate -h for help on the possible
 options. There is also a man page for hibernate.conf as well as hibernate
