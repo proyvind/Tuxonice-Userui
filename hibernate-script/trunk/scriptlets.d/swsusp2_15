@@ -232,9 +232,14 @@ PrintErrors() {
     local code bit_num
 
     code="$1"
-    [ "$code" -eq 0 ] && return 0
+    [ -n "$code" ] && [ "$code" -eq 0 ] && return 0
 
     echo "$EXE: Suspend was not completed because:"
+
+    if [ -z "$code" ] ; then
+	echo " - No status was returned. Might be a buggy or incompatible kernel?"
+	return 0
+    fi
 
     # A special case for "suspend aborted" and "suspend aborted by user"
     # because it'd look silly to have both.
