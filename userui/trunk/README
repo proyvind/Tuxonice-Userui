@@ -1,2 +1,0 @@
-To build, make a symlink to your source tree (with userui patched in) called
-"linux".

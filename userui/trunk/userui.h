@@ -1,7 +1,7 @@
 #ifndef _USERUI_H_
 #define _USERUI_H_
 
-#include "linux/kernel/power/suspend_userui.h"
+#include "suspend_userui.h"
 
 struct userui_ops {
 	char *name;

@@ -4,11 +4,8 @@ TARGETS = $(patsubst %,userui_%,$(MODULES))
 CORE_OBJECTS = userui_core.o
 LDFLAGS = 
 
-all: linux $(TARGETS)
+all: $(TARGETS)
 	strip $(TARGETS)
-
-linux:
-	@cat README && false
 
 userui_dummy: $(CORE_OBJECTS) userui_dummy.o
 	$(CC) $(LDFLAGS) $^ -o $@
