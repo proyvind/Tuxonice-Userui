@@ -232,22 +232,6 @@ static void message_loop() {
 	struct nlmsghdr *nlh;
 
 	while (1) {
-		struct timeval tv = { 0, 1000*1000 }; /* 1 second */
-		FD_ZERO(&rfds);
-		FD_SET(nlsock, &rfds);
-
-		switch (select(nlsock+1, &rfds, NULL, NULL, &tv)) {
-			case -1:
-				if (errno == EINTR)
-					continue;
-				perror("select");
-				return;
-			case 0:
-				/* timeout for doing something interactive maybe ? */
-				continue;
-		}
-		
-		/* Data is ready. */
 		if ((n = recv(nlsock, buf, sizeof(buf), 0)) == -1)
 			bail("recv");
 
