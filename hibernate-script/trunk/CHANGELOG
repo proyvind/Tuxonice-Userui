@@ -9,7 +9,7 @@
    processes using a filesystem.
  - Support for implicit configuration files (calling script as hibernate-foo
    cause it to use /etc/hibernate/foo.conf).
- - Really fix RPM configuration file overwriting issue (hopefully!).
+ - Really fix RPM configuration file overwriting issue (Stefan Becker).
 
 1.01 (18 November 2004)
  - Rename LeaveXBeforeSuspend to SwitchToTextMode.
