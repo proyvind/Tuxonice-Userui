@@ -143,12 +143,6 @@ int do_getpic(unsigned char origin, unsigned char do_cmds, char mode)
 	load_fonts();
 #endif
 	
-	if (mode == 'v') {
-		render_objs((u8*)verbose_img.data, NULL, mode, origin, 0);
-	} else {
-		render_objs((u8*)silent_img.data, NULL, mode, origin, 0);
-	}
-
 #ifdef CONFIG_FBSPLASH
 	if (do_cmds) {
 		cmd_setpic(&verbose_img, origin);
