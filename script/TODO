@@ -1,0 +1,4 @@
+- Implement config options in swsusp2
+- Support multiple distributions
+- Write networking scriptlet
+- Fix services scriptlets for other distros
