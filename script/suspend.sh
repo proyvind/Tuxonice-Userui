@@ -287,7 +287,7 @@ AddOptionHelp "-F<file>, --config-file=<file>" "Use the given configuration file
 
 # ParseOptions <options>: process all the command-line options given
 ParseOptions() {
-    opts=`getopt -n "$EXE" -o "Vhfksv:nqF:$EXTRA_SHORT_OPTS" -l "help,force,kill,verbosity:,config-file:$EXTRA_LONG_OPTS" -- "$@"` || exit 1
+    opts="`getopt -n \"$EXE\" -o \"Vhfksv:nqF:$EXTRA_SHORT_OPTS\" -l \"help,force,kill,verbosity:,config-file:$EXTRA_LONG_OPTS\" -- \"$@\"`" || exit 1
     DoGetOpt $opts
 }
 
@@ -326,6 +326,50 @@ BoolIsOn() {
     exit 1
 }
 
+# ProcessConfigOption: takes a configuration option and it's parameters and
+# passes it out to the relevant scriptlet.
+ProcessConfigOption() {
+    option=`echo $1|tr '[A-Z]' '[a-z]'`
+    shift
+    params="$@"
+    case $option in
+	""|\#*)
+	    # ignore comments and blank lines
+	    ;;
+	alwaysforce)
+	    [ -z "$FORCE_ALL" ] && 
+		BoolIsOn "$option" "$params" && FORCE_ALL=1
+	    ;;
+	alwayskill)
+	    [ -z "$KILL_PROGRAMS" ] && 
+		BoolIsOn "$option" "$params" && KILL_PROGRAMS=1
+	    ;;
+	logfile)
+	    [ -z "$LOGFILE" ] && 
+		LOGFILE="$params"
+	    ;;
+	swsuspvt)
+	    [ -z "$SWSUSPVT" ] &&
+		SWSUSPVT="$params"
+	    ;;
+	verbosity)
+	    [ -z "$OPT_VERBOSITY" ] && 
+		VERBOSITY="$params"
+	    ;;
+	distribution)
+	    [ -z "$DISTRIBUTION" ] &&
+		DISTRIBUTION="$params"
+	    ;;
+	*)
+	    if ! PluginConfigOption $option $params ; then
+		echo "$EXE: Unknown configuration option ($option)"
+		exit 1
+	    fi
+	    ;;
+    esac
+    return 0
+}
+
 # ReadConfigFile: reads in a configuration file from stdin and sets the
 # appropriate variables in the script. Returns 0 on success, exits on errors
 ReadConfigFile() {
@@ -339,44 +383,7 @@ ReadConfigFile() {
 	# at the end of the file.
 	read option params
 	[ $? -ne 0 ] && [ -z "$option" ] && break
-
-	option=`echo $option|tr '[A-Z]' '[a-z]'`
-	case $option in
-	    ""|\#*)
-		# ignore comments and blank lines
-		continue
-		;;
-	    alwaysforce)
-		[ -z "$FORCE_ALL" ] && 
-		    BoolIsOn "$option" "$params" && FORCE_ALL=1
-		;;
-	    alwayskill)
-		[ -z "$KILL_PROGRAMS" ] && 
-		    BoolIsOn "$option" "$params" && KILL_PROGRAMS=1
-		;;
-	    logfile)
-		[ -z "$LOGFILE" ] && 
-		    LOGFILE="$params"
-		;;
-	    swsuspvt)
-		[ -z "$SWSUSPVT" ] &&
-		    SWSUSPVT="$params"
-		;;
-	    verbosity)
-		[ -z "$OPT_VERBOSITY" ] && 
-		    VERBOSITY="$params"
-		;;
-	    distribution)
-		[ -z "$DISTRIBUTION" ] &&
-		    DISTRIBUTION="$params"
-		;;
-	    *)
-		if ! PluginConfigOption $option $params ; then
-		    echo "$EXE: Unknown option ($option) in swsusp.conf"
-		    exit 1
-		fi
-		;;
-	esac
+	ProcessConfigOption $option $params
     done < $CONFIG_FILE
     return 0
 }

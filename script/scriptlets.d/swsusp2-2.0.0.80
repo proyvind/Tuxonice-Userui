@@ -1,4 +1,4 @@
-AddConfigHandler Swsusp2ConfigEnable
+AddConfigHandler Swsusp2ConfigEnabler
 AddOptionHandler Swsusp2OptionHandler
 
 AddConfigHelp "UseSwsusp2 <boolean>" "Enable/disable the use of Software Suspend 2 to suspend."
@@ -12,12 +12,13 @@ AddLongOption "no-suspend"
 AddOptionHelp "--no-suspend" "Disables actually suspending the system. This is useful for testing the suspend script itself."
 
 
-Swsusp2ConfigEnable() {
-    [ "$1" = "useswsusp2" ] && BoolIsOn "$1" "$2" || return 1
+Swsusp2ConfigEnabler() {
+    [ "$1" != "useswsusp2" ] && return 1
+    BoolIsOn "$1" "$2" || return 0
     [ -n "$USING_SWSUSP2" ] && return 0
     AddConfigHandler Swsusp2ConfigOptions
     AddSuspendHook 10 EnsureSwsusp2Capable
-    AddSuspendHook 99 ZZZDoSwsusp2
+    AddSuspendHook 99 DoSwsusp2
     USING_SWSUSP2=1
     return 0
 }
@@ -71,7 +72,7 @@ Swsusp2ConfigRestore() {
     return 0
 }
 
-ZZZDoSwsusp2() {
+DoSwsusp2() {
     if [ -z "$SWSUSP2_NO_SUSPEND" ] ; then
 	vecho 1 "$EXE: Activating suspend ..."
 	error=`DoSuspend` && SUSPEND_SUCCESS=1 || SUSPEND_SUCCESS=0
