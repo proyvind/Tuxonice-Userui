@@ -1,6 +1,8 @@
 1.03 (unreleased)
  - Add ndiswrapper to blacklist.
  - Fix blacklisted modules without versions bug. (Peter Cech)
+ - Fix random services-stopping-twice bug.
+ - Add --bug-report option.
 
 1.02 (24 November 2004)
  - Make misc launch scriptlets more robust.

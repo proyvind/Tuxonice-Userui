@@ -51,6 +51,9 @@ AddOptionHelp "-n, --no-suspend (requires UseSwsusp2 on)" "Disables actually sus
 AddLongOption "save-settings::"
 AddOptionHelp "--save-settings [filename] (requires UseSwsusp2 on)" "Saves all the current settings for Software Suspend 2 into a file (default: $SWSUSP_DEFAULT_ALL_SETTINGS_FILE)"
 
+AddLongOption "bug-report"
+AddOptionHelp "--bug-report (requires UseSwsusp2 on)" "Gathers a bunch of information about your machine and writes it to standard output. Please attach this information along with any bug reports to the Software Suspend mailing list."
+
 Swsusp2ConfigEnabler() {
     [ "$1" != "useswsusp2" ] && return 1
     BoolIsOn "$1" "$2" || return 0
@@ -87,6 +90,9 @@ Swsusp2OptionHandler() {
 		SWSUSP2_SAVE_SETTINGS_FILE="$SWSUSP_DEFAULT_ALL_SETTINGS_FILE"
 	    fi
 	    AddSuspendHook 00 Swsusp2SaveSettings
+	    ;;
+	--bug-report)
+	    SWSUSP2_BUG_REPORT=1
 	    ;;
 	*)
 	    return 1
@@ -245,18 +251,45 @@ SwsuspIsAtLeastVersion() {
 
 DoSwsusp2() {
     local error
+    if [ -n "$SWSUSP2_BUG_REPORT" ] ; then
+	# Dump our debug info now.
+	vecho 0 "System information follows. (Please include with bug reports)."
+	vecho 0 "--- Hibernate script version: $VERSION"
+	vecho 0 "--- Modules loaded: "`lsmod|awk 'BEGIN{getline}{print $1}'`
+	vecho 0 "--- Active swaps: "
+	vcat 0 /proc/swaps
+	vecho 0 "--- /proc/cmdline: "`cat /proc/cmdline`
+	vecho 0 "--- /proc/cpuinfo:"
+	vcat 0 /proc/cpuinfo
+	vecho 0 "--- lspci:"
+	lspci | vcat 0
+
+	# Use a freezer test if we can. Otherwise, just don't suspend.
+	if [ -f "$SWSUSP_ROOT/freezer_test" ] ; then
+	    echo 1 > /proc/software_suspend/freezer_test
+	    # We'll obtain debug_info from dmesg
+	else
+	    SWSUSP2_NO_SUSPEND=1
+	    if [ -f "$SWSUSP_ROOT/debug_info" ] ; then
+		vecho 0 "--- /proc/software_suspend/debug_info:"
+		vcat 0 $SWSUSP_ROOT/debug_info
+	    fi
+	fi
+	vecho 1 "$EXE: Performing a freezer_test..."
+    fi
     if [ -z "$SWSUSP2_NO_SUSPEND" ] ; then
 	vecho 1 "$EXE: Activating suspend ..."
 	SaveDmesg
 	error=`DoSuspend`
 	[ -n "$error" ] && [ $error -ne 0 ] && EXIT_CODE=4
-	if ! PrintErrors $error ; then
+	if ! PrintErrors $error || [ -n "$SWSUSP2_BUG_REPORT" ]; then
 	    OutputDmesgChanges
 	fi
 	CleanupDmesg
     else
 	vecho 1 "$EXE: Not actually suspending (--no-suspend given)"
     fi
+    [ -f "$SWSUSP_ROOT/freezer_test" ] && echo 0 > /proc/software_suspend/freezer_test
     return 0
 }
 
@@ -307,6 +340,7 @@ OutputDmesgChanges() {
     then
 	# Exit code indicates the diff was useful. Log it (manually for speed).
 	local diff_loglevel=1
+	[ -n "$SWSUSP2_BUG_REPORT" ] && diff_loglevel=0
 	vecho $diff_loglevel "---- Output from dmesg: ----"
 	vcat $diff_loglevel $DMESG_CMP
 	vecho $diff_loglevel "---- End of dmesg output ----"
