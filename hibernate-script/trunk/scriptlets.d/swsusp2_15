@@ -246,8 +246,12 @@ DoSwsusp2() {
     local error
     if [ -z "$SWSUSP2_NO_SUSPEND" ] ; then
 	vecho 1 "$EXE: Activating suspend ..."
+	SaveDmesg
 	error=`DoSuspend` && SUSPEND_SUCCESS=1 || SUSPEND_SUCCESS=0
-	PrintErrors $error
+	if ! PrintErrors $error ; then
+	    OutputDmesgChanges
+	fi
+	CleanupDmesg
     else
 	vecho 1 "$EXE: Not actually suspending (--no-suspend given)"
     fi
@@ -274,6 +278,52 @@ ChangeFromSwsuspVT() {
 	vecho 3 "swsusp2_15: changing console back to $SWSUSP_ORIGINAL_VT"
 	chvt $SWSUSP_ORIGINAL_VT
     fi
+    return 0
+}
+
+SaveDmesg() {
+    # Save dmesg for later diffing.
+    DMESG_ORIG=`mktemp`
+    if ! dmesg > $DMESG_ORIG ; then
+	rm -f $DMESG_ORIG
+	DMESG_ORIG=
+    fi
+    return 0
+}
+
+OutputDmesgChanges() {
+    [ -z "$DMESG_ORIG" ] && return 0
+    local DMESG_CMP
+
+    DMESG_CMP=`mktemp`
+    # Rip out the relevant bits from the diff
+    if dmesg | diff $DMESG_ORIG - | \
+	awk 'BEGIN { chunks = 0 } 
+            /^[0-9]/ { chunks += 1 }
+	    /^> / { if (chunks == 2) print(substr($0, 2)) }
+	    END { if (chunks == 2) exit 0; else exit 1 }' > $DMESG_CMP
+    then
+	# Exit code indicates the diff was useful. Log it (manually for speed).
+	local diff_loglevel=1
+	vecho $diff_loglevel "---- Output from dmesg: ----"
+	if [ $diff_loglevel -le $VERBOSITY ] ; then
+	    cat $DMESG_CMP
+	else
+	    if [ "$diff_loglevel" -le $LOG_VERBOSITY -a "$LOGPIPE" != "cat" ] ; then
+		cat $DMESG_CMP | $LOGPIPE > /dev/null
+	    fi
+	fi
+	vecho $diff_loglevel "---- End of dmesg output ----"
+    else
+	vecho 1 "Couldn't extract useful information from dmesg. Not logging here."
+    fi
+    rm -f $DMESG_CMP
+
+    return 0
+}
+
+CleanupDmesg() {
+    [ -n "$DMESG_ORIG" ] && rm -f $DMESG_ORIG
     return 0
 }
 
@@ -324,7 +374,8 @@ PrintAnErrorString() {
 }
 
 # PrintErrors <last_result value>: prints the list of errors associated with a
-# given result code
+# given result code. Returns 1 if dmesg output should be given (for failure
+# cases)
 PrintErrors() {
     local code bit_num
 
@@ -335,7 +386,7 @@ PrintErrors() {
 
     if [ -z "$code" ] ; then
 	echo " - No status was returned. Might be a buggy or incompatible kernel?"
-	return 0
+	return 1
     fi
 
     # A special case for "suspend aborted" and "suspend aborted by user"
@@ -347,12 +398,12 @@ PrintErrors() {
 
     bit_num=0
     while [ "$code" -ne 0 ] ; do
-	[ "$(($code&1))" -eq 1 ] && echo -n " - " && PrintAnErrorString "$bit_num"
+	[ $(($code&1)) -eq 1 ] && echo -n " - " && PrintAnErrorString "$bit_num"
 
 	bit_num=$(($bit_num+1))
 	code=$(($code>>1))
     done
-    return 0
+    return 1
 }
 
 # GetInterfaceVersion: returns the interface version of the swsusp

@@ -8,6 +8,7 @@
    simultaneously.
  - Turn off Unicode on the Software Suspend VT.
  - Fix completely broken error code reporting.
+ - Log dmesg info to hibernate.log if errors occured.
 
 1.00 (7 November 2004)
  - Fix a long standing bug when printing error result codes.
