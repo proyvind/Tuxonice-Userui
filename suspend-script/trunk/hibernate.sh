@@ -290,6 +290,9 @@ DoGetOpt() {
 	    -k|--kill)
 		KILL_PROGRAMS=1
 		;;
+	    --dry-run)
+		OPT_DRY_RUN=1
+		;;
 	    -v|--verbosity)
 		OPT_VERBOSITY="${1#\'}"
 		OPT_VERBOSITY="${OPT_VERBOSITY%\'}"
@@ -328,7 +331,7 @@ DoGetOpt() {
 # ParseOptions <options>: process all the command-line options given
 ParseOptions() {
     local opts
-    opts="`getopt -n \"$EXE\" -o \"Vhfksv:nqF:$EXTRA_SHORT_OPTS\" -l \"help,force,kill,verbosity:,config-file:$EXTRA_LONG_OPTS\" -- \"$@\"`" || exit 1
+    opts="`getopt -n \"$EXE\" -o \"Vhfksv:nqF:$EXTRA_SHORT_OPTS\" -l \"help,force,kill,verbosity:,dry-run,config-file:$EXTRA_LONG_OPTS\" -- \"$@\"`" || exit 1
     DoGetOpt $opts
 }
 
@@ -478,6 +481,7 @@ AddInbuiltHelp() {
     AddOptionHelp "-k, --kill" "Kill processes if needed, in order to suspend."
     AddOptionHelp "-v<n>, --verbosity=<n>" "Change verbosity level (0 = errors only, 3 = verbose, 4 = debug)"
     AddOptionHelp "-F<file>, --config-file=<file>" "Use the given configuration file instead of the default ($CONFIG_FILE)"
+    AddOptionHelp "--dry-run" "Don't actually do anything."
 
     AddConfigHelp "SwsuspVT N" "If specified, output from the suspend script is rediredirected to the given VT instead of stdout."
     AddConfigHelp "Verbosity N" "Determines how verbose the output from the suspend script should be:
@@ -519,6 +523,7 @@ DoWork() {
 	CHAIN_UP_TO="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)}\"`"
 	bit=${bit##$CHAIN_UP_TO}
 	vecho 1 "$EXE: Executing $bit ... "
+	[ -n "$OPT_DRY_RUN" ] && continue
 	$bit
 	ret="$?"
 	# A return value >= 2 denotes we can't go any further, even with --force.
@@ -547,6 +552,7 @@ DoWork() {
 	bit=${bit##$THIS_POS}
 	[ "$THIS_POS" -gt "$CHAIN_UP_TO" ] && continue
 	vecho 1 "$EXE: Executing $bit ... "
+	[ -n "$OPT_DRY_RUN" ] && continue
 	$bit
     done
 }
