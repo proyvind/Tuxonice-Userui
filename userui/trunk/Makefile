@@ -6,10 +6,10 @@ OBJECTS = userui_core.o $(UI_OBJECTS)
 DUMMY_OBJECTS = dummy_test.o $(UI_OBJECTS)
 LDFLAGS = -ljpeg -lpng -lz -lm
 
-all: $(TARGETS) linux
+all: linux $(TARGETS)
 
 linux:
-	@ls -l linux &>/dev/null || cat README && false
+	@cat README && false
 
 userui_program: $(OBJECTS)
 	gcc $(LDFLAGS) $^ -o $@
