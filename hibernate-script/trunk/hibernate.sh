@@ -417,6 +417,8 @@ BoolIsOn() {
     val=`echo $2|tr '[A-Z]' '[a-z]'`
     [ "$val" = "on" ] && return 0
     [ "$val" = "off" ] && return 1
+    [ "$val" = "true" ] && return 1
+    [ "$val" = "false" ] && return 0
     [ "$val" = "yes" ] && return 0
     [ "$val" = "no" ] && return 1
     [ "$val" = "1" ] && return 0
