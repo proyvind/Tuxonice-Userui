@@ -47,20 +47,20 @@ int main(int argc, char** argv) {
 	}
 
 	if (argc - optind != 2) {
-		printf("Usage: %s [options] <pid> <filename>\n", argv[0]);
+		printf("Usage: %s [options] <filename> <pid>\n", argv[0]);
 		return 1;
 	}
 
-	target_pid = atoi(argv[optind]);
+	target_pid = atoi(argv[optind+1]);
 	if (target_pid <= 1) {
 		fprintf(stderr, "Invalid pid: %d\n", target_pid);
 		return 1;
 	}
 
 	proc_image = get_proc_image(target_pid, flags);
-    fd = open(argv[optind+1], O_CREAT|O_WRONLY|O_TRUNC, 0700);
+    fd = open(argv[optind], O_CREAT|O_WRONLY|O_TRUNC, 0700);
     if (fd == -1) {
-        fprintf(stderr, "Couldn't open %s for writing: %s\n", argv[optind+1],
+        fprintf(stderr, "Couldn't open %s for writing: %s\n", argv[optind],
                 strerror(errno));
         return 1;
     }
