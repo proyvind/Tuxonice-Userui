@@ -11,15 +11,12 @@ LIBC = -nostdlib -nostartfiles ../uclibc/libc.a ../uclibc/crt0.o ../uclibc/crti.
 
 all: $(OBJECTS)
 
-elfwriter.o make-static.o imagewriter.o process.o stub.o: process.h
+make-static.o imagewriter.o process.o: process.h
 
 clean:
-	rm -f *.o $(OBJECTS) stub-image.S stub
+	rm -f *.o $(OBJECTS)
 
-stub-image.S: stub src2asm.pl
-	perl src2asm.pl < $< > $@
-
-make-static: make-static.o process.o imagewriter.o elfwriter.o stub-image.o
+make-static: make-static.o process.o imagewriter.o
 
 stub: stub.c supervisor.c
 	gcc -g -static -Tstub-linking.x -Os -o $@ $^ $(LIBC)

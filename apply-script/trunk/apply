@@ -41,7 +41,7 @@ prompt_yes() {
 }
 
 apply_patch() {
-	patch -p1 -s -f --dry-run < "$1" > /dev/null 2>&1
+	patch -p1 -s -f --dry-run < "$1"
 	[ $? -ne 0 ] && return 1
 	patch -p1 -s < "$1"
 	[ $? -ne 0 ] && return 2

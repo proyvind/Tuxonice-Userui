@@ -55,15 +55,8 @@ pid_t make_my_process(char* fullpath) {
 		perror("ptrace(PTRACE_TRACEME)");
 		exit(42);
 	    }
-	    /* make up some dummy argv arrays for padding */
-	    int num_argvs = 30, argv_size = 100, i;
-	    char** this_argv = (char**)malloc(sizeof(char*) * num_argvs);
-	    for (i = 0; i < num_argvs; i++) {
-		this_argv[i] = (char*)malloc(argv_size);
-		memset(this_argv[i], ' ', argv_size);
-		this_argv[i][argv_size-1] = '\0';
-	    }
-	    execv(fullpath, NULL); /* this_argv); */
+	    setenv("LD_ASSUME_KERNEL", "2.4.1", 1);
+	    execv(fullpath, NULL);
 	    perror("execvp");
 	    exit(42);
 	case -1:
