@@ -9,7 +9,7 @@ MODULES = text fbsplash
 TARGETS = $(patsubst %,userui_%,$(MODULES))
 CORE_OBJECTS = userui_core.o
 
-FBSPLASH_LIBS = -lpng -ljpeg -lz -lm
+FBSPLASH_LIBS = -lpng -ljpeg -lz -lm -lfreetype
 
 all: $(TARGETS)
 

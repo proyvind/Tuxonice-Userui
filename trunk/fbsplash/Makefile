@@ -1,8 +1,8 @@
-CFLAGS := -Wall -O0 -g
+CFLAGS := -Wall -O0 -g -I. -I/usr/include/freetype2/ -DCONFIG_TTF
 LDFLAGS := -r -nostdlib -nostartfiles
 
 TARGET = userui_fbsplash.o
-OBJECTS = userui_fbsplash_core.o splash_cmd.o splash_common.o splash_parse.o splash_render.o splash_unpack.o
+OBJECTS = userui_fbsplash_core.o cmd.o common.o image.o list.c parse.o render.o ttf.o
 
 all: $(TARGET)
 
