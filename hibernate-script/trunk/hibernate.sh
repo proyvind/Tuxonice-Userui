@@ -450,8 +450,7 @@ ProcessConfigOption() {
 	    LOG_VERBOSITY="$params"
 	    ;;
 	swsuspvt)
-	    [ -z "$SWSUSPVT" ] &&
-		SWSUSPVT="$params"
+	    SWSUSPVT="$params"
 	    ;;
 	verbosity)
 	    [ -z "$OPT_VERBOSITY" ] && 
