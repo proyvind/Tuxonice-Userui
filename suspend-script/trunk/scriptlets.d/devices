@@ -6,7 +6,6 @@ AddConfigHelp "IncompatibleDevices <device name> [...]" "If there are any proces
 
 DevicesFree() {
     local needsleep # always! ;)
-    local ret
     local device
 
     [ -z "$INCOMPATIBLE_DEVICES" ] && return 0
@@ -27,7 +26,6 @@ DevicesFree() {
     [ "$needsleep" -eq 1 ] && sleep 1
 
     # Send KILL to processes
-    ret=0
     for device in $INCOMPATIBLE_DEVICES ; do 
 	if fuser -s $device ; then
 	    if [ x"$KILL_PROGRAMS" = "x1" ] ; then
@@ -37,7 +35,8 @@ DevicesFree() {
 	fi
     done
     
-    return $ret
+    # We tried our best.
+    return 0
 }
 
 DevicesOptions() {
@@ -55,3 +54,4 @@ DevicesOptions() {
     return 0
 }
 
+# $Id$

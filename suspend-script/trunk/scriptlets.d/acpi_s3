@@ -58,4 +58,4 @@ EnsureSuspendToRAMCapable() {
     return 0
 }
 
-
+# $Id$
