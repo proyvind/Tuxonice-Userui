@@ -1,4 +1,4 @@
-0.98 ()
+0.98 (20 August 2004)
  - Add ImageSizeLimit option (including "nocache" for excluding caches &
    buffers - needs tweaking it seems)
  - Always switch consoles if swsusp >= 2.0.0.103.
