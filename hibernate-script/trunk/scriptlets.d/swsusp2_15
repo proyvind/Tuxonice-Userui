@@ -1,6 +1,16 @@
 # -*- sh -*-
 # vim:ft=sh:ts=8:sw=4:noet
 
+SWSUSP_INTERFACE_VERSION_MIN=15
+SWSUSP_INTERFACE_VERSION_MAX=15
+
+# Detect the new /proc root.
+if [ -d "/proc/software_suspend/" ] ; then
+    SWSUSP_ROOT="/proc/software_suspend"
+else
+    SWSUSP_ROOT="/proc/swsusp"
+fi
+
 AddConfigHandler Swsusp2ConfigEnabler
 AddOptionHandler Swsusp2OptionHandler
 
@@ -20,10 +30,6 @@ AddConfigHelp "Swsusp2AllSettings <params> (requires UseSwsusp2 on)" "If specifi
 AddShortOption "n"
 AddLongOption "no-suspend"
 AddOptionHelp "-n, --no-suspend (requires UseSwsusp2 on)" "Disables actually suspending the system. This is useful for testing the suspend script itself."
-
-SWSUSP_ROOT="/proc/swsusp"
-SWSUSP_INTERFACE_VERSION_MIN=15
-SWSUSP_INTERFACE_VERSION_MAX=15
 
 Swsusp2ConfigEnabler() {
     [ "$1" != "useswsusp2" ] && return 1
