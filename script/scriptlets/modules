@@ -1,0 +1,21 @@
+#AddSuspendHook 90 ModulesUnload
+#AddResumeHook 90 ModulesLoad
+AddConfigHandler ModulesOptions
+
+ModulesUnload() {
+	return 0
+}
+
+ModulesLoad() {
+	return 0
+}
+
+ModulesOptions() {
+	case $1 in
+		*)
+			return 1
+	esac
+	return 0
+}
+
+# vim:ft=sh

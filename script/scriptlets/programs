@@ -1,0 +1,50 @@
+AddConfigHandler ProgramsOptions
+AddConfigHelp "IncompatiblePrograms <process name> [...]" "If there are processes running with any of the names listed (as seen in ps ax), then suspending is aborted. If the --kill option is passed, the offending processes are terminated, and the suspend continues."
+
+ProgramsStop() {
+	[ -z "$INCOMPATIBLE_PROGRAMS" ] && return 0
+	if [ x"$KILL_PROGRAMS" = "x1" ] ; then
+		for sig in TERM KILL ; do
+			vecho 1 -n "Sending processes SIG$sig: "
+			for prog in $INCOMPATIBLE_PROGRAMS ; do
+				vecho 1 -n "$prog ("
+				first_pid=1
+				for pid in `ps ax | awk '($5 == "'$prog'"){print $1}'` ; do
+					[ $first_pid -eq 1 ] && first_pid=0 || vecho 1 -n " "
+					vecho 1 -n "$pid"
+					kill -$sig $pid
+				done
+				vecho 1 -n ") "
+			done
+			vecho 1
+			[ $sig != "KILL" ] && sleep 1
+		done
+	fi
+	error_written=0
+	good=1
+	for prog in $INCOMPATIBLE_PROGRAMS ; do
+		pids=`ps ax | awk '($5 == "'$prog'"){print}'`
+		[ -z "$pids" ] && continue
+		[ $error_written -eq 0 ] && vecho 0 "The following processes are still running and marked as incompatible:" && error_written=1
+		ps ax | awk '($5 == "'$prog'"){print}'
+		good=0
+	done
+	[ $good -eq 0 ] && return 1
+	
+	return 0
+}
+
+ProgramsOptions() {
+	case $1 in
+		incompatibleprograms)
+            [ -z "$INCOMPATIBLE_PROGRAMS" ] && AddSuspendHook 20 ProgramsStop
+			shift
+			INCOMPATIBLE_PROGRAMS="$@"
+			;;
+		*)
+			return 1
+	esac
+	return 0
+}
+
+# vim:ft=sh
