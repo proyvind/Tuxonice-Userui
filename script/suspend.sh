@@ -242,13 +242,15 @@ DoGetOpt() {
 				KILL_PROGRAMS=1
 				;;
 			-v|--verbosity)
-				param=${1#\'}
-				param=${param%\'}
-				OPT_VERBOSITY=$param
-				VERBOSITY=$OPT_VERBOSITY
+				OPT_VERBOSITY="${1#\'}"
+				OPT_VERBOSITY="${OPT_VERBOSITY%\'}"
+				VERBOSITY="$OPT_VERBOSITY"
 				shift
 				;;
-			-n)
+			-F|--config-file)
+				CONFIG_FILE="${1#\'}"
+				CONFIG_FILE="${CONFIG_FILE%\'}"
+				shift
 				;;
 			-q)
 				;;
@@ -277,11 +279,12 @@ DoGetOpt() {
 AddOptionHelp "-h, --help" "Shows this help screen."
 AddOptionHelp "-f, --force" "Ignore errors and suspend anyway."
 AddOptionHelp "-k, --kill" "Kill processes if needed, in order to suspend."
-AddOptionHelp "-v, --verbosity <n>" "Change verbosity level (0 = errors only, 3 = verbose, 4 = debug)"
+AddOptionHelp "-v<n>, --verbosity=<n>" "Change verbosity level (0 = errors only, 3 = verbose, 4 = debug)"
+AddOptionHelp "-F<file>, --config-file=<file>" "Use the given configuration file instead of the default ($CONFIG_FILE)"
 
 # ParseOptions <options>: process all the command-line options given
 ParseOptions() {
-	opts=`getopt -n "$EXE" -o "Vhfksv:nq$EXTRA_SHORT_OPTS" -l "help,force,kill,verbosity:$EXTRA_LONG_OPTS" -- "$@"` || exit 1
+	opts=`getopt -n "$EXE" -o "Vhfksv:nqF:$EXTRA_SHORT_OPTS" -l "help,force,kill,verbosity:,config-file:$EXTRA_LONG_OPTS" -- "$@"` || exit 1
 	DoGetOpt $opts
 }
 
@@ -358,6 +361,7 @@ ReadConfigFile() {
 			distribution)
 				[ -z "$DISTRIBUTION" ] &&
 					DISTRIBUTION="$params"
+				;;
 			*)
 				if ! PluginConfigOption $option $params ; then
 					echo "$EXE: Unknown option ($option) in swsusp.conf"
