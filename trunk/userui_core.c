@@ -306,7 +306,7 @@ static void message_loop() {
 			case USERUI_MSG_GET_LOGLEVEL:
 			case USERUI_MSG_LOGLEVEL_CHANGE:
 				console_loglevel = *(int*)NLMSG_DATA(nlh);
-				userui_ops->log_level_change(console_loglevel);
+				userui_ops->log_level_change();
 				break;
 			case USERUI_MSG_GET_STATE:
 				suspend_action = *(int*)NLMSG_DATA(nlh);
@@ -336,7 +336,8 @@ static void message_loop() {
 static void do_test_run() {
 	int i;
 
-	userui_ops->log_level_change(console_loglevel);
+	console_loglevel = 1;
+	userui_ops->log_level_change();
 	userui_ops->message(0, 0, 1, "Suspending to disk ...");
 	for (i = 0; i <= 1024; i+=8) {
 		char buf[128];

@@ -151,7 +151,7 @@ static void text_prepare_status(int printalways, int clearbar, const char *fmt, 
  * Returns:	Boolean indicating whether the level was changed.
  */
 
-static void text_loglevel_change(int loglevel)
+static void text_loglevel_change()
 {
 	barposn = 0;
 

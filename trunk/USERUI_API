@@ -19,7 +19,7 @@ following elements :
         void (*cleanup) ();
         void (*message) (unsigned long type, unsigned long level, int normally_logged, char *text);
         void (*update_progress) (unsigned long value, unsigned long maximum, char *text);
-        void (*log_level_change) (int loglevel);
+        void (*log_level_change) ();
         void (*redraw) ();
         void (*keypress) (int key);
 
@@ -56,9 +56,10 @@ void update_progress(value, maximum, text)
   resuming. The text parameter specifies the text to display in the middle of the
   progress bar.
 
-void log_level_change(logleve)
-  Notifies the UI module that the kernel loglevel has changed - it may wish to
-  update the display to give more or less verbosity as required.
+void log_level_change()
+  Notifies the UI module that the kernel loglevel (given in console_loglevel)
+  has changed - it may wish to update the display to give more or less
+  verbosity as required.
 
 void redraw()
   Upon resuming, immediately after copying the original kernel back, video memory

@@ -9,7 +9,7 @@ struct userui_ops {
 	void (*cleanup) ();
 	void (*message) (unsigned long type, unsigned long level, int normally_logged, char *text);
 	void (*update_progress) (unsigned long value, unsigned long maximum, char *text);
-	void (*log_level_change) (int loglevel);
+	void (*log_level_change) ();
 	void (*redraw) ();
 	void (*keypress) (int key);
 	unsigned long (*memory_required) ();

@@ -67,7 +67,6 @@ static void fbsplash_prepare() {
 	fb_fd = -1;
 	last_pos = 0;
 	lastloglevel = SUSPEND_ERROR; /* start in verbose mode */
-	memset(&silent_img, 0, sizeof(silent_img));
 
 	/* Find out the screen size */
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz);
@@ -191,7 +190,7 @@ static void fbsplash_update_progress(unsigned long value, unsigned long maximum,
 	}
 }
 
-static void fbsplash_log_level_change(int loglevel) {
+static void fbsplash_log_level_change() {
 	/* Only reset the display if we're switching between nice display
 	 * and displaying debugging output */
 	
