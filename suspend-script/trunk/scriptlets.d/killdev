@@ -1,0 +1,57 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
+AddConfigHandler KillDevOptions
+AddConfigHelp "KillDevPrograms <device name> [...]" "If there are any processes accessing these devices they will kill by fuser -k. For example programms accessing soundcard (/dev/dsp*) or tvcard (/dev/video*) could be killed instead of force suspend to fail (because service can't stop or modules can't removed, ...)."
+
+KillDeviceUser() {
+ 
+    # yes, is almost the same as in filesystems-scriptlet and stolen from this one :)
+
+    local needsleep
+
+    [ -z "$KILL_DEVICES" ] && return 0
+
+    needsleep=0
+
+    # Send TERM to processes first
+    for device in $KILL_DEVICES ; do 
+	if ! fuser $device ; then
+		continue
+	fi	
+	vecho 1 "Sending SIGTERM to processes using $device..."
+	fuser -s -k -15 $device
+        fuser -s $device && needsleep=1
+    done
+
+    [ "$needsleep" -eq 1 ] && sleep 1
+
+    # Send KILL to processes
+    for device in $KILL_DEVICES ; do 
+	if ! fuser $device ; then
+		continue
+	fi	
+	vecho 1 "Sending SIGKILL to processes using $device..."
+	fuser -s -k -9 $device
+    done
+    
+    # should we check if anyone is still running ?
+    
+    return 0
+}
+
+KillDevOptions() {
+    case $1 in
+	killdevprograms)
+	    # we have to kill before service stop, modules unloaded, ...
+	    # but should it run before programs, I suggest yes!
+	    [ -z "$KILL_DEVICES" ] && AddSuspendHook 19 KillDeviceUser
+	    shift
+	    KILL_DEVICES="$@"
+	    ;;
+	*)
+	    return 1
+    esac
+    return 0
+}
+
