@@ -58,7 +58,7 @@ LockXScreensaver() {
 	xdisp=`awk 'BEGIN{RS="\\000";FS="="}($1 == "DISPLAY"){print $2}' < /proc/$xpid/environ`
 	xauth=`awk 'BEGIN{RS="\\000";FS="="}($1 == "XAUTHORITY"){print $2}' < /proc/$xpid/environ`
 	if [ -z "$xauth" ] ; then
-	    xhome=`awk 'BEGIN{RS="\000";FS="="}($1 == "HOME"){print $2}' < /proc/$xpid/environ`
+	    xhome=`awk 'BEGIN{RS="\\000";FS="="}($1 == "HOME"){print $2}' < /proc/$xpid/environ`
 	    xauth="$xhome/.Xauthority"
 	fi
 
