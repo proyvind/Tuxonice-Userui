@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <linux/fb.h>
 #include <linux/types.h>
+#include "fbsplash_mng.h"
 
 /* Adjustable settings */
 #define MAX_RECTS 	32
@@ -96,6 +97,16 @@ typedef struct {
 	int x1, x2, y1, y2;
 } rect;
 
+typedef struct {
+	char *filename;
+	int x, y;
+	mng_anim *mng;
+	char *svc;
+	enum ESVC type;
+	u8 status;
+	u8 flags;
+} anim;
+
 #define F_TXT_SILENT  	1
 #define F_TXT_VERBOSE	2
 #define F_TXT_EXEC 	4
@@ -111,6 +122,14 @@ typedef struct {
 #define F_HS_LEFT	1
 #define F_HS_HMIDDLE	2
 #define F_HS_RIGHT	4
+
+#define F_ANIM_SILENT		1
+#define F_ANIM_VERBOSE		2
+
+#define F_ANIM_METHOD_MASK	12
+#define F_ANIM_ONCE		0
+#define F_ANIM_LOOP		4
+#define F_ANIM_PROPORTIONAL	8
 
 #include "ttf.h"
 
@@ -248,6 +267,7 @@ extern list icons;
 extern list objs;
 extern list rects;
 extern list fonts;
+extern list anims;
 
 extern u8 *bg_buffer;
 extern int bytespp;
