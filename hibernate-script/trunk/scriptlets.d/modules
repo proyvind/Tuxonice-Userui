@@ -131,8 +131,8 @@ BEGIN {
 
 END {
     if (have_module == 1) {
-	find_related_modules(module) # puts results into "modules" array
-	top_sort(modules)
+        find_related_modules(module) # puts results into "modules" array
+        top_sort(modules)
     }
 }
     ' < /proc/modules

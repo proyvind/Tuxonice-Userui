@@ -35,7 +35,7 @@ XHacksResume() {
 
     if [ -n "$XHACKS_ORIGINAL_VT" ] ; then
 	vecho 3 "xhacks: changing console back to $XHACKS_ORIGINAL_VT"
-       	chvt $XHACKS_ORIGINAL_VT
+	chvt $XHACKS_ORIGINAL_VT
     fi
 }
 

@@ -35,7 +35,7 @@ LockKDE() {
     for session in $avail_sessions; do
 	vecho 1 "Locking $session"
 	# dev/null because dcop warns if it can't connect to X (this is normal!)
-        dcop --session "$session" --all-users kdesktop KScreensaverIface lock > /dev/null 2>&1
+	dcop --session "$session" --all-users kdesktop KScreensaverIface lock > /dev/null 2>&1
     done
 
     # returning 0 because dcop warns if it can't connect to X (this is normal!)
@@ -115,7 +115,7 @@ SwitchToLockConsole() {
 
 LockOptions() {
     case $1 in
-        lockkde)
+	lockkde)
 	    BoolIsOn "$1" "$2" && LOCK_KDE=1 || LOCK_KDE=0
 	    
 	    if [ -z "$KDELOCK_HOOKED" ] ; then
@@ -132,7 +132,7 @@ LockOptions() {
 	    fi
 	    ;;
 
-        lockconsoleas)
+	lockconsoleas)
 	    LOCK_CONSOLE_USER="$2"
 
 	    if [ -z "$CONSOLELOCK_HOOKED" ] ; then
