@@ -217,6 +217,9 @@ static void fbsplash_log_level_change() {
 
 static void fbsplash_keypress(int key) {
 	switch (key) {
+		case 27:
+			send_message(USERUI_MSG_ABORT, NULL, 0);
+			break;
 		case 48:
 		case 49:
 		case 50:
