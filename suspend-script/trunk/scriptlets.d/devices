@@ -7,6 +7,7 @@ AddConfigHelp "IncompatibleDevices <device name> [...]" "If there are any proces
 DevicesFree() {
     local needsleep # always! ;)
     local device
+    local ret
 
     [ -z "$INCOMPATIBLE_DEVICES" ] && return 0
 
@@ -26,6 +27,7 @@ DevicesFree() {
     [ "$needsleep" -eq 1 ] && sleep 1
 
     # Send KILL to processes
+    ret=0
     for device in $INCOMPATIBLE_DEVICES ; do 
 	if fuser -s $device ; then
 	    if [ x"$KILL_PROGRAMS" = "x1" ] ; then
@@ -33,12 +35,13 @@ DevicesFree() {
 		fuser -s -k -9 $device
 	    else
 		vecho 1 "Device $device is still in use by the following processes: `fuser $device 2>/dev/null`"
+		ret=1
 	    fi
 	fi
     done
     
     # We tried our best.
-    return 0
+    return $ret
 }
 
 DevicesOptions() {
