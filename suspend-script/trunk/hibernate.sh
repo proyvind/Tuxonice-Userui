@@ -26,7 +26,7 @@ setopt SH_WORD_SPLIT 2>/dev/null || true
 unsetopt FUNCTION_ARGZERO 2>/dev/null || true
 
 SWSUSP_D="/etc/hibernate"
-SCRIPTLET_DIR="$SWSUSP_D/scriptlets.d/"
+SCRIPTLET_PATH="/usr/share/hibernate/scriptlets.d $SWSUSP_D/scriptlets.d"
 CONFIG_FILE="$SWSUSP_D/hibernate.conf"
 EXE=`basename $0`
 VERSION="0.94"
@@ -345,26 +345,31 @@ CheckIfHelpOnly() {
     return 1
 }
 
-# LoadScriptlets: sources all scriptlets in $SCRIPTLET_DIR
+# LoadScriptlets: sources all scriptlets in $SCRIPTLET_PATH directories
 LoadScriptlets() {
     local prev_pwd
     local scriptlet
-    if [ ! -d "$SCRIPTLET_DIR" ] ; then
-	echo "WARNING: No scriptlets directory ($SCRIPTLET_DIR)."
-	echo "This script probably won't do anything."
+    local scriptlet_dir
+    CURRENT_SOURCED_SCRIPTLET=""
+    for scriptlet_dir in $SCRIPTLET_PATH ; do
+	[ -d "$scriptlet_dir" ] || continue
+	[ -z "`/bin/ls -1 $scriptlet_dir`" ] && return 0
+	prev_pwd="$PWD"
+	cd $scriptlet_dir
+	for scriptlet in * ; do
+	    # Avoid editor backup files.
+	    case "$scriptlet" in *~|*.bak) continue ;; esac
+
+	    CURRENT_SOURCED_SCRIPTLET="$scriptlet"
+	    . ./$scriptlet
+	done
+	cd $prev_pwd
+    done
+    if [ -z "$CURRENT_SOURCED_SCRIPTLET" ] ; then
+	echo "WARNING: No directories in scriptlet search path contained any scriptlets."
+	echo "Hence, this script probably won't do anything."
 	return 0
     fi
-    [ -z "`/bin/ls -1 $SCRIPTLET_DIR`" ] && return 0
-    prev_pwd="$PWD"
-    cd $SCRIPTLET_DIR
-    for scriptlet in * ; do
-	# Avoid editor backup files.
-	case "$scriptlet" in *~|*.bak) continue ;; esac
-
-	CURRENT_SOURCED_SCRIPTLET="$scriptlet"
-	. ./$scriptlet
-    done
-    cd $prev_pwd
     CURRENT_SOURCED_SCRIPTLET=""
 }
 
@@ -422,6 +427,9 @@ ProcessConfigOption() {
 	    [ -z "$DISTRIBUTION" ] &&
 		DISTRIBUTION="$params"
 	    ;;
+	scriptletpath)
+	    SCRIPTLET_PATH="$SCRIPTLET_PATH $params"
+	    ;;
 	*)
 	    if ! PluginConfigOption $option $params ; then
 		echo "$EXE: Unknown configuration option ($option)"
@@ -461,6 +469,7 @@ AddInbuiltHelp() {
     AddOptionHelp "-v<n>, --verbosity=<n>" "Change verbosity level (0 = errors only, 3 = verbose, 4 = debug)"
     AddOptionHelp "-F<file>, --config-file=<file>" "Use the given configuration file instead of the default ($CONFIG_FILE)"
 
+    AddConfigHelp "ScriptletPath <path>" "Specifies extra directories (separated by spaces) to search for scriptlets."
     AddConfigHelp "SwsuspVT N" "If specified, output from the suspend script is rediredirected to the given VT instead of stdout."
     AddConfigHelp "Verbosity N" "Determines how verbose the output from the suspend script should be:
    0: silent except for errors
