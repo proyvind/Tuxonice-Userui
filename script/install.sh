@@ -12,6 +12,7 @@ if [ -d $CONFIG_DIR -o -f $SCRIPT_DEST ] ; then
     echo "Config directory $CONFIG_DIR and/or $SCRIPT_DEST already exist."
     echo -n "Are you sure you want to overwrite them? (y/N) "
     read REPLY
+    echo
     case $REPLY in
 	y*|Y*) ;;
 	*) echo "Aborting!" ; exit 1 ;;
@@ -46,7 +47,6 @@ done
 
 echo "Setting permissions on installed files ..."
 chmod 700 $SCRIPT_DEST $SCRIPTLET_DIR
-chmod 600 $CONFIG_FILE
 chown root:root -R $SCRIPT_DEST $CONFIG_DIR
 
 echo "Installed."
