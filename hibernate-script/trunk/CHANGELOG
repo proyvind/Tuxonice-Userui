@@ -1,3 +1,6 @@
+1.05 (28 January 2005 (a few minutes later))
+ - Avoid making spurious temporary files.
+
 1.04 (28 January 2005)
  - Include kernel configs in bug reports.
  - New xstatus scriptlet. (merged works of Henrix Brix Andersen and Sebastian

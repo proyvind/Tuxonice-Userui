@@ -155,19 +155,21 @@ Swsusp2ConfigOptions() {
 	    esac
 	    ;;
 	procsetting)
-	    if [ -z "$SWSUSP_EXTRA_PROC_SETTINGS" ] ; then
-		SWSUSP_EXTRA_PROC_SETTINGS=`mktemp /tmp/tmp.hibernate.XXXXXX`
-		cat <<EOT > $SWSUSP_EXTRA_PROC_SETTINGS
+	    if [ -z "$OPT_DRY_RUN" ] ; then
+		if [ -z "$SWSUSP_EXTRA_PROC_SETTINGS" ] ; then
+		    SWSUSP_EXTRA_PROC_SETTINGS=`mktemp /tmp/tmp.hibernate.XXXXXX`
+		    cat <<EOT > $SWSUSP_EXTRA_PROC_SETTINGS
 # Temporary file for hibernate script.
 # If you're reading this then it's probably safe to delete.
 
 EOT
-		AddResumeHook 00 RemoveSwsuspProcCruft
+		    AddResumeHook 00 RemoveSwsuspProcCruft
+		fi
+		shift
+		FILE="$1"
+		shift
+		echo "echo \"$*\" > $SWSUSP_ROOT/$FILE" >> $SWSUSP_EXTRA_PROC_SETTINGS
 	    fi
-	    shift
-	    FILE="$1"
-	    shift
-	    echo "echo \"$*\" > $SWSUSP_ROOT/$FILE" >> $SWSUSP_EXTRA_PROC_SETTINGS
 	    ;;
 	*)
 	    return 1
