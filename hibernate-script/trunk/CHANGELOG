@@ -4,7 +4,7 @@
  - Added the Mount option to mount filesystems after resume
  - More bootsplash fixes
  - Fix overgenerous module unloading
- - Detect new /proc root (/proc/software_suspend/) for >= 2.0.0.100
+ - Detect new /proc root (/proc/software_suspend/) for >= 2.0.0.102
 
 0.96 (24 July 2004)
  - Make the --config-file= option work once again (oops!)
