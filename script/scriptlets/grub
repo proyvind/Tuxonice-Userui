@@ -1,0 +1,64 @@
+#!/bin/sh
+
+# This is also a standalone scriptlet which restores the grub config file.
+# So option handler is at the end of file.
+GRUB_MENU_FILE="/boot/grub/grub.conf"
+
+ChangeGrubMenu() {
+	if [ x"$CHANGE_GRUB_MENU" = "x1" ] ; then
+		vecho 1 "Changing grub menu"
+		if [ -f $GRUB_MENU_FILE ] ;then
+			# given file exists so change menu
+			cp -R "$GRUB_MENU_FILE" "$GRUB_MENU_FILE.susp_bak"
+			echo  >> "$GRUB_MENU_FILE"
+			echo "title ______________________________________________" >> "$GRUB_MENU_FILE"
+			echo "configfile dummy" >> "$GRUB_MENU_FILE"
+			echo "title WARNING: "`uname -s -r` "is suspended via swsusp!" >> "$GRUB_MENU_FILE"
+			echo "configfile dummy" >> "$GRUB_MENU_FILE"
+		fi
+	fi
+}
+
+RestoreGrubMenu() {
+	if [ x"$CHANGE_GRUB_MENU" = "x1" ] ; then
+		vecho 1 "Restore grub menu"
+		if [ -f $GRUB_MENU_FILE.susp_bak ] ;then
+			mv -f "$GRUB_MENU_FILE.susp_bak" "$GRUB_MENU_FILE"
+		fi
+	fi
+}
+
+
+GrubOptions() {
+	case $1 in
+		grubmenuchange)
+			BoolIsOn "$1" "$2" && CHANGE_GRUB_MENU=1 || return 0
+			AddSuspendHook 11 ChangeGrubMenu
+			AddResumeHook 11 RestoreGrubMenu
+			return 0
+			;;
+		grubmenufile)
+			GRUB_MENU_FILE="$2"
+			return 0
+			;;
+		*)
+			return 1
+	esac
+	return 0
+}
+
+
+## Main for standalone ##
+
+# XXX: if called standalone how to know if grub's configfile was overwritten ??
+
+if [ "`basename $0`" = "grub" ] ;then
+	## restore grub and exit
+	RestoreGrubMenu
+	exit 0
+else
+	## called as part of suspend.sh 
+	AddConfigHandler GrubOptions
+	AddConfigHelp "GrubMenuChange <boolean>" "Change grub's config file to show system is suspended before suspending and restore after resume."
+	AddConfigHelp "GrubMenuFile <filename>" "Filename of grub's config file. Default is /boot/grub/grub.conf."
+fi
