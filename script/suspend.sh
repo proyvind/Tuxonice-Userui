@@ -344,17 +344,20 @@ ReadConfigFile() {
 					BoolIsOn "$option" "$params" && KILL_PROGRAMS=1
 				;;
 			logfile)
-				[ -z "$OPT_LOGFILE" ] && 
-					OPT_LOGFILE="$params"
+				[ -z "$LOGFILE" ] && 
+					LOGFILE="$params"
 				;;
 			swsuspvt)
-				[ -z "$OPT_SWSUSPVT" ] &&
-					OPT_SWSUSPVT="$params"
+				[ -z "$SWSUSPVT" ] &&
+					SWSUSPVT="$params"
 				;;
 			verbosity)
 				[ -z "$OPT_VERBOSITY" ] && 
 					VERBOSITY="$params"
 				;;
+			distribution)
+				[ -z "$DISTRIBUTION" ] &&
+					DISTRIBUTION="$params"
 			*)
 				if ! PluginConfigOption $option $params ; then
 					echo "$EXE: Unknown option ($option) in swsusp.conf"
@@ -377,6 +380,7 @@ AddConfigHelp "Verbosity N" "Determines how verbose the output from the suspend 
    4: print out every command executed (uses -x)"
 AddConfigHelp "AlwaysForce <boolean>" "If set to yes, the script will always run as if --force had been passed."
 AddConfigHelp "AlwaysKill <boolean>" "If set to yes, the script will always run as if --kill had been passed."
+AddConfigHelp "Distribution <debian|fedora|mandrake|redhat|gentoo|suse>" "If specified, tweaks some scriptlets to be more integrated with the given distribution."
 
 EnsureHaveRoot() {
 	if [ x"`id -u`" != "x0" ] ; then
@@ -397,10 +401,10 @@ ParseOptions "$@"
 ReadConfigFile
 
 # Set a logfile if we need one.
-[ -z "$OPT_LOGFILE" ] && LOGPIPE="cat" || LOGPIPE="tee -a $OPT_LOGFILE"
+[ -z "$LOGFILE" ] && LOGPIPE="cat" || LOGPIPE="tee -a $LOGFILE"
 
 # Redirect everything to a given VT if we've been given one
-[ -n "$OPT_SWSUSPVT" ] && exec >/dev/tty$OPT_SWSUSPVT 2>&1
+[ -n "$SWSUSPVT" ] && exec >/dev/tty$SWSUSPVT 2>&1
 
 # Use -x if we're being really verbose!
 [ $VERBOSITY -ge 4 ] && set -x
