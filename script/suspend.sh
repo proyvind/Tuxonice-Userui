@@ -1,4 +1,5 @@
 #!/bin/sh
+# For emacs: -*- sh -*-
 
 # Version: $Id: suspend.sh 60 2004-07-08 19:39:03Z bernard $
 
