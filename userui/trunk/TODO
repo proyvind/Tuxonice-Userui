@@ -1,2 +1,3 @@
 - Fix jerkiness of fbanim
 - Fix memory usage - either use it, or get rid of it.
+- Use 240-color verbose image on 8bpp fbs.
