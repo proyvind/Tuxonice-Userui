@@ -2,14 +2,11 @@ Sooner:
 - tid?
 - debug registers
 - FPU state
-- termcaps
 - check all thread entry_nums ?
-- supervisor process?
 
 Later:
 - compressor support
 - process trees
-- 2.4/2.6 translatability
 
 Much later:
 - multiple threads
