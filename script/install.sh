@@ -18,6 +18,9 @@ if [ -d $CONFIG_DIR -o -f $SCRIPT_DEST ] ; then
     esac
 fi
 
+(
+set -e
+
 echo "Installing hibernate script to $SCRIPT_DEST ..."
 mkdir -p `dirname $SCRIPT_DEST`
 cp -a hibernate.sh $SCRIPT_DEST
@@ -38,6 +41,9 @@ chmod 600 $CONFIG_FILE
 chown root:root -R $SCRIPT_DEST $CONFIG_DIR
 
 echo "Installed."
+echo
 echo "Edit $CONFIG_FILE to taste, and see `basename $SCRIPT_DEST` -h for help."
+
+) || echo "Aborted due to errors."
 
 # $Id$
