@@ -27,7 +27,7 @@ SplashBegin() {
 	vecho 1 "/proc/splash not found. Bootsplash disabled."
 	return 0
     fi
-    if ! which splash > /dev/null 2>&1 ; then
+    if ! command -v splash > /dev/null 2>&1 ; then
 	USE_BOOTSPLASH=0
 	vecho 1 "'splash' utility not found. Bootsplash disabled."
 	return 0

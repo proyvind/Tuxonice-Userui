@@ -17,7 +17,7 @@ XStatusProgressStart_kde() {
     KDEPB_DCOPREF=
 
     # Lookup dcop, we expect kdialog and kstart to sit there, too.
-    if [ "x$DISTRIBUTION" = "xgentoo" ] && ! which dcop > /dev/null 2>&1 ; then
+    if [ "x$DISTRIBUTION" = "xgentoo" ] && ! command -v dcop > /dev/null 2>&1 ; then
 	# Gentoo stashes this in a silly place.
 	for i in /usr/kde/*/bin/dcop ; do
 	    if [ -x "$i" ] ; then
@@ -28,7 +28,7 @@ XStatusProgressStart_kde() {
 	done
     fi
 
-    if ! which dcop > /dev/null 2>&1 ; then
+    if ! command -v dcop > /dev/null 2>&1 ; then
 	vecho 0 'Cannot connect to kdialog. `dcop` program not found.'
 	return 1 # abort, unless forced
     fi
@@ -231,7 +231,7 @@ XStatusOptions() {
 	    return 1
     esac
 
-    if [ x"$XSTATUS" = "xx" ] && ! which osd_cat > /dev/null 2>&1 ; then
+    if [ x"$XSTATUS" = "xx" ] && ! command -v osd_cat > /dev/null 2>&1 ; then
 	NO_XOSD=1
     fi
     XOSD_PIDS=

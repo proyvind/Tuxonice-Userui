@@ -20,7 +20,7 @@ DiskCacheDisable() {
 DiskCacheEnable() {
     local i
     for i in $DISKCACHE_DISABLEDON ; do
-	which hdparm > /dev/null || return 1
+	command -v hdparm > /dev/null || return 1
 	vecho 1 "$EXE: Enabling disk cache on $i"
 	hdparm -W 1 $i > /dev/null 2>&1
     done

@@ -8,7 +8,7 @@ AddConfigHelp "UseDummyXServer <boolean>" "Some X drivers can be reinitialised b
 XHacksSuspend() {
     if [ x"$XHACKS_LEAVE_X" = "x1" ] ; then
 	local dest_vt
-	if which fgconsole > /dev/null 2>&1 ; then
+	if command -v fgconsole > /dev/null 2>&1 ; then
 	    XHACKS_ORIGINAL_VT=`fgconsole`
 	else
 	    XHACKS_ORIGINAL_VT=1
@@ -24,12 +24,12 @@ XHacksResume() {
     if [ x"$XHACKS_NVIDIA" = "x1" ] ; then
 	# Launch a dummy X server to reinitialise the graphics card
 	PATH=$PATH:/usr/bin/X11:/usr/X11R6/bin
-	if ! which X > /dev/null 2>&1 ; then
+	if ! command -v X > /dev/null 2>&1 ; then
 	    vecho 1 "X not in path. Not starting dummy X server."
 	else
 	    vecho 2 "Launching dummy X server."
 	    unset XAUTHORITY   # Make sure we don't clobber the user's .Xauthority
-	    xinit /bin/true -- `which X` :9 -auth /dev/null -audit 0 -nolisten tcp > /dev/null 2>&1
+	    xinit /bin/true -- `command -v X` :9 -auth /dev/null -audit 0 -nolisten tcp > /dev/null 2>&1
 	fi
     fi
 

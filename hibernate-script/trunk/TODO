@@ -1,7 +1,5 @@
 - Option to write a default config file
 - mktemp fix
-- s/which/command -v/
-- finish xstatus cancel support
 - bootsplash update
 
 $Id$

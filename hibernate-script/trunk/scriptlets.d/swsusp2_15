@@ -300,7 +300,7 @@ DoSwsusp2() {
 
 ChangeToSwsuspVT() {
     if [ -n "$SWSUSP_FORCE_CHVT" ] ; then
-	if which fgconsole > /dev/null 2>&1 ; then
+	if command -v fgconsole > /dev/null 2>&1 ; then
 	    SWSUSP_ORIGINAL_VT=`fgconsole`
 	else
 	    SWSUSP_ORIGINAL_VT=1

@@ -172,7 +172,7 @@ FindXServer() {
     export DISPLAY
 
     # See if we need to authenticate to this X server.
-    xhost=`PATH=/usr/bin/X11:/usr/X11R6/bin:$PATH which xhost 2>/dev/null`
+    xhost=`PATH=/usr/bin/X11:/usr/X11R6/bin:$PATH command -v xhost 2>/dev/null`
     if [ $? -ne 0 ] ; then
 	vecho 0 "$EXE: Could not find xhost program. Disabling X scriptlets."
 	FIND_X_SERVER_RESULT=1
@@ -294,13 +294,13 @@ PluginConfigOption() {
 EnsureHavePrerequisites() {
     local i
     for i in awk grep sort getopt basename ; do
-	if ! which $i > /dev/null; then
+	if ! command -v $i > /dev/null; then
 	    vecho 0 "Could not find required program \"$i\". Aborting."
 	    exit 1
 	fi
     done
     # Improvise printf using awk if need be.
-    if ! which printf > /dev/null 2>&1 ; then
+    if ! command -v printf > /dev/null 2>&1 ; then
 	# This implementation fails on strings that contain double quotes.
 	# It does the job for the help screen at least.
 	printf() {
@@ -316,7 +316,7 @@ EnsureHavePrerequisites() {
 	}
     fi
     # Improvise mktemp in case we need it too!
-    if ! which mktemp > /dev/null 2>&1 ; then
+    if ! command -v mktemp > /dev/null 2>&1 ; then
 	# Use a relatively safe equivalent of mktemp. Still suspectible to race
 	# conditions, but highly unlikely.
 	mktemp() {
