@@ -10,29 +10,6 @@ CONFIG_FILE="$SWSUSP_D/suspend.conf"
 EXE=`basename $0`
 VERSION="0.2"
 
-# Various helper colour functions - FIXME get rid of these? colours are evil.
-red() {
-	echo -ne "\033[0;31m"
-}
-yellow() {
-	echo -ne "\033[0;33m"
-}
-green() {
-	echo -ne "\033[0;32m"
-}
-magenta() {
-	echo -ne "\033[1;35m"
-}
-cyan() {
-	echo -ne "\033[0;36m"
-}
-white() {
-	echo -ne "\033[1;37m"
-}
-normal() {
-	echo -ne "\033[0m"
-}
-
 vecho() {
 	[ $VERBOSITY -ge $1 ] || return 0
 	shift
