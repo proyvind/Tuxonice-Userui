@@ -4,4 +4,4 @@
 #define CONFIG_FBSPLASH
 #undef  CONFIG_SILENT_KD_GRAPHICS
 #define THEME_DIR 			"/etc/splash"
-
+#define SPLASH_FIFO			"/lib/splash/cache/.splash"

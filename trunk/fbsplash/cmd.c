@@ -79,11 +79,18 @@ void cmd_setcfg(unsigned char origin)
 void cmd_getcfg()
 {
 	struct vc_splash vc_cfg;
+	struct fb_splash_iowrapper wrapper = {
+		.vc = arg_vc,
+		.origin = FB_SPLASH_IO_ORIG_USER,
+		.data = &vc_cfg,
+	};
 
 	vc_cfg.theme = malloc(FB_SPLASH_THEME_LEN);
 	if (!vc_cfg.theme)
 		return;
 
+	if (ioctl(fbsplash_fd, FBIOSPLASH_GETCFG, &wrapper))
+		printerr("FBIOSPLASH_GETCFG failed, error code %d.\n", errno);
 	if (vc_cfg.theme[0] == 0) {
 		strcpy(vc_cfg.theme, "<none>");
 	} 

@@ -215,7 +215,7 @@ int remove_dev(char *fn, int flag);
 	remove_dev(dev, flag);
 
 /* render.c */
-void render_objs(char mode, u8* target, unsigned char origin, int progress_only);
+void render_objs(u8 *target, u8 *bgnd, char mode, unsigned char origin, int progress_only);
 
 /* image.c */
 int load_images(char mode);
