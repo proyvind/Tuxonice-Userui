@@ -39,4 +39,4 @@ echo "Installed."
 echo "Edit $CONFIG_FILE to taste, and see `basename $SCRIPT_DEST` -h for help."
 
 # vim:ft=sh:ts=8:sw=4:noet
-# $Id$
+# $Id: install.sh 71 2004-07-09 05:50:21Z bernard $
