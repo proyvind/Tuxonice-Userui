@@ -44,6 +44,7 @@ PAGES = style.css \
 		epfl.png \
 		cyclades.png \
 		linuxfund.gif \
+		ucc-sun-logo-black.png \
 		downloads/index.html \
 		downloads/all/HEADER.html \
 		downloads/all/README.html \
