@@ -1,5 +1,5 @@
 CFLAGS = -Wall -O0 -g
-MODULES = dummy text fbsplash
+MODULES = dummy text fbanim
 TARGETS = $(patsubst %,userui_%,$(MODULES))
 CORE_OBJECTS = userui_core.o
 LDFLAGS = 
@@ -13,14 +13,14 @@ userui_dummy: $(CORE_OBJECTS) userui_dummy.o
 userui_text: $(CORE_OBJECTS) userui_text.o
 	$(CC) $(LDFLAGS) $^ -o $@
 
-userui_fbsplash: $(CORE_OBJECTS) splash/userui_fbsplash.o
+userui_fbanim: $(CORE_OBJECTS) fbanim/userui_fbanim.o
 	$(CC) -ljpeg -lpng -lz -lm $(LDFLAGS) $^ -o $@
 
-splash/userui_fbsplash.o:
-	make -C splash
+fbanim/userui_fbanim.o:
+	make -C fbanim
 
 clean:
 	rm -f *.o $(TARGETS)
-	make -C splash clean
+	make -C fbanim clean
 
 .PHONY: all clean
