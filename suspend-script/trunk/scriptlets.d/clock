@@ -25,12 +25,13 @@ ClockOptions() {
 	    param=`echo $2 | tr '[A-Z]' '[a-z]'`
 	    case "$param" in 
 		restore*) # restore-only
-		    AddResumeHook 98 ClockRestore
+		    AddResumeHook 82 ClockRestore
 		    ;;
 		*)
 		    if BoolIsOn "$1" "$2" ; then
-			AddSuspendHook 98 ClockSave
-			AddResumeHook 98 ClockRestore
+			# put before module unloading and x switching.
+			AddSuspendHook 82 ClockSave
+			AddResumeHook 82 ClockRestore
 		    fi
 		    ;;
 	    esac
