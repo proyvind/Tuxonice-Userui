@@ -27,7 +27,7 @@ AddConfigHelp "EnableEscape <boolean> (requires UseSwsusp2 on)" "If specified, a
 
 AddConfigHelp "DefaultConsoleLevel <N> (requires UseSwsusp2 on)" "If specified, sets the default console level. 0 gives a progress bar. 1 gives a progress bar with numbers. 2 or higher give increasing amounts of debugging. If this line is not specified, the default console level is unchanged."
 
-AddConfigHelp "ImageSizeLimit nocache|<NN> (requires UseSwsusp2 on)" "If specified, sets an upper limit on the size of the suspend image written (in megabytes). If set to \"nocache\", caches and buffers will not be saved - resulting in a faster suspend and resume at the possible expense of system responsiveness immediately after resuming. If set to 0, no limit in imposed. If this line is not specified, the existing image size limit is unchanged."
+AddConfigHelp "ImageSizeLimit nocache|<NN> (requires UseSwsusp2 on)" "If specified, sets an upper limit on the size of the suspend image written (in megabytes). If set to \"nocache\", caches and buffers will not be saved - resulting in a faster suspend and resume at the possible expense of system responsiveness immediately after resuming. If set to 0, no limit is imposed. If this line is not specified, the existing image size limit is unchanged."
 
 AddConfigHelp "AsyncIOLimit <N> (requires UseSwsusp2 on)" "Limit the number of I/O operations that Software Suspend 2 will have queued at once. Lowering this value has resolved hangs when reading or writing caches for some people. Try values like 64, 32 and 8."
 
