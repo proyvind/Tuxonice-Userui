@@ -170,5 +170,5 @@ SECTIONS
   .debug_typenames 0 : { *(.debug_typenames) }
   .debug_varnames  0 : { *(.debug_varnames) }
   /DISCARD/ : { *(.note.GNU-stack) }
-  cryopid.image (NOLOAD) : { LONG(0x4D495043) }
+  cryopid.image (NOLOAD) : { LONG(0x4D495043) } /* CPIM */
 }
