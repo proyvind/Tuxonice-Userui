@@ -1,7 +1,7 @@
 CFLAGS := -Wall -O3 -g
 LDFLAGS := -static
 
-DESTDIR := 
+DESTDIR :=
 PREFIX := /usr/local
 INSTDIR := $(DESTDIR)$(PREFIX)/sbin
 
@@ -26,7 +26,7 @@ suspend2ui_fbanim: $(CORE_OBJECTS) fbanim/userui_fbanim.o
 	$(CC) -ljpeg -lpng -lz -lm -lpthread $(LDFLAGS) $^ -o $@
 
 clean:
-	rm -f *.o $(TARGETS)
+	$(RM) *.o $(TARGETS)
 	make -C fbsplash clean
 	make -C fbanim clean
 
