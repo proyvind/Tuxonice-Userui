@@ -32,6 +32,7 @@ ModulesUnload() {
 	    vecho 1
 	    MOD_UNLOADED="$MOD_UNLOADED $mod"
 	else
+	    ret=1
 	    vecho 1 "failed!"
 	fi
     done
