@@ -1,9 +1,10 @@
-0.91 (10 July 2004)
+0.91 (9 July 2004 (later that day))
  - Multiple fixes for grub - restoring the grub menu is now achieved by using
    "hibernate -g" or "hibernate --restore-grub", not by running the scriptlet.
- - Bleeding obvious bugfixes to bootsplash, misclaunch and modules scriptlets
- - Avoid sourcing editor backup files (ignore scriptlets *~ *.bak)
+ - Extend NN range for scripts to 00-99.
+ - Bleeding obvious bugfixes to bootsplash, misclaunch and modules scriptlets.
+ - Avoid sourcing editor backup files (ignore scriptlets *~ *.bak).
  - Ash compatibility fix in install script.
 
 0.9 (9 July 2004)
- - First public release
+ - First public release.
