@@ -48,7 +48,7 @@ ModulesUnload() {
 	    continue
 	fi
 
-	if rmmod `FindModuleDeps $mod` > /dev/null 2>&1 ; then
+	if modprobe -r `FindModuleDeps $mod` > /dev/null 2>&1 ; then
 	    vecho 2
 	else
 	    ret=1
@@ -82,7 +82,7 @@ ModulesUnloadAllOnce() {
     local module
     for module in `awk '($3==0){print $1}' /proc/modules` ;do
 	vecho 2 "Unloading module $module..."
-	modprobe -r $module && MOD_UNLOADED="$MOD_UNLOADED $module"
+	rmmod $module && MOD_UNLOADED="$MOD_UNLOADED $module"
     done
 }
 
@@ -153,10 +153,7 @@ ModulesUnloadBlacklist() {
 	return 1
     fi
 
-    local mod
-    local vers
-    local failedmods
-    local kver
+    local mod vers failedmods kver
 
     kver=`awk 'BEGIN{FS="[^0-9]"}{print($1*65536)+($2*8)+$3}' /proc/sys/kernel/osrelease`
 
@@ -176,7 +173,7 @@ ModulesUnloadBlacklist() {
 	local i
 	for i in $deps ; do
 	    vecho 3 "Unloading $i ..."
-	    if rmmod $i > /dev/null 2>&1 ; then
+	    if modprobe -r $i > /dev/null 2>&1 ; then
 		MOD_UNLOADED="$MOD_UNLOADED $i"
 	    else
 		failedmods="$failedmods $i"
@@ -213,7 +210,7 @@ ModulesUnloadAll() {
 
 	ModulesUnloadAllOnce
 	modafter="`awk '($3==0){print $1}' /proc/modules`"
-	[ "$mod_retry_count" -gt 5 ] && break
+	[ "$mod_retry_count" -gt 15 ] && break
 	[ -z "$modafter" ] && return 0
 	mod_retry_count=$(($mod_retry_count+1))
     done
