@@ -148,20 +148,9 @@ Swsusp2ConfigSet() {
 }
 
 SwsuspIsAtLeastVersion() {
-    local ver ver1 ver2 ver3 ver4
-    local old_IFS="$IFS"
-    local ret=1
-    local wanted_ver=$1
-    ver=`sed -e 's/[^0-9\.]*//g' < $SWSUSP_ROOT/version`
-    IFS="."
-    set -- $ver
-    [ -z $1 ] && ver1=0 || ver1=$1
-    [ -z $2 ] && ver2=0 || ver2=$2
-    [ -z $3 ] && ver3=0 || ver3=$3
-    [ -z $4 ] && ver4=0 || ver4=$4
-    [ $((($ver1*16777216)+($ver2*65536)+($ver3*256)+$ver4)) -ge $wanted_ver ] && ret=0
-    IFS="$old_IFS"
-    return $ret
+    ver=`awk 'BEGIN{FS="[^0-9]"}{print($1*0x1000000)+($2*0x10000)+($3*0x100)+$4}' $SWSUSP_ROOT/version`
+    [ $ver -ge $1 ] && return 0
+    return 1
 }
 
 DoSwsusp2() {
