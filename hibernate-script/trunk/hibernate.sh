@@ -387,7 +387,7 @@ DoGetOpt() {
 	    -v|--verbosity)
 		OPT_VERBOSITY="${1#\'}"
 		OPT_VERBOSITY="${OPT_VERBOSITY%\'}"
-		VERBOSITY="$OPT_VERBOSITY"
+		EnsureNumeric "verbosity" $OPT_VERBOSITY && VERBOSITY="$OPT_VERBOSITY"
 		shift
 		;;
 	    -q)
@@ -522,6 +522,17 @@ BoolIsOn() {
     exit 1
 }
 
+IsANumber() {
+    case "$1" in *[!0-9]*|"") return 1 ;; esac
+    return 0
+}
+
+EnsureNumeric() {
+    IsANumber "$2" && return 0
+    echo "$EXE: Invalid numeric value ($2) for option $1 in configuration file"
+    exit 1
+}
+
 # ProcessConfigOption: takes a configuration option and its parameters and
 # passes it out to the relevant scriptlet.
 ProcessConfigOption() {
@@ -544,18 +555,17 @@ ProcessConfigOption() {
 		LOGFILE="$params"
 	    ;;
 	logverbosity)
-	    LOG_VERBOSITY="$params"
+	    EnsureNumeric "$option" "$params" && LOG_VERBOSITY="$params"
 	    ;;
 	swsuspvt)
-	    SWSUSPVT="$params"
+	    EnsureNumeric "$option" "$params" && SWSUSPVT="$params"
 	    ;;
 	verbosity)
-	    [ -z "$OPT_VERBOSITY" ] &&
+	    [ -z "$OPT_VERBOSITY" ] && EnsureNumeric "$option" "$params" &&
 		VERBOSITY="$params"
 	    ;;
 	distribution)
-	    [ -z "$DISTRIBUTION" ] &&
-		DISTRIBUTION="$params"
+	    [ -z "$DISTRIBUTION" ] && DISTRIBUTION="$params"
 	    ;;
 	xdisplay)
 	    DISPLAY="$params"
