@@ -2,10 +2,11 @@
 # -*- sh -*-
 # vim:ft=sh:ts=8:sw=4:noet
 
-[ -z "$SCRIPT_DEST" ] && SCRIPT_DEST=/usr/local/sbin/hibernate
-[ -z "$CONFIG_DIR" ] && CONFIG_DIR=/etc/hibernate
-CONFIG_FILE=$CONFIG_DIR/hibernate.conf
-SCRIPTLET_DIR=$CONFIG_DIR/scriptlets.d
+[ -z "$SCRIPT_DEST" ]   && SCRIPT_DEST=$BASE_DIR/usr/local/sbin/hibernate
+[ -z "$CONFIG_DIR" ]    && CONFIG_DIR=$BASE_DIR/etc/hibernate
+[ -z "$CONFIG_FILE" ]   && CONFIG_FILE=$CONFIG_DIR/hibernate.conf
+[ -z "$SCRIPTLET_DIR" ] && SCRIPTLET_DIR=$BASE_DIR/usr/share/hibernate/scriptlets.d
+[ -z "$LOCAL_SCRIPTLET_DIR" ] && LOCAL_SCRIPTLET_DIR=$CONFIG_DIR/scriptlets.d
 
 # Test if the script is already installed.
 if [ -d $CONFIG_DIR -o -f $SCRIPT_DEST ] ; then
@@ -37,6 +38,18 @@ if [ -f $CONFIG_FILE ] ; then
     EXISTING_CONFIG=1
 else
     cp -a hibernate.conf $CONFIG_FILE
+fi
+
+echo "Creating local scriptlet directory $LOCAL_SCRIPTLET_DIR ..."
+mkdir -p $LOCAL_SCRIPTLET_DIR
+# Test if they have anything in there, and warn them
+if /bin/ls $LOCAL_SCRIPTLET_DIR/* > /dev/null 2>&1 ; then
+    echo "  **"
+    echo "  ** You have scriptlets already installed in $LOCAL_SCRIPTLET_DIR."
+    echo "  ** Since version 0.95, these have moved to $SCRIPTLET_DIR."
+    echo "  ** If you are upgrading from a version prior to 0.95, you will"
+    echo "  ** need to empty the contents of $LOCAL_SCRIPTLET_DIR manually!"
+    echo "  **"
 fi
 
 echo "Installing scriptlets to $SCRIPTLET_DIR ..."
