@@ -349,6 +349,7 @@ CheckIfHelpOnly() {
 LoadScriptlets() {
     local prev_pwd
     local scriptlet
+    local scriptlet_name
     local scriptlet_dir
     CURRENT_SOURCED_SCRIPTLET=""
     for scriptlet_dir in $SCRIPTLET_PATH ; do
@@ -359,6 +360,20 @@ LoadScriptlets() {
 	for scriptlet in * ; do
 	    # Avoid editor backup files.
 	    case "$scriptlet" in *~|*.bak) continue ;; esac
+
+	    # Don't source a scriptlet by name more than once.
+
+	    scriptlet_name="`basename $scriptlet`"
+
+	    local prev_path
+	    eval "prev_path=\"\${HAVE_SOURCED_SCRIPTLET_$scriptlet_name}\""
+
+	    if [ -n "$prev_path" ] ; then
+		vecho 1 "$EXE: Scriptlet $scriptlet_name exists in both $scriptlet and $prev_path"
+		vecho 1 "$EXE: Cowardly refusing to load $scriptlet_name a second time."
+		continue
+	    fi
+	    eval "HAVE_SOURCED_SCRIPTLET_$scriptlet_name=$scriptlet"
 
 	    CURRENT_SOURCED_SCRIPTLET="$scriptlet"
 	    . ./$scriptlet
