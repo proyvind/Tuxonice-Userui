@@ -1,6 +1,7 @@
 1.05 (unreleased)
  - Wait after loading suspend modules until the relevant proc entries are
    found.
+ - Fix numerous bugs in xstatus.
 
 1.04 (8 February 2004)
  - Avoid making spurious temporary files.

@@ -72,7 +72,7 @@ XStatusProgressPIPEhandler_gnome() {
 
 XStatusProgressStart_gnomeZenityHelper() {
     zenity_hup_handler() {
-	kill -INT $pid_to_kill
+	[ -n "$pid_to_kill" ] && kill -INT $pid_to_kill
     }
     trap zenity_hup_handler HUP
     zenity --progress --auto-close --title="Hibernate" --text="$1" || kill -INT $pid_to_kill
@@ -81,16 +81,16 @@ XStatusProgressStart_gnomeZenityHelper() {
 
 XStatusProgressStart_gnome() {
     trap XStatusProgressPIPEhandler_gnome PIPE
+    pid_to_kill=`/bin/sh -c 'echo $PPID'`
     if [ -n "$NEED_POSIX" ] ; then
 	[ -p $ZENITY_FIFO ] && rm -f $ZENITY_FIFO
 	ZENITY_FIFO=`mktemp /tmp/tmp.hibernate.XXXXXX`
 	rm -f $ZENITY_FIFO
 	mknod $ZENITY_FIFO p
-	XStatusProgressStart_gnomeZenityHelper $1 < $ZENITY_FIFO &
+	XStatusProgressStart_gnomeZenityHelper "$1" < $ZENITY_FIFO &
 	ZENITY_PID=$!
 	exec 8>$ZENITY_FIFO
     else
-	pid_to_kill=`/bin/sh -c 'echo $PPID'`
 	eval "exec 8> >(XStatusProgressStart_gnomeZenityHelper \"$1\")" || return
     fi
     echo $XSTATUS_PROGRESS >&8
@@ -226,6 +226,18 @@ XStatusOptions() {
 		    exit 1
 		    ;;
 	    esac
+	    ;;
+	xsuspendtext)
+	    shift
+	    XSTATUS_SUSPEND_TEXT="$*"
+	    ;;
+	xresumetext)
+	    shift
+	    XSTATUS_RESUME_TEXT="$*"
+	    ;;
+	xosdsettings)
+	    shift
+	    XOSD_SETTINGS="$*"
 	    ;;
 	*)
 	    return 1
