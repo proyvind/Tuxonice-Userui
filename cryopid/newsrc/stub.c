@@ -46,9 +46,20 @@ void put_shell_code(struct user_regs_struct r, char* code) {
 	char *cp = code;
 	memset(code, 0, sizeof(code));
 	code[0xffc] = 'A';
+    /* set up a temporary stack for use */
 	*cp++ = 0xbc; *(long*)(cp) = (long)code+0x0ff0; cp+=4; /* mov sp, 0x11000 */
+
+    /* munmap resumer code except for us */
+	*cp++ = 0xb8; *(long*)(cp) = __NR_munmap; cp+=4; /* mov foo, ax  */
+	*cp++ = 0xbb; *(long*)(cp) = RESUMER_START; cp+=4; /* mov foo, bx  */
+	*cp++ = 0xb9; *(long*)(cp) = RESUMER_END-RESUMER_START; cp+=4; /* mov foo, cx  */
+    *cp++ = 0xcd; *cp++ = 0x80; /* int $0x80 */
+
+    /* set up gs */
 	*cp++ = 0x66; *cp++ = 0xb8; *(short*)(cp) = r.gs; cp+=2; /* mov foo, ax  */
 	*cp++ = 0x8e; *cp++ = 0xe8; /* mov %eax, %gs */
+
+    /* restore registers */
 	*cp++ = 0xb8; *(long*)(cp) = r.eax; cp+=4; /* mov foo, ax  */
 	*cp++ = 0xbb; *(long*)(cp) = r.ebx; cp+=4; /* mov foo, bx  */
 	*cp++ = 0xb9; *(long*)(cp) = r.ecx; cp+=4; /* mov foo, cx  */

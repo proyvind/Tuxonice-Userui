@@ -31,11 +31,8 @@
 #include <assert.h>
 #include "process.h"
 
-#define RESUMER_START 0x00100000 /* Lowest location resume will be at */
-#define RESUMER_END   0x00200000 /* Highest location resume will be at */
-
 /* Somewhere in the child process to scribble on */
-#define PROCESS_START 0x08048000
+#define PROCESS_START 0x08048000 /* FIXME choose me dynamically */
 
 char* backup_page(pid_t target, void* addr) {
 	long* page = malloc(PAGE_SIZE);
