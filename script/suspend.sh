@@ -421,8 +421,10 @@ ReadConfigFile
 
 # Set a logfile if we need one.
 [ -z "$OPT_LOGFILE" ] && LOGPIPE="cat" || LOGPIPE="tee -a $OPT_LOGFILE"
+
 # Redirect everything to a given VT if we've been given one
 [ -n "$OPT_SWSUSPVT" ] && exec >/dev/tty$OPT_SWSUSPVT 2>&1
+
 # Use -x if we're being really verbose!
 [ $VERBOSITY -ge 4 ] && set -x
 
