@@ -17,25 +17,36 @@ CheckModuleSupport() {
 }
 
 # SaveKernelModprobe disables module loading while suspending, by setting
-# the kernel's modprobe to /bin/true, and saving the old value.
+# the kernel's modprobe to /doesnt/exist, and saving the old value.
 SaveKernelModprobe() {
     [ -n "$KERNEL_MODPROBE" ] && return 0
-    [ -r "/proc/sys/kernel/modprobe" ] || return 0
-
-    KERNEL_MODPROBE=`cat /proc/sys/kernel/modprobe`
-    [ -z "$KERNEL_MODPROBE" ] && return 0 # not much we can do here.
-
-    vecho 3 "Saved /proc/sys/kernel/modprobe is $KERNEL_MODPROBE"
-
-    echo "/bin/true" > /proc/sys/kernel/modprobe
+    if [ -r "/proc/sys/kernel/modprobe" ] ; then
+	KERNEL_MODPROBE=`cat /proc/sys/kernel/modprobe`
+	if [ -n "$KERNEL_MODPROBE" ] ; then
+	    vecho 3 "Saved /proc/sys/kernel/modprobe is $KERNEL_MODPROBE"
+	    echo "/doesnt/exist" > /proc/sys/kernel/modprobe
+	fi
+    fi
+    if [ -r "/proc/sys/kernel/hotplug" ] ; then
+	KERNEL_HOTPLUG=`cat /proc/sys/kernel/hotplug`
+	if [ -n "$KERNEL_HOTPLUG" ] ; then
+	    vecho 3 "Saved /proc/sys/kernel/hotplug is $KERNEL_HOTPLUG"
+	    echo "/doesnt/exist" > /proc/sys/kernel/hotplug
+	fi
+    fi
 
     return 0
 }
 
 RestoreKernelModprobe() {
-    [ -z "$KERNEL_MODPROBE" ] && return 0
-    echo $KERNEL_MODPROBE > /proc/sys/kernel/modprobe
-    unset KERNEL_MODPROBE
+    if [ -n "$KERNEL_MODPROBE" ] ; then
+	echo $KERNEL_MODPROBE > /proc/sys/kernel/modprobe
+	unset KERNEL_MODPROBE
+    fi
+    if [ -n "$KERNEL_HOTPLUG" ] ; then
+	echo $KERNEL_HOTPLUG > /proc/sys/kernel/hotplug
+	unset KERNEL_HOTPLUG
+    fi
     return 0
 }
 
