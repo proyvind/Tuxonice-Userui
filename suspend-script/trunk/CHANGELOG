@@ -1,3 +1,7 @@
+0.92.1 (11 July 2004 (later that evening)
+ - Licensed under GPLv2.
+ - chown the right directory in the installer.
+
 0.92 (11 July 2004)
  - /etc/suspend/, suspend.conf, and swsusp.log are now called /etc/hibernate/,
    hibernate.conf and hibernate.log for consistency.
