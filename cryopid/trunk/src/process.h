@@ -32,7 +32,6 @@ struct k_sigaction {
     } sa_mask;       /* mask last for extensibility */
 };
 
-
 struct map_entry_t {
     long start, length;
     int prot;
@@ -95,8 +94,18 @@ struct proc_image_t {
 struct proc_image_t* get_proc_image(pid_t target_pid, int flags);
 int write_proc_image(int fd, struct proc_image_t* p);
 
+struct proc_header_t {
+    pid_t pid;
+
+    int n_children;
+    struct proc_header_t *children;
+
+    int n_pipes;
+    int *pipe_pairs; /* parent fd/child fd pipe pairs */
+};
+
 /* flags passed to get_proc_image */
-#define GET_LIBRARIES_TOO        0x01
+#define GET_LIBRARIES_TOO          0x01
 #define GET_OPEN_FILE_CONTENTS     0x02
 
 #define RESUMER_START 0x00100000 /* Lowest location resume will be at */
