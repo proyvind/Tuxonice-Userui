@@ -408,8 +408,8 @@ LoadScriptlets() {
 	    eval "prev_path=\"\${HAVE_SOURCED_SCRIPTLET_$scriptlet_name}\""
 
 	    if [ -n "$prev_path" ] ; then
-		echo "$EXE: Scriptlet $scriptlet_name exists in both $scriptlet and $prev_path"
-		echo "$EXE: Cowardly refusing to load $scriptlet_name a second time."
+		vecho 0 "$EXE: Scriptlet $scriptlet_name exists in both $scriptlet and $prev_path"
+		vecho 0 "$EXE: Cowardly refusing to load $scriptlet_name a second time."
 		continue
 	    fi
 	    eval "HAVE_SOURCED_SCRIPTLET_$scriptlet_name=$scriptlet"
