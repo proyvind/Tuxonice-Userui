@@ -101,6 +101,7 @@ FilesystemsOptions() {
 		    FS_UNMOUNT_GRACE=$2
 		    ;;
 	    esac
+	;;
 	mount)
 	    [ -z "$FS_MOUNTS" ] && AddResumeHook 50 FilesystemsMount
 	    shift
