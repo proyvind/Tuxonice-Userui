@@ -7,7 +7,7 @@
 # used under the same terms as hibernate-script itself.
 
 AddConfigHandler VbetoolOptions
-AddConfigHelp "VbetoolEnable <boolean>" "Save and restore video state using vbetool before and after suspending."
+AddConfigHelp "EnableVbetool <boolean>" "Save and restore video state using vbetool before and after suspending."
 
 # hopefully this is a good choice and nothing else uses it :-/
 VBETOOL_VT=61
@@ -43,8 +43,8 @@ VbetoolResume() {
 
 VbetoolOptions() {
     case $1 in
-        vbetoolenable)
-            BoolIsOn "$1" "$2" && VBETOOL_ENABLED=1 || VBETOOL_ENABLED=0
+        enablevbetool)
+            BoolIsOn "$1" "$2" && VBETOOL_ENABLED=1 || return 0
             ;;
         *)
             return 1
