@@ -7,9 +7,9 @@ XOSD_SETTINGS="--font '-misc-fixed-medium-r-semicondensed--*-120-*-*-c-*-*-*' --
 
 AddConfigHandler XStatusOptions
 AddConfigHelp "XStatus <gnome|kde|x>" "Enables progress display and error reporting for the given environment."
-AddConfigHelp "XosdSettings <options>" "Options to pass to osd_cat, see 'man osd_cat' (default: \"$XOSD_SETTINGS\")"
 AddConfigHelp "XSuspendText <message>" "Text to display on screen whilst preparing to suspend. (default: \"$XSTATUS_SUSPEND_TEXT\")"
 AddConfigHelp "XResumeText <message>" "Text to display on screen whilst coming back from suspend. (default: \"$XSTATUS_RESUME_TEXT\")"
+AddConfigHelp "XosdSettings <options>" "Options to pass to osd_cat, see 'man osd_cat' (default: \"$XOSD_SETTINGS\")"
 
 ### KDE bits:
 

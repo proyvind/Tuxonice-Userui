@@ -187,11 +187,14 @@ highlight link hibernate_sysfspowerstate Special
 syntax keyword hibernate_conf switchtotextmode contained nextgroup=hibernate_boolean skipwhite
 syntax keyword hibernate_conf usedummyxserver contained nextgroup=hibernate_boolean skipwhite
 
-" xosd
-syntax keyword hibernate_conf xosd contained nextgroup=hibernate_boolean skipwhite
+" xstatus
+syntax keyword hibernate_xstatus kde gnome x contained
+highlight link hibernate_xstatus Special
+
+syntax keyword hibernate_conf xstatus contained nextgroup=hibernate_xstatus skipwhite
+syntax keyword hibernate_conf xsuspendtext contained nextgroup=hibernate_text skipwhite
+syntax keyword hibernate_conf xresumetext contained nextgroup=hibernate_text skipwhite
 syntax keyword hibernate_conf xosdsettings contained nextgroup=hibernate_text skipwhite
-syntax keyword hibernate_conf xosdsuspendtext contained nextgroup=hibernate_text skipwhite
-syntax keyword hibernate_conf xosdresumetext contained nextgroup=hibernate_text skipwhite
 
 " Full-line comments:
 syntax match hibernate_comment /^#.*/
