@@ -16,6 +16,7 @@
 #include <linux/user.h>
 #include <linux/kdev_t.h>
 #include <linux/types.h>
+#include <asm/ldt.h>
 
 struct map_entry_t {
 	/* XXX FIXME ... what should the real sizes be? */
@@ -50,6 +51,7 @@ struct proc_image_t {
 	struct user_i387_struct i387_data;
 	int num_maps;
 	struct map_entry_t *maps;
+    struct user_desc *tls;
 
 	char dir[1024];
 

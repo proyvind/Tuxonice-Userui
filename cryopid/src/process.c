@@ -386,6 +386,10 @@ int get_file_contents(char *filename, struct fd_entry_t *out_buf)
 	return length;
 }
 
+struct user_desc get_tls_data(int entry_num) {
+    struct user_desc *u = malloc(sizeof(struct user_desc));
+}
+
 /* FIXME: split this into several functions */
 struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 	FILE *f;
@@ -438,6 +442,13 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 		fprintf(stderr, "Error getting user data.\n");
 		return NULL;
 	}
+
+    /* Get TLS data */
+    int z;
+    proc_image->tls = malloc(sizeof(struct user_desc)*256);
+    for (z = 0; z < 256; z++) {
+        proc_image->tls[z] = get_tls_data(z);
+    }
 
 	/* Find the current directory of our victim */
 	snprintf(tmp_fn, 1024, "/proc/%d/cwd", target_pid);

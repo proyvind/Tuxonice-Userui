@@ -207,47 +207,47 @@ int resume_image_from_file(char* fn) {
 				ptrace(PTRACE_POKEUSER, pid, i, *ptr);
 			}
             /* forcefully set %gs, because ptrace won't let us in 2.6 :( */
-// 			syscall_check(
-// 					ptrace(PTRACE_SETREGS, pid, 0, &user_data.regs), 0,
-// 					"ptrace(PTRACE_SETREGS)");
-//             long eip = user_data.regs.eip&0xfffffffc;
-//             long tmp1 = 
-//                 syscall_check(
-//                         ptrace(PTRACE_PEEKTEXT, pid, eip, 0), 0,
-//                         "ptrace(PTRACE_PEEKTEXT)");
-//             long tmp2 = 
-//                 syscall_check(
-//                         ptrace(PTRACE_PEEKTEXT, pid, eip+4, 0), 0,
-//                         "ptrace(PTRACE_PEEKTEXT)");
-//             syscall_check(
-//                     ptrace(PTRACE_POKETEXT, pid, eip, (0x73 << 8)|0x000000b8), 0,
-//                     "ptrace(PTRACE_POKETEXT)");
-//             syscall_check(
-//                     ptrace(PTRACE_POKETEXT, pid, eip+4, 0x00e88e00), 0,
-//                     "ptrace(PTRACE_POKETEXT)");
-//             syscall_check(
-//                     ptrace(PTRACE_POKEUSER, pid, 4*12, eip), 0, 
-//                     "ptrace(PTRACE_POKEUSER)"); /* EIP == 12 */
-//             int status;
-//             syscall_check(
-//                     ptrace(PTRACE_SINGLESTEP, pid, 0, 0), 0,
-//                     "ptrace(PTRACE_SINGLESTEP)");
-//             syscall_check(waitpid(pid, &status, 0), 0, "wait(child)");
-//             if (WIFSTOPPED(status)) printf("Signalled: %d\n", WSTOPSIG(status));
-//             syscall_check(
-//                     ptrace(PTRACE_SINGLESTEP, pid, 0, 0), 0,
-//                     "ptrace(PTRACE_SINGLESTEP)");
-//             syscall_check(waitpid(pid, &status, 0), 0, "wait(child)");
-//             if (WIFSTOPPED(status)) printf("Signalled: %d\n", WSTOPSIG(status));
-//             syscall_check(
-//                     ptrace(PTRACE_POKETEXT, pid, eip, tmp1), 0,
-//                     "ptrace(PTRACE_POKETEXT)");
-//             syscall_check(
-//                     ptrace(PTRACE_POKETEXT, pid, eip+4, tmp2), 0,
-//                     "ptrace(PTRACE_POKETEXT)");
-//             syscall_check(
-//                     ptrace(PTRACE_POKEUSER, pid, 4*12, user_data.regs.eip), 0, 
-//                     "ptrace(PTRACE_POKEUSER)"); /* EIP == 12 */
+ 			syscall_check(
+ 					ptrace(PTRACE_SETREGS, pid, 0, &user_data.regs), 0,
+ 					"ptrace(PTRACE_SETREGS)");
+             long eip = user_data.regs.eip&0xfffffffc;
+             long tmp1 = 
+                 syscall_check(
+                         ptrace(PTRACE_PEEKTEXT, pid, eip, 0), 0,
+                         "ptrace(PTRACE_PEEKTEXT)");
+             long tmp2 = 
+                 syscall_check(
+                         ptrace(PTRACE_PEEKTEXT, pid, eip+4, 0), 0,
+                         "ptrace(PTRACE_PEEKTEXT)");
+             syscall_check(
+                     ptrace(PTRACE_POKETEXT, pid, eip, (0x73 << 8)|0x000000b8), 0,
+                     "ptrace(PTRACE_POKETEXT)");
+             syscall_check(
+                     ptrace(PTRACE_POKETEXT, pid, eip+4, 0x00e88e00), 0,
+                     "ptrace(PTRACE_POKETEXT)");
+             syscall_check(
+                     ptrace(PTRACE_POKEUSER, pid, 4*12, eip), 0, 
+                     "ptrace(PTRACE_POKEUSER)"); /* EIP == 12 */
+             int status;
+             syscall_check(
+                     ptrace(PTRACE_SINGLESTEP, pid, 0, 0), 0,
+                     "ptrace(PTRACE_SINGLESTEP)");
+             syscall_check(waitpid(pid, &status, 0), 0, "wait(child)");
+             if (WIFSTOPPED(status)) printf("Signalled: %d\n", WSTOPSIG(status));
+             syscall_check(
+                     ptrace(PTRACE_SINGLESTEP, pid, 0, 0), 0,
+                     "ptrace(PTRACE_SINGLESTEP)");
+             syscall_check(waitpid(pid, &status, 0), 0, "wait(child)");
+             if (WIFSTOPPED(status)) printf("Signalled: %d\n", WSTOPSIG(status));
+             syscall_check(
+                     ptrace(PTRACE_POKETEXT, pid, eip, tmp1), 0,
+                     "ptrace(PTRACE_POKETEXT)");
+             syscall_check(
+                     ptrace(PTRACE_POKETEXT, pid, eip+4, tmp2), 0,
+                     "ptrace(PTRACE_POKETEXT)");
+             syscall_check(
+                     ptrace(PTRACE_POKEUSER, pid, 4*12, user_data.regs.eip), 0, 
+                     "ptrace(PTRACE_POKEUSER)"); /* EIP == 12 */
 			/* let it loose! */
 			syscall_check(
 					ptrace(PTRACE_DETACH, pid, 0, 0), 0,

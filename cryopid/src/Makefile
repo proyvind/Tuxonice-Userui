@@ -20,4 +20,7 @@ defrost: process.o defrost.o
 
 freeze: process.o freeze.o
 
-makeelf: makeelf.o process.o
+stub: stub.o
+	gcc -static -nostdlib -fomit-frame-pointer -fpic -Tstub.ld -o $@ $^ $(LIBC)
+
+makeelf: makeelf.o process.o restore.o
