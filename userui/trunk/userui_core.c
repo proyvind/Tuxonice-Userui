@@ -112,24 +112,44 @@ static void get_info() {
 	/* We'll get the reply in our message loop */
 }
 
+static long my_vm_size() {
+	FILE *f;
+	char s[128];
+	long ret;
+	
+	ret = -1;
+
+	snprintf(s, 128, "/proc/%d/statm", getpid());
+	if (!(f = fopen(s, "r")))
+		goto out;
+
+	if (fscanf(f, "%d", &ret) == 1)
+		ret *= PAGE_SIZE;
+
+out:
+	if (f)
+		fclose(f);
+	return ret;
+}
+
 static void reserve_memory(unsigned long bytes) {
 	struct rlimit r;
-	unsigned long start, end;
+	long vm_size;
+
 	/* round up to the next page */
 	bytes = (bytes + PAGE_SIZE - 1) & ~PAGE_SIZE;
 
-	/* reserve this much memory now */
-	start = (unsigned long)sbrk(bytes);
-	end = (unsigned long)sbrk(0);
+	/* find out our existing VM usage */
+	if ((vm_size = my_vm_size()) == -1)
+		return;
 
-	/* and now set a hard limit on the data segment so future brk's fail */
-	r.rlim_max = r.rlim_cur = end - start;
-	setrlimit(RLIMIT_DATA, &r);
-
-	/* Do it for RLIMIT_AS as well to cover future mmap() allocations too.
-	 * Note that RLIMIT_AS is set to much smaller than the actual address
-	 * space. This is all that's needed to ensure we don't allocate any more.
+	/* Give an upper limit on our maximum address space so that we don't starve
+	 * Software Suspend of memory.
+	 * FIXME - this never actually gets reported to software suspend! Perhaps
+	 * suspend_userui should look at our RLIMIT_AS ?
 	 */
+	r.rlim_cur = r.rlim_max = vm_size + bytes;
+
 	setrlimit(RLIMIT_AS, &r);
 }
 
