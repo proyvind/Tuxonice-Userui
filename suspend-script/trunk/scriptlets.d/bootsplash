@@ -20,15 +20,15 @@ SplashProgress()
 
 SplashStart() {
     if [ x"$USE_BOOTSPLASH" = "x1" ] ; then
-	# check if /proc/splash and /sbin/splash exists 
+	# check if /proc/splash and splash exists 
 	if [ ! -f /proc/splash ]; then
 	    USE_BOOTSPLASH=0
 	    vecho 1 "/proc/splash not found. Bootsplash disabled."
 	    return 0
 	fi
-	if [ ! -f /sbin/splash ]; then
+	if which splash > /dev/null 2>&1 ; then
 	    USE_BOOTSPLASH=0
-	    vecho 1 "/sbin/splash not found. Bootsplash disabled."
+	    vecho 1 "'splash' utility not found. Bootsplash disabled."
 	    return 0
 	fi
 
@@ -43,7 +43,7 @@ SplashStart() {
 	SPLASH_PROGRESS=10
 	    
 	# go
-	/sbin/splash -s -u 0 "$SPLASH_CONFIG_FILE"
+	splash -s -u 0 "$SPLASH_CONFIG_FILE"
 	echo "silent" > /proc/splash 
 	echo "show 0" > /proc/splash
 
@@ -62,7 +62,7 @@ SplashSuspend() {
 
 SplashStop() {
     if [ x"$USE_BOOTSPLASH" = "x1" ] ; then
-	/sbin/splash -s -u 0 -n "$SPLASH_CONFIG_FILE"
+	splash -s -u 0 -n "$SPLASH_CONFIG_FILE"
     fi
 }
 
@@ -70,7 +70,7 @@ SplashOptions() {
     case $1 in
 	bootsplash)
 	    BoolIsOn "$1" "$2" && USE_BOOTSPLASH=1 || return 0
-	    # don't return still to do
+	    # don't return. still stuff to do
 	    ;;
 	bootsplashconfig)
 	    SPLASH_CONFIG_FILE="$2"
