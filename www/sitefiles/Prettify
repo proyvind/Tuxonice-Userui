@@ -10,6 +10,12 @@ sub printline {
 		$line =~ s|###BASE###/|###BASE###|g;
 	}
 
+	# Special handling for INCLUDE'ing files.
+	if ($line =~ m|^###INCLUDE:([^#]+)###$|) {
+		dumpfile($1);
+		return;
+	}
+
 	foreach $key (keys %SUBSTS) {
 		$val = $SUBSTS{$key};
 		$line =~ s/###$key###/$val/g;
@@ -27,11 +33,6 @@ sub dumpfile {
 	close DUMPEE;
 }
 
-sub get_latest_dev_patches {
-	# Assume olddownloads-berl.html is up to date.
-	return '';
-}
-
 # other magic words:
 # if we're reading from a file, use the date on the file.
 # if we're reading from stdin, use the current date.
@@ -42,7 +43,6 @@ $SUBSTS{"WIKI_URL"} = "http://wiki.suspend2.net/";
 $SUBSTS{"BASE"} = "";
 $SUBSTS{"DATE"} = `date -R$DATEFILE`;
 chop $SUBSTS{"DATE"};
-$SUBSTS{"LATEST_DEV_PATCHES"} = get_latest_dev_patches;
 
 if ($#ARGV >= 0) {
 	my $name = $ARGV[0];

@@ -1,5 +1,12 @@
 <downloads>
 
+ <!-- NOTE: there is a limitation in the download page in that it can't compare
+	    versions if there are non-numerical characters in the name (eg,
+	    2.1.5.7C). However, it's safe enough if there's only one of these in
+	    any particular section. If there's more than one non-alphanumeric
+	    version, the python script will throw an exception.
+	    -->
+
  <section name="Development Patches">
 
   <release name="2.1.7.2">

@@ -6,11 +6,15 @@ import sys, string, time, os
 download_dir = '/var/web/www/htdocs/downloads/all/'
 download_url_prefix = '/downloads/all/'
 download_info_file = 'downloads.xml'
+download_index_snippet = 'index-download-snippet.html'
 
 # For our external HTML snippets
-first_stable26 = 0
-first_stable24 = 0
-first_dev = 0
+latest = {}
+for i in ['2.6','2.4','dev']:
+	latest[i] = []
+	latest[i].append('')
+	latest[i].append('<li><i>There are currently no patches in this section.</i>')
+latest['dev'][1] = '<li><i>There have not yet been any development patches since the last stable release.</i>'
 
 def getFileInfo(filename):
 	try:
@@ -19,11 +23,75 @@ def getFileInfo(filename):
 		sys.stderr.write("ERROR: Failed to find %s in %s\n"%(filename, \
 			download_dir))
 		sys.exit(1)
-
+	
 	size = sb[6]
 	epochtime = sb[8] # modification time
 	date = time.strftime('%e %B %Y', time.localtime(epochtime))
 	return (date, size)
+
+def isLowerVersion(a, b):
+	while True:
+		try:
+			a1 = a[0:a.index('.')]
+			a = a[a.index('.')+1:]
+		except ValueError:
+			a1 = a
+			a = ''
+		
+		try:
+			b1 = b[0:b.index('.')]
+			b = b[b.index('.')+1:]
+		except ValueError:
+			b1 = b
+			b = ''
+		
+		if a1 == '' and b1 != '': return True
+		if a1 == '' and b1 == '': return False
+		if b1 == '': return False
+		if int(a1) > int(b1): return False
+		if int(a1) < int(b1): return True
+
+# def testVersion(a, b, c):
+# 	d = isLowerVersion(a, b)
+# 	res = ''
+# 	if c == d:
+# 		res = 'PASS'
+# 	else:
+# 		res = 'FAIL'
+# 	print "%s: %s < %s : %s"%(res, a, b, str(d))
+# 
+# testVersion("1", "2", True)
+# testVersion("2", "1", False)
+# testVersion("1.1", "1.2", True)
+# testVersion("1.1", "1.0", False)
+# testVersion("1.1", "2.0", True)
+# testVersion("1.1", "2", True)
+# testVersion("1", "2.0", True)
+# testVersion("1.1.2", "1.1.2", False)
+# testVersion("1.1.2", "1.1.3", True)
+# testVersion("1.1.2", "1.1.1", False)
+# testVersion("1.1.2", "1.2.1", True)
+# testVersion("1.1.2", "1.0.1", False)
+# testVersion("1.1.2", "0.0.1.1", False)
+# testVersion("2.1.5.7C", "2.1.5.6", False)
+# sys.exit(3)
+
+def indexUpdateSnippet(release_ver, kernel_ver, url):
+	parts = string.count(release_ver, '.')+1
+	part = None
+	if parts >= 4: # we have a dev version
+		part = 'dev'
+	if kernel_ver[0:3] in ['2.4', '2.6']:
+		part = kernel_ver[0:3]
+	if part == None:
+		return
+
+	if latest[part][0] == '' or isLowerVersion(release_ver, latest[part][0]):
+		latest[part][0] = release_ver
+		latest[part][1] = ''
+
+	if latest[part][0] == release_ver:
+		latest[part][1] += '<li><a href="%s">Software Suspend %s for kernel %s</a>\n'%(url, release_ver, kernel_ver)
 
 def parseKernel(kernel, release_name):
 	version = kernel.prop('name')
@@ -42,6 +110,8 @@ def parseKernel(kernel, release_name):
 	link = '<a href="%s%s">%s</a>'%(download_url_prefix, filename, filename)
 
 	(date, size) = getFileInfo(filename)
+
+	indexUpdateSnippet(release_name, version, download_url_prefix+filename)
 
 	return '''
 <tr class="download_kernel"><td class="download_kernel" colspan="3">%s</td></tr>
@@ -126,4 +196,28 @@ consult the <a href="all/">Older Downloads</a> section.</p>
 '''
 
 print parseDownloads(sys.stdin)
+index_snippet = file(download_index_snippet, 'w')
+index_snippet.write('''
+<p><b>Latest stable version for 2.6 kernels:</b> %s</p>
+<ul>
+%s
+</ul>
+<p><b>Latest stable version for 2.4 kernels</b><sup><a href="#final24release">Note</a></sup>: %s</p>
+<ul>
+%s
+</ul>
+<hr>
+<p><b>Latest development version:</b> %s</p>
+<ul>
+%s
+</ul>
+<p><b>Note:</b> See the <a href="http://bugzilla.suspend2.net/">Bugzilla</a>
+page for known bugs with these patches.
+</ul>
+
+<p>These patches are released against the current kernel version, and regularly
+updated. They may contain bugs, and you are encouraged to report them into
+<a href="http://bugzilla.suspend2.net/">Bugzilla</a>.
+''' % (latest['2.6'][0], latest['2.6'][1], latest['2.4'][0], latest['2.4'][1], latest['dev'][0], latest['dev'][1]))
+index_snippet.close()
 
