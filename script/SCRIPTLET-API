@@ -23,7 +23,7 @@ FUNCTIONS
 
 AddSuspendHook NN function_name
   This will add the given function to the chain of functions called at suspend.
-  NN must be a number between 10 and 99, inclusive (see ORDERING section
+  NN must be a number between 00 and 99, inclusive (see ORDERING section
   below).
 
   A scriptlet should only add a function to the suspend chain until it knows
@@ -91,16 +91,19 @@ HOOK FUNCTIONS
 --------------
 
 Hook functions are called at the relevant point in the suspend/resume chain
-with no arguments. Suspend hooks must return 0 if they are successful, 1 if
-they are unsuccessful but can be overridden with --force, or 2 if they are
-unsuccessful and the suspend *must* be stopped.
+with no arguments. Suspend hooks can choose from the following return values:
+ - 0 if they are successful.
+ - 1 if they are unsuccessful but can be overridden with --force.
+ - 2 if they are unsuccessful and the suspend *must* be stopped (a message
+   is written indicating the suspend was aborted.
+ - 3 if the scriptlet requires the suspend script to silently abort.
 
 ORDERING
 --------
 
 Each scriptlet can register functions to be called at some stage in the suspend
 process. The stage is identified by a two-digit number, between 11 and 98,
-inclusive. 10 and 99 are reserved for use by a scriptlet that implements
+inclusive. 00 and 99 are reserved for use by a scriptlet that implements
 the suspending itself (eg, swsusp2) which require absolute certainty that they
 are the first and last things executing.
 
@@ -109,7 +112,9 @@ On resume, the scripts are called in descending order.
 
 The following general recommendations apply:
 
- 10 reserved
+ 00 for standalone features instead of suspending (probably useful to return 3)
+ 10 swsusp detection
+ 11 definitely going to suspend by this point
  20 user programs stopped
  30 services started/stopped
  70 filesystems mounted/unmounted

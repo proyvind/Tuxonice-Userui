@@ -12,7 +12,7 @@ SWSUSP_D="/etc/suspend"
 SCRIPTLET_DIR="$SWSUSP_D/scriptlets.d/"
 CONFIG_FILE="$SWSUSP_D/suspend.conf"
 EXE=`basename $0`
-VERSION="0.9"
+VERSION="0.91"
 
 vecho() {
     [ $VERBOSITY -ge "$1" ] || return 0
@@ -25,7 +25,7 @@ vecho() {
 ##############################################################################
 
 # AddSuspendHook NN name: Adds a function to the suspend chain. NN must be a
-# number between 11 and 98, inclusive. Smaller numbers get called earlier on
+# number between 00 and 99, inclusive. Smaller numbers get called earlier on
 # suspend.
 AddSuspendHook() {
     SUSPEND_BITS="$1$2\\n$SUSPEND_BITS"
@@ -33,7 +33,7 @@ AddSuspendHook() {
 SUSPEND_BITS=""
 
 # AddResumeHook NN name: Adds a function to the resume chain. NN must be a number
-# between 11 and 98, inclusive. Smaller numbers get called later on resume.
+# between 00 and 99, inclusive. Smaller numbers get called later on resume.
 AddResumeHook() {
     RESUME_BITS="$1$2\\n$RESUME_BITS"
 }
@@ -463,7 +463,7 @@ ReadConfigFile
 # Trap Ctrl+C
 trap ctrlc_handler INT
 
-echo "Suspended at "`date` | $LOGPIPE > /dev/null
+echo "Starting suspend at "`date` | $LOGPIPE > /dev/null
 
 # Do everything we need to do to suspend. If anything fails, we don't suspend.
 # Suspend itself should be the last one in the sequence.
@@ -476,8 +476,11 @@ for bit in `SortSuspendBits` ; do
     ret="$?"
     # A return value >= 2 denotes we can't go any further, even with --force.
     if [ $ret -ge 2 ] ; then
-	vecho 1 "$EXE: $bit refuses to let us continue."
-	vecho 0 "$EXE: Aborting."
+	# If the return value is 3 or higher, be silent.
+	if [ $ret -eq 2 ] ; then
+	    vecho 1 "$EXE: $bit refuses to let us continue."
+	    vecho 0 "$EXE: Aborting."
+	fi
 	break
     fi
     # A return value of 1 means we can't go any further unless --force is used
