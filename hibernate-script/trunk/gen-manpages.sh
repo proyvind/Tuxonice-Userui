@@ -73,6 +73,19 @@ EOT
 
 ProgramManFooter() {
     cat <<EOT
+.SH EXIT CODES
+The exit codes returned by the hibernate script are currently as follows:
+.IP 0
+Hibernation was completed successfully.
+.IP 2
+Hibernation was aborted due to errors from some part of the script. (eg,
+modules not unloading, devices or filesystems in use).
+.IP 3
+Hibernate script was aborted by user with Ctrl+C. (This does not mean the
+suspend was aborted by a user by pressing Escape).
+.IP 4
+Hibernation was aborted by a kernel problem (hibernate.log and dmesg should
+indicate why), or the user aborted the suspend with the Escape key.
 .SH FILES
 .TP 10
 .B /etc/hibernate/hibernate.conf
