@@ -5,10 +5,10 @@ SWSUSP_INTERFACE_VERSION_MIN=15
 SWSUSP_INTERFACE_VERSION_MAX=15
 
 # Detect the new /proc root.
-if [ -d "/proc/software_suspend/" ] ; then
-    SWSUSP_ROOT="/proc/software_suspend"
-else
+if [ -d "/proc/swsusp/" ] ; then
     SWSUSP_ROOT="/proc/swsusp"
+else
+    SWSUSP_ROOT="/proc/software_suspend"
 fi
 
 SWSUSP_DEFAULT_ALL_SETTINGS_FILE="$SWSUSP_D/swsusp2-all-settings.conf"
@@ -543,6 +543,7 @@ Swsusp2LoadModules() {
     i=0
     while ! [ -f $SWSUSP_ROOT/resume2 ] && [ $i -lt 3 ] ; do
 	sleep 1
+	i=$(($i+1))
     done
     return $ret
 }
