@@ -1,7 +1,12 @@
-#!/bin/sh
+AddConfigHandler GrubConfigOptions
+AddConfigHelp "ChangeGrubMenu <boolean>" "Change grub's config file to show system is suspended before suspending and restore after resume."
+AddConfigHelp "GrubMenuFile <filename>" "Filename of grub's config file. Default is /boot/grub/grub.conf."
 
-# This is also a standalone scriptlet which restores the grub config file.
-# So option handler is at the end of file.
+AddOptionHandler GrubCmdlineOptions
+AddShortOption 'g'
+AddLongOption 'restore-grub'
+AddOptionHelp '-g, --restore-grub' 'Restores the grub menu to normal (use if a suspend was not completed sucessfully) and exits the script. Does not hibernate.'
+
 GRUB_MENU_FILE="/boot/grub/grub.conf"
 
 ChangeGrubMenu() {
@@ -24,7 +29,7 @@ ChangeGrubMenu() {
 RestoreGrubMenu() {
     if [ x"$CHANGE_GRUB_MENU" = "x1" ] ; then
 	vecho 2 "Restoring grub menu."
-	if [ -f $GRUB_MENU_FILE.suspend.sh_bak ] ;then
+	if [ -f $GRUB_MENU_FILE.suspend.sh_bak ] ; then
 	    mv -f "$GRUB_MENU_FILE.suspend.sh_bak" "$GRUB_MENU_FILE"
 	fi
     fi
@@ -53,13 +58,7 @@ GrubConfigOptions() {
 GrubCmdlineOptions() {
     case $1 in
 	-g|--restore-grub)
-	    if [ -x "$SCRIPTLET_DIR/grub" ] ; then
-		$SCRIPTLET_DIR/grub
-		exit 0
-	    fi
-
-	    echo "Grub script not found :("
-	    exit 1
+	    AddSuspendHook 00 ARestoreGrub
 	    ;;
 	*)
 	    return 1
@@ -67,38 +66,15 @@ GrubCmdlineOptions() {
     return 0
 }
 
-
-## Main for standalone ##
-if [ "`basename $0`" = "grub" ] ; then
-    vecho() { # Define a vecho
-	shift
-	echo $*
-    }
-
-    ## look at /etc/suspend/suspend.conf for GrubMenuFile
-    while read option param ; do
-	[ "`echo $option | tr '[A-Z]' '[a-z]'`" = "grubmenufile" ] || continue
-	GRUB_MENU_FILE=$param
-	break
-    done < /etc/suspend/suspend.conf
-
+ARestoreGrub() {
     # we want to restore always
     CHANGE_GRUB_MENU=1
-
-    # restore grub and exit
     RestoreGrubMenu
-    exit 0
-else
-    ## called as part of suspend.sh 
-    AddConfigHandler GrubConfigOptions
-    AddConfigHelp "ChangeGrubMenu <boolean>" "Change grub's config file to show system is suspended before suspending and restore after resume."
-    AddConfigHelp "GrubMenuFile <filename>" "Filename of grub's config file. Default is /boot/grub/grub.conf."
 
-    AddOptionHandler GrubCmdlineOptions
-    AddShortOption 'g'
-    AddLongOption 'restore-grub'
-    AddOptionHelp '-g, --restore-grub' 'Restores the grub menu to normal (use if a suspend was not completed sucessfully) and exits the script. Does not hibernate.'
-fi
+    # 3 to indicate hibernate to be silent on exiting
+    return 3
+}
+
 
 # $Id$
 # vim:ft=sh:ts=8:sw=4:noet
