@@ -11,7 +11,7 @@ GRUB_MENU_FILE="/boot/grub/grub.conf"
 
 ChangeGrubMenu() {
     if [ x"$CHANGE_GRUB_MENU" = "x1" ] ; then
-	vecho 2 "Changing grub menu ..."
+	vecho 2 "Changing grub menu..."
 	if [ -f $GRUB_MENU_FILE ] ;then
 	    # given file exists so change menu
 	    cp -R "$GRUB_MENU_FILE" "$GRUB_MENU_FILE.suspend.sh_bak"
@@ -28,7 +28,7 @@ ChangeGrubMenu() {
 
 RestoreGrubMenu() {
     if [ x"$CHANGE_GRUB_MENU" = "x1" ] ; then
-	vecho 2 "Restoring grub menu."
+	vecho 2 "Restoring grub menu..."
 	if [ -f $GRUB_MENU_FILE.suspend.sh_bak ] ; then
 	    mv -f "$GRUB_MENU_FILE.suspend.sh_bak" "$GRUB_MENU_FILE"
 	fi
@@ -70,6 +70,7 @@ ARestoreGrub() {
     # we want to restore always
     CHANGE_GRUB_MENU=1
     RestoreGrubMenu
+    vecho 0 "Grub menu restored."
 
     # 3 to indicate hibernate to be silent on exiting
     return 3
