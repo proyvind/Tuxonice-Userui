@@ -52,6 +52,7 @@ DoSysfsPowerStateSuspend() {
     if [ -z "$SYSFS_POWER_STATE_NO_SUSPEND" ] ; then
 	vecho 1 "$EXE: Activating sysfs power state $USING_SYSFS_POWER_STATE ..."
 	[ -n "$SYSFS_POWER_STATE_POWERDOWN_METHOD" ] && \
+	    [ -f "$SYSFS_POWERDOWN_METHOD_FILE" ] && \
 	    echo $SYSFS_POWER_STATE_POWERDOWN_METHOD > $SYSFS_POWERDOWN_METHOD_FILE
 	echo -n $USING_SYSFS_POWER_STATE > $SYSFS_POWER_STATE_FILE
     else
