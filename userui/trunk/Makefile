@@ -5,21 +5,19 @@ CORE_OBJECTS = userui_core.o
 LDFLAGS = 
 
 all: linux $(TARGETS)
+	strip $(TARGETS)
 
 linux:
 	@cat README && false
 
 userui_dummy: $(CORE_OBJECTS) userui_dummy.o
 	gcc $(LDFLAGS) $^ -o $@
-	strip $@
 
 userui_text: $(CORE_OBJECTS) userui_text.o
 	gcc $(LDFLAGS) $^ -o $@
-	strip $@
 
 userui_fbsplash: $(CORE_OBJECTS) splash/userui_fbsplash.o
 	gcc -ljpeg -lpng -lz -lm $(LDFLAGS) $^ -o $@
-	strip $@
 
 splash/userui_fbsplash.o:
 	make -C splash
