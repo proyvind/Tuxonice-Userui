@@ -53,10 +53,9 @@ int send_message(int type, void* buf, int len) {
 	iovec[0].iov_base = &nl; iovec[0].iov_len = sizeof(nl);
 	iovec[1].iov_base = buf; iovec[1].iov_len = len;
 
-	if (writev(nlsock, iovec, (buf && len > 0)?2:1) == -1) {
-		perror("writev");
+	if (writev(nlsock, iovec, (buf && len > 0)?2:1) == -1)
 		return 0;
-	}
+
 	return 1;
 }
 
@@ -115,8 +114,10 @@ static void get_info() {
 	    software_suspend_version[strlen(software_suspend_version)-1] = '\0';
 	}
 
-	send_message(USERUI_MSG_GET_LOGLEVEL, NULL, 0);
-	send_message(USERUI_MSG_GET_STATE, NULL, 0);
+	if (!send_message(USERUI_MSG_GET_LOGLEVEL, NULL, 0) ||
+		!send_message(USERUI_MSG_GET_STATE, NULL, 0)) {
+		bail_err("send_message");
+	}
 	/* We'll get the reply in our message loop */
 }
 
@@ -267,11 +268,11 @@ static void get_nofreeze() {
 	struct userui_msg_params *msg;
 
 	if (!send_message(USERUI_MSG_NOFREEZE_ME, NULL, 0))
-		bail("send_message");
+		bail_err("send_message");
 
 	while (1) {
 		if (!(nlh = fetch_message()))
-			bail("fetch_message() EOF");
+			bail_err("fetch_message() EOF");
 
 		msg = NLMSG_DATA(nlh);
 
@@ -361,7 +362,6 @@ static void do_test_run() {
 int main(int argc, char **argv) {
 	handle_params(argc, argv);
 	if (!test_run) {
-		setup_signal_handlers();
 		open_console();
 		open_netlink();
 		get_nofreeze();
@@ -384,6 +384,8 @@ int main(int argc, char **argv) {
 		do_test_run();
 		return 0;
 	}
+
+	setup_signal_handlers();
 
 	if (send_ready())
 		message_loop();
