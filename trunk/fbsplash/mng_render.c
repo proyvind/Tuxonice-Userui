@@ -43,10 +43,13 @@ static int mng_readfile(mng_handle mngh, char *filename)
 	file_data = mng->data;
 	while (len < mng->len) {
 		int ret;
-		ret = read(fd, file_data, 0x10000); /* read 64KB at a time */
+		int amt = 0x10000;
+		if (mng->len - len < amt)
+			amt = mng->len - len;
+		ret = read(fd, file_data, amt); /* read up to 64KB at a time */
 		switch (ret) {
 			case -1:
-				perror("mng_readfile: read");
+					perror("mng_readfile: read");
 				goto close_fail;
 			case 0:
 				fprintf(stderr, "mng_readfile: Shorter file than expected!\n");
@@ -77,7 +80,7 @@ mng_handle mng_load(char* filename)
 		return MNG_NULL;
 	}
 
-	memset(&mng, 0, sizeof(mng_anim));
+	memset(mng, 0, sizeof(mng_anim));
 
 	mngh = mng_initialize(mng, fbsplash_mng_memalloc, fbsplash_mng_memfree,
 			MNG_NULL);
@@ -123,7 +126,7 @@ mng_retcode mng_render_next(mng_handle mngh)
 
 	if (!mng->displayed_first) {
 		ret = mng_display(mngh);
-		if (ret == MNG_NOERROR)
+		if (ret == MNG_NOERROR || ret == MNG_NEEDTIMERWAIT)
 			mng->displayed_first = 1;
 	} else
 		ret = mng_display_resume(mngh);
@@ -136,7 +139,7 @@ mng_retcode mng_render_next(mng_handle mngh)
 	return ret;
 }
 
-int mng_display_next(mng_handle mngh, char* dest, int x, int y, int width, int height)
+int mng_display_next(mng_handle mngh, char* dest, int x, int y)
 {
 	truecolor *src;
 	int line;
@@ -144,25 +147,32 @@ int mng_display_next(mng_handle mngh, char* dest, int x, int y, int width, int h
 	int bpp = (fb_var.bits_per_pixel + 7) >> 3;
 	int dispwidth, dispheight;
 
-	dest += y * width * bpp;
+	dest += y * fb_var.xres * bpp;
 	src = (truecolor*)mng->canvas;
 
-	if (x + mng->canvas_w > width)
-		dispwidth = width - x;
+	if (x + mng->canvas_w > fb_var.xres)
+		dispwidth = fb_var.xres - x;
 	else
 		dispwidth = mng->canvas_w;
 
-	if (y + mng->canvas_h > height)
-		dispheight = height - y;
+	if (y + mng->canvas_h > fb_var.yres)
+		dispheight = fb_var.yres - y;
 	else
 		dispheight = mng->canvas_h;
 
 	for (line = 0; line < dispheight; line++) {
 		truecolor2fb(src, dest + (x * bpp), dispwidth, y + line, 1);
-		dest += width * bpp;
-		src  += mng->canvas_w * mng->canvas_bytes_pp;
+		dest += fb_var.xres * bpp;
+		src  += mng->canvas_w;
 	}
 
 	return 1;
 }
 
+mng_retcode mng_display_restart(mng_handle mngh)
+{
+	mng_anim *mng = mng_get_userdata(mngh);
+
+	mng->displayed_first = 0;
+	return mng_display_reset(mngh);
+}

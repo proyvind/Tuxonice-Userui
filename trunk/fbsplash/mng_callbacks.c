@@ -123,6 +123,8 @@ static mng_bool fbsplash_mng_processheader(mng_handle handle, mng_uint32 width,
 
 	free(mng->canvas);
 
+	mng->canvas_bytes_pp = 4;
+
 	if ((mng->canvas = malloc(width*height*mng->canvas_bytes_pp)) == NULL) {
 		fprintf(stderr, "%s: Unable to allocate memory for MNG canvas\n",
 				__FUNCTION__);
@@ -132,7 +134,6 @@ static mng_bool fbsplash_mng_processheader(mng_handle handle, mng_uint32 width,
 	mng->canvas_h = height;
 
 	mng_set_canvasstyle(handle, MNG_CANVAS_RGBA8);
-	mng->canvas_bytes_pp = 4;
 
 	mng_set_bgcolor(handle, 0, 0, 0); /* FIXME - make configurable? */
 
