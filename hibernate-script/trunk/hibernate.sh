@@ -555,16 +555,19 @@ DoWork() {
 	    if [ $ret -eq 2 ] ; then
 		vecho 1 "$EXE: $bit refuses to let us continue."
 		vecho 0 "$EXE: Aborting."
+		EXIT_CODE=2
 	    fi
 	    break
 	fi
 	# A return value of 1 means we can't go any further unless --force is used
 	if [ $ret -gt 0 ] && [ x"$FORCE_ALL" != "x1" ] ; then
 	    vecho 0 "$EXE: Aborting suspend due to errors in $bit (use --force to override)."
+	    EXIT_CODE=2
 	    break
 	fi
 	if [ -n "$SUSPEND_ABORT" ] ; then
 	    vecho 0 "$EXE: Aborted suspend with Ctrl+C."
+	    EXIT_CODE=3
 	    break
 	fi
     done
@@ -623,6 +626,8 @@ fi
 
 echo "Starting suspend at "`date` | $LOGPIPE > /dev/null
 
+EXIT_CODE=0
+
 if [ "$LOGPIPE" = "cat" ] ; then
     DoWork
 else
@@ -631,6 +636,6 @@ fi
 
 echo "Resumed at "`date` | $LOGPIPE > /dev/null
 
-exit 0
+exit $EXIT_CODE
 
 # $Id$

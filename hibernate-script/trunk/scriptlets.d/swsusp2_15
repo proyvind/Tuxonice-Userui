@@ -248,6 +248,7 @@ DoSwsusp2() {
 	vecho 1 "$EXE: Activating suspend ..."
 	error=`DoSuspend` && SUSPEND_SUCCESS=1 || SUSPEND_SUCCESS=0
 	PrintErrors $error
+	[ -n "$error" ] && [ $error -ne 0 ] && EXIT_CODE=4
     else
 	vecho 1 "$EXE: Not actually suspending (--no-suspend given)"
     fi
