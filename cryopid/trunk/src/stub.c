@@ -666,6 +666,7 @@ void usage(char* argv0) {
     exit(1);
 }
 
+void real_main(int argc, char** argv) __attribute__((noreturn));
 void real_main(int argc, char** argv) {
     int fd = 42;
     /* See if we're being executed for the second time. If so, read arguments
