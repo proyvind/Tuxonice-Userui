@@ -53,6 +53,8 @@ echo "Installed."
 echo
 echo "Edit $CONFIG_FILE to taste, and see `basename $SCRIPT_DEST` -h for help."
 
-) || echo "Aborted due to errors."
+)
+
+[ $? -ne 0 ] && echo "Install aborted due to errors."
 
 # $Id$
