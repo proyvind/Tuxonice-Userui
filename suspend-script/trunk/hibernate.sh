@@ -24,7 +24,7 @@ vecho() {
     if [ "$v" -le $VERBOSITY ] ; then
 	echo $@
     else
-	if [ "$v" -le $LOG_VERBOSITY ] ; then
+	if [ "$v" -le $LOG_VERBOSITY -a "$LOGPIPE" != "cat" ] ; then
 	    echo "$@" | $LOGPIPE > /dev/null
 	fi
     fi
