@@ -327,6 +327,7 @@ static void do_test_run() {
 	int i;
 
 	userui_ops->message(0, 0, 1, "Suspending to disk ...");
+	userui_ops->log_level_change(console_loglevel);
 	for (i = 0; i <= 1024; i+=8) {
 		char buf[128];
 		snprintf(buf, 128, "%d/%d MB", i, 1024);
