@@ -8,16 +8,26 @@ setopt SH_WORD_SPLIT 2>/dev/null || true
 #   allows sourced files to know they're sourced in zsh.
 unsetopt FUNCTION_ARGZERO 2>/dev/null || true
 
-SWSUSP_D="/etc/suspend"
+SWSUSP_D="/etc/hibernate"
 SCRIPTLET_DIR="$SWSUSP_D/scriptlets.d/"
 CONFIG_FILE="$SWSUSP_D/hibernate.conf"
 EXE=`basename $0`
 VERSION="0.92"
 
+# vecho N <echo params>: acts like echo but with verbosity control - If it's
+# high enough to go to stdout, then it'll get logged as well.  Else write it to
+# the log file if it needs to. Otherwise, ignore it.
 vecho() {
-    [ $VERBOSITY -ge "$1" ] || return 0
+    local v
+    v="$1"
     shift
-    echo "$@" | $LOGPIPE
+    if [ "$v" -le $VERBOSITY ] ; then
+	echo $@
+    else
+	if [ "$v" -le $LOG_VERBOSITY ] ; then
+	    echo "$@" | $LOGPIPE > /dev/null
+	fi
+    fi
 }
 
 ##############################################################################
@@ -305,8 +315,8 @@ ParseOptions() {
     DoGetOpt $opts
 }
 
-# CheckIfHelpOnly: detects if the -h option was given on the command-line. If
-# so returns 0, or 1 otherwise.
+# CheckIfHelpOnly <options> : detects if the -h option was given on the
+# in <options>. If so returns 0, or 1 otherwise.
 CheckIfHelpOnly() {
     local opt
     for opt in `getopt -q -o h -l help -- "$@"` ; do
@@ -336,7 +346,6 @@ LoadScriptlets() {
 
 	CURRENT_SOURCED_SCRIPTLET="$scriptlet"
 	. ./$scriptlet
-	vecho 2 "Loaded scriptlet $scriptlet."
     done
     cd $prev_pwd
     CURRENT_SOURCED_SCRIPTLET=""
@@ -379,6 +388,10 @@ ProcessConfigOption() {
 	logfile)
 	    [ -z "$LOGFILE" ] && 
 		LOGFILE="$params"
+	    ;;
+	logverbosity)
+	    [ -z "$LOG_VERBOSITY" ] &&
+		LOG_VERBOSITY="$params"
 	    ;;
 	swsuspvt)
 	    [ -z "$SWSUSPVT" ] &&
@@ -431,7 +444,6 @@ AddInbuiltHelp() {
     AddOptionHelp "-v<n>, --verbosity=<n>" "Change verbosity level (0 = errors only, 3 = verbose, 4 = debug)"
     AddOptionHelp "-F<file>, --config-file=<file>" "Use the given configuration file instead of the default ($CONFIG_FILE)"
 
-    AddConfigHelp "LogFile <filename>" "If specified, output from the suspend script will also be redirected to this file - useful for debugging purposes."
     AddConfigHelp "SwsuspVT N" "If specified, output from the suspend script is rediredirected to the given VT instead of stdout."
     AddConfigHelp "Verbosity N" "Determines how verbose the output from the suspend script should be:
    0: silent except for errors
@@ -439,6 +451,8 @@ AddInbuiltHelp() {
    2: print steps in detail
    3: print steps in lots of detail
    4: print out every command executed (uses -x)"
+    AddConfigHelp "LogFile <filename>" "If specified, output from the suspend script will also be redirected to this file - useful for debugging purposes."
+    AddConfigHelp "LogVerbosity N" "Same as Verbosity, but controls what is written to the logfile."
     AddConfigHelp "AlwaysForce <boolean>" "If set to yes, the script will always run as if --force had been passed."
     AddConfigHelp "AlwaysKill <boolean>" "If set to yes, the script will always run as if --kill had been passed."
     AddConfigHelp "Distribution <debian|fedora|mandrake|redhat|gentoo|suse|slackware>" "If specified, tweaks some scriptlets to be more integrated with the given distribution."
@@ -458,8 +472,10 @@ ctrlc_handler() {
 
 ############################### MAIN #########################################
 
-VERBOSITY=0 # for starters
-LOGPIPE="cat" # also for starters
+# Some starting values:
+VERBOSITY=0
+LOG_VERBOSITY=1
+LOGPIPE="cat"
 
 EnsureHavePrerequisites
 EnsureHaveRoot
@@ -495,6 +511,8 @@ fi
 trap ctrlc_handler INT
 
 echo "Starting suspend at "`date` | $LOGPIPE > /dev/null
+
+( # We log everything from here on to $LOGPIPE as well
 
 # Do everything we need to do to suspend. If anything fails, we don't suspend.
 # Suspend itself should be the last one in the sequence.
@@ -533,6 +551,8 @@ for bit in `SortResumeBits` ; do
     vecho 1 "$EXE: Executing $bit ... "
     $bit
 done
+
+) | $LOGPIPE
 
 echo "Resumed at "`date` | $LOGPIPE > /dev/null
 
