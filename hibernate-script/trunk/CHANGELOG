@@ -6,7 +6,8 @@
  - Added AlternateGrubMenuFile option.
  - Added devices scriptlet for defining suspend-incompatible devices (eg,
    /dev/dsp) using IncompatibleDevices option. (Carsten Rietzschel)
- - Added ACPI S3 (suspend-to-RAM) scriptlet. (Cameron Patrick)
+ - Added /sys/power/state scriptlet sysfs_power_state as an alternative to
+   swsusp2. (Cameron Patrick)
  - Added -n option to be equivalent to --no-suspend.
  - Added --dry-run option to just list what would get done.
  - Don't hardcode /sbin/splash.
