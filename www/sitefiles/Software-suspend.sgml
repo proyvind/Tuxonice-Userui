@@ -1,0 +1,524 @@
+<!doctype linuxdoc system><!--*-sgml-*- -->
+
+<article>
+<title>Software Suspend HOWTO
+<author>Florent Chabaud, Nigel Cunningham, Bernard Blackham
+<date>v1.01, 25 April 2004
+<abstract>
+This HOWTO documents how to suspend linux kernels to disk using the software
+suspend (swsusp) kernel patch and various scripts. The source SGML file for
+this HOWTO is available <url url="Software-suspend.sgml" name="here">. Please
+make sure all corrections are based upon this.
+</abstract>
+
+<toc>
+<!-- Change log
+v0.95 Changed all occurences of /usr/local/sbin/suspend to /usr/local/sbin/hibernate
+v0.94 Note to read the FAQ as well.
+v0.93 Added a note about enabling experimental kernel options (tuxo at gmx net)
+v0.92 The rc4 additions/changes to the /proc interface
+v0.91 Documenting the /proc interface and the hotkeys - Bernard
+v0.9 Lots of changes from Nigel
+v0.2  Adaptation to the beta17 version
+v0.01 First version based on the FAQ page
+-->
+<sect> Introduction  
+
+<sect1> What is software suspend?
+
+<p>Software suspend is the ability to take a snapshot of the state of a
+computer's memory and save it to disk, and restore that image later.
+This allows you to fully power down a computer at an arbitrary point in
+time and not need to reload programs and reopen documents on power-up.
+In modern laptops, suspension is not done by the BIOS. They use ACPI and
+ask the operating system to do most of the job. If you can't satisfy
+yourself with standby mode (suspension to RAM) because you leave your
+computer in suspension mode for too long (or because you're not using a
+2.5 or later kernel and therefore lack suspend-to-RAM support), then you
+have to suspend on disk.
+
+<sect1> Copyright (skip this if you're in a hurry)
+<p>This document is an update by Nigel Cunningham of the original howto
+which was Copyright (c) 2002 by Florent Chabaud. You may freely copy and
+distribute (sell or give away) this document in any format. Send any
+corrections and comments to the document maintainer. You may create a
+derivative work and distribute it provided that you:
+
+<enum>
+	<item> If it's not a translation: Email a copy of your derivative work
+	 to the author(s) and maintainer (could be the same person).
+	<item>License the derivative work in the spirit of this license or use
+	  GPL.  Include a copyright notice and at least a pointer to the 
+	  license used.
+	<item>Give due credit to previous authors and major contributors.
+</enum>
+
+<sect1> Why was this document written?
+<p>
+Software suspend has a long story, but for a long time it was considered
+as alpha. This is mainly due to the fact that suspension has to deal
+with a lot of aspects in kernel. It is therefore difficult to follow the
+kernel development (for instance transition from 2.2 to 2.4 was not
+straightforward). The 2.4 patch is now considered stable. If you have a
+single-processor machine with Pentium like CPU and ide disks, it is very
+likely that swsusp will perform correctly. However, installing,
+configuring and using software suspension is not straightforward, since
+it involves recompiling the kernel and setting some boot parameters.
+Software Suspend's website is hosted by Sourceforge. You can visit the mailing
+list, download scripts and updated patches at
+<url url="http://developer.berlios.de/project/showfiles.php?group_id=1412">.
+
+<p>You may want to peruse the <url url="http://softwaresuspend.berlios.de/FAQ.html" name="FAQ"> also.
+
+
+<sect> Overview
+<sect1> Kernel support
+<sect2> Kernel 2.2.X
+<p> Software suspend was first developped by Gabor Kuti and he used to maintain a page
+<url url="http://falcon.sch.bme.hu/~seasons/linux/swsusp.html"> for his patch.
+A patch is available against 2.2.20 kernel named v7c. Since this patch is no
+longer maintained, this document will not provide much information on this
+version.
+
+<sect2> Kernel 2.4.X
+<p> Kernel 2.4.X is the most recent stable release of linux kernel.
+Unfortunately, software suspension isn't part of this kernel and should
+therefore be added using one of the patches provided on the Berlios pages
+mentioned above.  The swsusp patch is named with a few conventions that
+includes: 
+
+<itemize>
+<item>A version that is increased from one release of swsusp to the other.
+<item>The kernel version on which the swsusp patch applies. This is currently a
+vanilla kernel 2.4.21, 2.4.22, or 2.4.23.
+<item>Additional 'option' patches provide support for other patches you might
+have.
+</itemize>
+
+<sect2> Kernel 2.6.X
+<p>An implementation of Software Suspend is directly included since 2.5.18 in
+the main development kernel tree. Nigel Cunningham has ported the excellent 2.4
+implementation of software suspend to 2.6, and with this patch (available from
+the download page), most of this HOWTO remains the same.
+
+<sect1> Requirements
+<p> Software suspension on a 2.4 kernel base needs a uni-processor machine
+with a CPU featuring pse or pse36 feature (type cat /proc/cpuinfo and
+check the flags line for pse or pse36). SMP support is nearly there although
+needs a little more testing. Your hardware disks should be IDE (swsusp with
+SCSI will hopefully be supported in 2.6 kernel).
+
+<sect1> Compiling the kernel
+<p> Compiling a kernel is not that hard (see the Kernel-HOWTO) but
+be sure to save your running kernel as something like /boot/vmlinuz.old
+and add an entry in your lilo.conf file to be able to boot on this one.
+
+<p> You need to choose the kernel source tree you want to use as basis. The
+latest list of supported kernels is on the <url url="http://swsusp.sf.net/" name="home page">. You will need two patches - a kernel-version-specific patch, and the
+core patch. For example, if you have kernel 2.4.23, you'd download the 
+version-specific patch for 2.4.23, and the latest core patch.
+
+<p> 
+Before applying any patch, you should compile the original kernel and set all
+configuration options so that your computer works correctly. Save the
+configuration in /usr/src/myconfig or something like that. The installation
+instructions for a kernel, including lilo setup, can be found on
+<url url="http://www.kernel.org">.
+
+<sect1> Patching the kernel
+<p> Once you have succeeded in compiling your kernel and installing it apply
+the software suspend patches against your source tree. Make sure you apply the
+version-specific patch <bf>first</bf>!
+
+<verb>
+cd /usr/src/linux (the root directory of your tree)
+patch -p1 &lt; location-of-swsusp-version-specific-patch
+patch -p1 &lt; location-of-swsusp-core-patch
+</verb>
+
+<p>Do likewise for any options patches you want (having already applied the
+main patch).
+
+<p>If the kernel versions match, then no rejects or offsets should occur.
+If that's not the case, you may have to manually edit some rejected
+hunks.
+
+<p>Load your previously saved configuration settings and make menuconfig
+(or equivalent) again. Make sure that you have selected
+<tt>Prompt for development and/or incomplete code/drivers</tt> under the
+<tt>Code Maturity</tt> menu. Then enter the <tt>General Setup</tt> section, and
+enable <tt>Power Management</tt>. Enter <tt>Software Suspend support</tt> and
+select the <tt>Swap Writer</tt> image writer.  (Plus the suspend options if you
+want them). You should find the following somewhere in the generated .config
+file.
+
+<verb>
+CONFIG_SOFTWARE_SUSPEND2=y
+CONFIG_SOFTWARE_SUSPEND_SWAPWRITER=y
+</verb>
+
+<p>You can now recompile your kernel with software suspend...
+
+<sect1> Installing the new kernel
+<p> You must have a swap partition on your disk. This swap partition should
+be at least 30% larger than your RAM (this is a rough estimation: it
+depends on the number of applications you suspend and their memory
+consumption). If you have 128M RAM, you might want to use 160M swap. It
+has to be formatted by mkswap and used as a swap area through /etc/fstab
+configuration file. You don't need a partition specifically set aside
+for suspending.
+
+<p> You must set the resume kernel option to the swap partition you want to
+use for suspension. If your partition is, for instance, the third
+primary one on first ide disk (/dev/hda3) you have to append
+"resume2=swap:/dev/hda3" as a kernel parameter in your lilo.conf file.
+(As of version 2.0-rc3, resume2= is used to avoid a name clash with another
+implementation in the 2.6 kernel, and the swap parameter introduced to allow
+for multiple "swapwriters" in the future. Versions 2.0-rc2 and prior used simply
+"resume=/dev/hdaX").
+
+<bf>IMPORTANT</bf>: make this entry the default entry in lilo.conf file.
+
+<p>Otherwise, it is likely that you will reboot a non suspendable kernel on
+a resume image which may lead to unpredictable results, including
+severely damaging your filesystem. It may be useful to have another boot
+option with kernel parameters "resume2=swap:/dev/hda3 noresume2" instead. This
+will allow you to skip resuming and boot normally. Once again, it is
+also advisable to keep an original version of the kernel in your boot
+options.
+
+<p>When you're happy with your file don't forget to run lilo and reboot the
+suspendable kernel. It should boot and run the same way as your original
+kernel. The only difference you should see immediately is that the boot
+messages (dmesg | less) should contain a note that Software Suspend has
+started, and ps should show a ksuspendd thread.
+
+<sect> Testing software suspend
+<sect1> Installing the suspend script
+<p> The best way to use swsusp is to use the hibernate script. This script
+should be available on same site as the Software Suspend patch. Download it to
+<tt>/tmp</tt> and type (replace 0.96 with the version you have downloaded):
+<verb>
+# cd /tmp
+# tar xzvf hibernate-script-0.96.tar.gz
+# cd hibernate-script-0.96
+# ./install.sh
+# 
+</verb>
+This will install the script, a default configuration file, and some man pages.
+You may wish to edit <tt>/etc/hibernate/hibernate.conf</tt> to taste, depending
+on how much of your hardware suspends correctly, and how many little features
+you'd like.
+
+<p>If you are using a RPM-based system, RPMs are available from the same
+website.
+
+<p>If you are using a Debian system, you may point your apt sources at
+<tt>deb http://cp.yi.org/apt/hibernate ./</tt> and <tt>apt-get install hibernate</tt>.
+
+<p>Check that the directory of <tt>hibernate</tt> is in your PATH variable
+before going further.
+
+<p> If you want users to be able to suspend, use <tt>visudo</tt> and add the
+following lines to your /etc/sudoers file, changing the
+<tt>/usr/local/sbin/hibernate</tt> to the path it was installed
+(<tt>/usr/sbin/hibernate</tt> in the Debian & RPM packages)
+
+<verb>
+Host_Alias LOCALHOST=localhost,&lt;your hostname&gt;
+ALL LOCALHOST=NOPASSWD: /usr/local/sbin/hibernate *
+</verb>
+
+See <em>man sudoers(5)</em> for more information. Users will then be able to do
+<tt>sudo /usr/local/sbin/hibernate</tt>.
+
+<sect1> Suspending in text mode
+<p> For testing swsusp, you should begin by testing text only suspension.
+Switch to a console by <tt>Ctrl-Alt F1</tt>, login as root. Under Red Hat 
+or Mandrake, stop the X server by typing <tt>init 3</tt>. Debian users will
+need to stop the xdm, gdm or kdm service by running <tt>/etc/init.d/xdm stop</tt>
+(substituting xdm with your display manager). Users of other distributions will do
+something similar.
+
+<p> Now try <tt>hibernate</tt>. The suspension should take place ending with
+machine halting. Power on the computer and it should recover your session. If
+not see the troubleshooting section.
+
+<sect1> Suspending with X running
+<p> You can now recover your graphical session (by typing <tt>init 5</tt> for
+Red Hat/Mandrake users, <tt>/etc/init.d/xdm start</tt> or similar for Debian
+users). Log in under X. Try <tt>sudo /usr/local/sbin/hibernate</tt> and see if
+suspension works correctly.
+
+<sect> Tweaking and Troubleshooting
+
+<sect1> Suspend script configuration
+<p> The hibernate.conf file has several options that may help you to get swsusp
+to work correctly on your specific hardware. Most of them are fairly
+self-explanatory. Some often used ones are mentioned below. Running
+<tt>hibernate -h</tt> will give you the full list of options and help.
+
+<sect2> LeaveXBeforeSuspend
+<p> On some hardware, the graphic chipset isn't properly restored by BIOS upon
+resume and the state memorized by the resumed kernel becomes inconsistent with
+that of the hardware. In this case, it may help to switch to a text console
+before suspending and switch back to X only after resume.
+
+<sect2> nVidiaHack
+<p>This option may also help if you experience strange things such as 3D not
+working upon resume. It launches a fake xserver that should cause proper
+initialization of the chipset.
+
+<sect2> Services (RestartServices/StopServices/StartServices)
+<p> It is wise to stop before suspension all services that could be resumed in
+a different environment. This includes usb, pcmcia and also network services.
+If your suspension is aborted because a task cannot be stopped by swsusp, and
+this task corresponds to a service, you can tell the hibernate script to stop
+and start these services.
+
+<sect2> Modules (UnloadModules/UnloadAllModules/LoadModules)
+<p> In the same spirit it is wise to unload before suspension all modules that
+are unused. You can also force the insertion of specific modules upon resume
+but usually the kernel knows upon resume the modules it needs to reload.
+
+<sect2> Unmounting Filesystems (Unmount)
+<p> Suspending while network filesystems or removable devices are mounted may
+lead to unpredictible results. You can specify the mount points that must be
+unused before suspension. If these can not be unmounted successfully, the
+suspend script will abort unless the <tt>--force</tt> and/or <tt>--kill</tt>
+option is used.  The <tt>--force</tt> option will simply ignore those mount
+points. The <tt>--kill</tt> option will try to kill the processes that use
+these mountpoints.
+
+<sect2> Network interfaces (DownInterfaces/UpInterfaces)
+<p> In the same spirit you can specify the network interfaces that must be shut
+down before suspension. Upon resume, you can ask the suspend script to set some
+interfaces up. You can also use the keyword <bf>auto</bf> to let the network
+interfaces be restarted in reverse order (the default).
+
+<sect2>Check for incompatible programs (IncompatiblePrograms)
+
+<p> Some programs may be incompatible with swsusp because, for instance,
+they directly access some hardware that ignores power management events.
+You may ask suspend script to abort suspending if specified processes
+are running.
+
+<sect2> Save clock on suspend (SaveClock)
+<p> It is a feature that the resumed kernel recovers its entire memory
+image, including the system date which therefore appears incorrect. The
+suspend script calls hwclock on resume to reset the date according to
+the CMOS clock. You can ask the script to also save the system date to
+CMOS just before suspending. Most of the time this is useless and will
+lead your clock becoming increasingly wrong.
+
+<sect1>Enabling debugging and tuning the system (the /proc interface)
+
+<p>Software Suspend includes a /proc/swsusp/ interface which allows
+you to tune & configure software suspend according to your needs. The
+settings you apply here can also be read & written through a bit vector
+in /proc/swsusp/all_settings (/proc/sys/kernel/swsusp interface is identical
+but being deprecated). This latter interface is handy for storing your
+settings. Eg, you could add the line <tt>Swsusp2AllSettings N N N ...</tt> to
+your /etc/hibernate/hibernate.conf (where <tt>N N N ...</tt> is taken directly
+from /proc/swsusp/all_settings). Alternately, you might do:
+
+<verb>
+cat /proc/sys/kernel/swsusp > /etc/swsusp.conf
+</verb>
+And then add to the bottom of your /etc/rc.d/rc.sysinit (or equivalent):
+<verb>
+cat /etc/swsusp.conf > /proc/sys/kernel/swsusp
+</verb>
+
+<sect2>/proc entry descriptions
+<p>The entries within /proc/swsusp/ are:
+
+<descrip>
+<tag><tt>activate</tt></tag> Echo anything into this to start a suspend.
+<tag><tt>all_settings</tt></tag> This replaces the old <tt>/proc/sys/kernels/swsusp</tt> - all the settings can be saved or restored at once by reading or writing the contents of this entry.
+<tag><tt>async_io_limit</tt></tag> Maximum number of asynchronous I/O transactions
+at once.
+<tag><tt>debug_info</tt></tag> (Test versions only) Debug information that should be included with any debugging reports.
+<tag><tt>debug_sections</tt></tag> Which sections to show when viewing debug info.
+Only available if debugging is compiled in (see include/linux/suspend-debug.h
+in the kernel source for what each bit controls).
+<tag><tt>default_console_level</tt></tag> What to use as an initial console log
+level. (see <ref id="debugging-info" name="Obtaining debugging information"> below)
+<tag><tt>disable_lzf_compression</tt></tag> Disables LZF compression if it was
+compiled into the kernel (LZF compression is on by default when compiled in).
+<tag><tt>disable_gzip_compression</tt></tag> Disables GZIP compression if it was
+compiled into the kernel (GZIP compression is on by default when compiled in).
+<tag><tt>enable_escape</tt></tag> Enables the possibility of aborting a suspend
+by pressing the Escape key during suspend. (Note: some people consider this a
+security breach if, for example, you activate a suspend, walk away and a
+malicious person aborts the suspend).
+<tag><tt>expected_lzf_compression</tt></tag> A guesstimate of the compression
+achieved by the LZF compressor, in order to suspend when there is less swap
+available than memory to be written.
+<tag><tt>expected_gzip_compression</tt></tag> A guesstimate of the compression
+achieved by the GZIP compressor, in order to suspend when there is less swap
+available than memory to be written.
+<tag><tt>headerlocations</tt></tag> Having made a swapfile and turned it on,
+this file will tell you what to place on your kernel command line (eg something
+along the lines of <tt>resume2=swap:/dev/hda3:0x560@1024</tt>)
+<tag><tt>image_size_limit</tt></tag> The maximum amount of memory swsusp will
+save in the image (in megabytes).
+<tag><tt>interface_version</tt></tag> A read only integer indicating the version
+of the proc interface. Incremented with any change in the /proc interface.
+<tag><tt>last_result</tt></tag> Bit flags indicating the result of the last cycle.
+<itemize>
+<item>0x1: on if the last suspend was unsuccessful. The following bits will only be on if this bit is true.
+<item>0x2: suspend aborted at user's request.
+<item>0x4: suspend aborted because there was no swap space enabled.
+<item>0x8: suspend aborted because there was insufficient swap available.
+<item>0x10: suspend aborted because all processes could not be frozen (dmesg will show which processes couldn't be frozen).
+</itemize>
+
+<tag><tt>log_everything</tt></tag> Set to log output that's not normally logged.
+<tag><tt>no_output</tt></tag> Set to disable all output from swsusp during the cycle.
+<tag><tt>nopageset2</tt></tag> (&lt;=2.0 only) Set to save all data in one
+pageset. Implies a maximum image size of half the amount of low memory.
+<tag><tt>pause_between_steps</tt></tag> Pause between the steps of the process
+(useful for debugging).
+<tag><tt>reboot</tt></tag> Set to reboot instead of powering off at the end of
+saving the image.
+<tag><tt>resume2</tt></tag> Allows you to set what would be on the kernel
+command line as resume2= (saves a reboot if you forget). This tells the kernel
+where to write the suspend image. You will still need to add it to your
+bootloader (LILO or GRUB) in order to resume from the image!
+<tag><tt>slow</tt></tag> Slows down the suspend process (for debugging).
+<tag><tt>swapfilename</tt></tag> Set the name of the swapfile to use into this
+file if you are using swapfiles (rather than a dedicated swap partition).
+<tag><tt>version</tt></tag> Read only. The version of the software suspend
+patch you are using.
+</descrip>
+
+<sect2>Obtaining debugging information<label id="debugging-info">
+
+<p>To get debugging information, you first need to have compiled Software
+Suspend with the 'Compile in debugging output' option enabled. You will
+probably also want to compile in SysRq support (in the 'Kernel Hacking'
+section). Having done this, during a suspend cycle, you can press
+the 0-9 keys to change the console loglevel. As you do so, swsusp varies
+the amount of output it produces. Level 0 is the normal 'nice' display.
+Level 1 enables a little more detail. Levels 3+ turn off the nice
+display and give more detailed information.
+
+<p>You can toggle whether swsusp pauses between each step of the process by
+pressing the Pause or Break (useful if you have KDB enabled) keys. There are
+also proc entries to set initial values for these settings. You may not want to
+view all the information swsusp prints. In this case, you can set the
+debug_sections parameter to control what portions of output are printed (see
+include/linux/suspend-debug.h in the kernel source for what each bit controls).
+
+<sect1>Software suspend hotkeys
+
+<p>When a suspend is in progress there are a number of keys that can be used to
+toggle various settings.
+
+<itemize>
+<item> <bf>Esc</bf> - if the <tt>enable_escape</tt> entry is set to 1, pressing 
+Escape will abort a suspend and restore the machine back to the previous state.
+Perfect for those "Oh, but I just forgot to ..." situations.
+
+<item> <bf>R</bf> - toggles rebooting (same as the <tt>reboot</tt> /proc
+entry). This requires that debugging be enabled (compiled in).
+
+<item> <bf>Pause/Break</bf> (&lt;= 2.0 only) - toggles pausing between each
+step of suspension (same as the <tt>pause_between_steps</tt> /proc entry). This
+requires that debugging be enabled (compiled in).
+
+<item> <bf>P</bf> (Test versions only) - toggles pausing between major steps when log level > 1.
+
+<item> <bf>S</bf> (Test versions only) - toggles pausing between minor steps
+
+<item> <bf>Space</bf> - continue when paused.
+
+<item> <bf>L</bf> - toggles logging all messages to syslog (same as the
+<tt>log_everything</tt> /proc entry). This requires that debugging be enabled (compiled in).
+
+<item> <bf>0</bf>-<bf>7</bf> - sets the console log level during suspend and
+resume. This requires that debugging be enabled (compiled in).
+</itemize>
+
+<sect1>Using Variation Analysis
+<p>Variation Analysis is only available in the latest development versions 
+of the patches (as of April 10, 2004) starting at around 2.0.0.56.
+
+<sect2>Purpose
+<p>Variation Analysis lets you examine the differences between the contents
+of memory at two points in time. It shows byte by byte comparisons for
+locations that are different and (when KDB is also compiled in) can
+decode addresses into symbols. This information can be used to check
+suspend is working correctly and should be helpful in diagnosing
+inconsistencies. It is not recommended for normal use.
+
+<sect2>Method of operation
+<p>When the compile time option is selected and a suspend cycle is started
+with the Variation Analysis bit of debug_sections (value 65536) turned
+on, Variation Analysis is enabled. In this case, memory for analysing
+differences is allocated irrespective of whether the analysis is used or
+not.
+
+<p>Once the image is prepared, the user may press C at any time to indicate
+the benchmark point, against which comparisons should be done. At this
+point, simple checksums (hence C) are calculated for all pages in the
+image and saved in previously allocated pages. Checksums are unsigned
+longs, calculated as the sum of (index-within-page * (*position)).
+
+<p>When the user presses D at a later stage, checksums are again calculated
+for each page and compared with the original values. Where a variation
+is found, an atomic copy of the current contents of the page is made,
+again into preallocated memory and the metadata stored. Once restoration
+of the image is nearly complete, but before the image is invalidated,
+the original copies of the pages are reloaded and variations displayed.
+Note that inherent in this is the assumption that 'C' is pressed prior
+to making the atomic copy of pageset1 when saving the image.
+
+<p>The functionality could be used to compare memory differences between
+when the image is prepared and when restoration is completed, or between
+the points immediately before the atomic copy of pageset1 is saved and
+after it is restored. In the former case, greater differences would be
+expected. In the later, difference should be minimal and inconsequential
+(there will always be some difference, because suspend changes some of
+its own variables, time values change, debugging information is printed
+and the console restored).
+Since all working memory has to be preallocated, it is possible that all
+differences might not be able to be stored. In this case, the user might
+want to adjust number of pages allocated. Look for the call to
+suspend_allocate_reload_data in kernel/power/suspend2.c.
+
+<p>Decoding of symbols is only enabled if KDB is compiled into the kernel
+(so that KALLSYMS is enabled and the KDB function to locate symbols is
+usable).
+
+<sect>How it works
+<p> For the more curious users, briefly listed here are the steps of the kernel part
+of the suspend process. This may also help in tracking why it doesn't suspend.
+
+<enum>
+<item> Stop all processes. If some processes can't be stopped, abort. 
+<item> Eat memory. At this stage we check if we have enough memory to save the
+image and meet your specifications for maximum image size. If necessary, we
+unfreeze the processes, eat memory until we think we have enough and then try
+again from step 1.
+<item> Suspend drivers. This accounts for the screen briefly going blank on
+some computers.
+<item> Prepare a directory of pages and save it along with the image. This
+is done in two parts. First, all of the pages we know aren't needed for
+suspend (ie, not buffer & page caches) are saved, being very careful not to have
+a lasting impact on the image we're making. Then, an atomic copy is made
+of the remaining pages (kernel & process space) using the memory just
+saved and any other free RAM. This copy is then saved. Finally, we save
+the page directory for the latter set of pages separately and also store
+the page directory's location in the swap header. We can then (if your
+computer supports it) power down.
+</enum>
+
+Resuming is essentially the reverse of this process. The pagedir is
+loaded, as is the copy (being careful not to use RAM we're about to
+overwrite). Then we copy the old kernel back and restore registers. We
+are now running with the original kernel image. Finally, we load the
+first set of pages we saved, clean up and exit.
+
+</article>

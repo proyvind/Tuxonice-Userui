@@ -1,0 +1,37 @@
+TITLE=Software Suspend FAQ;LINUXDOC
+
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
+ <TITLE>Software Suspend FAQ: Miscellaneous</TITLE>
+ <LINK HREF="FAQ-5.html" REL=previous>
+ <LINK HREF="FAQ.html#toc6" REL=contents>
+</HEAD>
+<BODY>
+Next
+<A HREF="FAQ-5.html">Previous</A>
+<A HREF="FAQ.html#toc6">Contents</A>
+<HR>
+<H2><A NAME="s6">6.</A> <A HREF="FAQ.html#toc6">Miscellaneous</A></H2>
+
+<H2><A NAME="ss6.1">6.1</A> <A HREF="FAQ.html#toc6.1">What's left to do?</A>
+</H2>
+
+<P>Plenty! SCSI is not supported if used on root/swap partitions, only IDE. A
+lot of hardware is not restored properly, including some graphic chipsets. This
+means that this hardware is in a different state upon resume than the kernel
+thinks it is. For the kernel, the hardware is reinitialized although it has
+been reset by BIOS. Sometimes, this may be solved by setting the BIOS option
+(if it exists) to non PnP OS.</P>
+
+<H2><A NAME="ss6.2">6.2</A> <A HREF="FAQ.html#toc6.2">Swsusp seems nice, but can I use it for doing snapshots?</A>
+</H2>
+
+<P>No you can't because the image you save is linked to your filesystem state,
+including root. You can only do that if the two systems are completely
+independent. It may be possible (but not guaranteed) that you could do that if
+your root partition is mounted read-only and you unmount all other read-write
+devices before suspending, but that would have absolutely no interest IMHO.</P>
+
+<HR>
+Next
+<A HREF="FAQ-5.html">Previous</A>
+<A HREF="FAQ.html#toc6">Contents</A>

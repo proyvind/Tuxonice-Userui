@@ -1,0 +1,147 @@
+TITLE=Software Suspend - Older News
+
+<h1>###TITLE###</h1>
+
+<b>3 October 2003: swsusp 1.1-rc10</b>
+<p>
+Improvements on the freezer, extra documentation, shuffling of options patches,
+and more. Lots of feedback is more than welcome!</p>
+<p>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc10-package.tar.bz2?download">Download package of incremental, whole & options patches</a><br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc10-fix-reject?download">Fixes a reject from the above patch (apply after)</a>
+</p>
+
+<b>18 September 2003: swsusp 1.1-rc9</b>
+<p>
+This patch fixes two bugs to vastly improve reliability, along with a
+reworking of the freezer. It also introduces some extra options - one to allow
+you to specify the expected compression of your swap image (so you no longer
+require as much swap as the full uncompressed image size to be available).</p>
+
+<p>
+The second new option allows you to resume multiple times from the same suspend
+image - this requires you have a read-only root partition that is identically
+distributed across multiple machines on a network.
+</p>
+
+<p>For the <a href="http://sourceforge.net/mailarchive/message.php?msg_id=6080272">full story, read Nigel's announcement</a>.<br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc9-incremental.bz2?download">Download incremental patch from 1.1-rc8</a><br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc9-whole.bz2?download">Download whole patch against 2.4.22</a><br>
+</p>
+
+<b>2 September 2003: swsusp 1.1-rc8</b>
+<p>
+Another set of bugfixes. Read <a href="http://sourceforge.net/mailarchive/message.php?msg_id=5967056">Nigel's announcement</a>.
+Apologies for the delayed update of this page!<br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc8-incremental.bz2?download">Download incremental patch from 1.1-rc7</a><br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc8-whole.bz2?download">Download whole patch against 2.4.22</a><br>
+</p>
+
+<b>30 August 2003: swsusp 1.1-rc7</b>
+<p>
+<i>"This is a serious contender for 1.1 in my eyes!"</i> -- Nigel.<br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc7-incremental.bz2?download">Download incremental patch from 1.1-rc6</a><br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc7-whole.bz2?download">Download whole patch against 2.4.22</a><br>
+</p>
+
+<b>27 August 2003: IMPORTANT - Posting policy on swsusp-devel</b>
+<p> Due to increasing spamming on the swsusp-devel list and the fact that
+instances of SOBIG worm have been found in some of the posts, I had to enable
+the limitation of posting to subscribed members only. Please, subscribe to the
+list in order to be able to post.<br>
+  
+Sorry for the inconvenience.
+</p>
+
+<b>26 August 2003: swsusp 1.1-rc6</b>
+<p>rc6 contains <i>"tons of small bug fixes and improvements"</i>,
+<a href="http://sourceforge.net/mailarchive/message.php?msg_id=5901256">writes Nigel</a>. Download the
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc6-incremental.bz2?download">incremental patch from rc5</a> or a
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc6-whole.bz2?download">complete patch against 2.4.22</a>.
+
+To apply against 2.4.21, you'll need to apply
+the <a href="http://prdownloads.sourceforge.net/swsusp/linux-2.4.21-swsusp-1.1rc6-fixes?download">fixes patch</a> after.
+</p>
+
+<b>19 August 2003: swsusp 1.1-rc5</b>
+<p>This patch fixes the potential sync corruption (below), completes support
+for <tt>8139too</tt> suspension, and moves the code from
+<tt>kernel/suspend</tt> to <tt>kernel/power</tt> to be inline with the 2.6
+kernel (hence it's large size).
+<br>
+<a href="http://sourceforge.net/mailarchive/message.php?msg_id=5836153">Announcement</a><br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc5-incremental.bz2?download">Download incremental patch from 1.1-rc4</a><br>
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc5-whole.bz2?download">Download whole patch from 2.4.21</a>
+
+</p>
+
+<b>19 August 2003: Potential corruption fix</b>
+<p>
+A possible source of corruption has been discovered in all versions of swsusp between
+beta18, through to 1.1-rc4. It is recommended that you
+<a href="http://sourceforge.net/mailarchive/message.php?msg_id=5836154">read and apply this patch</a>
+to your current swsusp source to avoid corruption. This is also fixed in swsusp 1.1-rc5.
+</p>
+<b>14 August 2003: swsusp 1.1-rc4</b>
+<p>Fixes compression (broke in rc3), improves speed, and contains an untested
+patch for suspending the 8139too driver.
+<a href="http://sourceforge.net/mailarchive/message.php?msg_id=5836235">Announcement</a>.
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc4-incremental?download">Download</a>.
+</p>
+
+<b>13 August 2003: swsusp 1.1-rc3</b>
+<p>Small speed increases and bugfixes. You can read the full announcement
+<a href="http://sourceforge.net/mailarchive/message.php?msg_id=5836246">here</a>.
+This patch has been distributed as a tarball containing both a patch against a vanilla
+2.4.21 kernel, and an incremental patch from 1.1-rc2. <a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc3-2.4.21.tar.bz2?download">Download</a>.
+</p>
+
+<b>9 August 2003: swsusp 1.1-rc2</b>
+<p>Small bugfixes. Read the
+<a href="http://sourceforge.net/mailarchive/message.php?msg_id=5769829">announcement</a> and download it
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc2-incremental.bz2?download">here</a>.
+</p>
+
+<b>5 August 2003: swsusp 1.1-rc1</b> <p>Entitled the <i>"Look Mum, no swap
+partition!"</i> release. Notable changes are:
+<ul>
+<li>support for swapfiles without a swap partition (see note below)</li>
+<li>handle the suspend/resume screen on wide consoles correctly</li>
+<li>support for booting using initrd's (needs testing)</li>
+</ul></p>
+
+<p>Please take note that this is a development release, and may contain bugs. If
+you are using swapfile support you should ensure that your data is backed up!</p>
+
+<p>For the weary, read the
+<a href="http://sourceforge.net/mailarchive/message.php?msg_id=5734383">announcement</a>
+from Nigel, then follow this
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.1-rc1-whole.bz2?download">link</a> to download it.
+</p>
+
+<b>19 July 2003: swsusp 1.0.3 released</b>
+<p>A couple of cleanups, bug fixes, and getting ready for swapfile support.
+Click here for the
+<a href="http://sourceforge.net/mailarchive/message.php?msg_id=5571164">announcement</a>, and
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.0.3-incremental.bz2?download">here</a>
+for the incremental patch against 1.0.2.</p>
+
+<b>17 July 2003: swsusp 1.0.2 released</b>
+<p><a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.0.2-incremental?download">Patch</a> against 1.0.1 - 
+<i>"End result should be that you can suspend with compression enabled and shouldn't get errors triggered by fork that were before."</i>
+<a href="http://sourceforge.net/mailarchive/message.php?msg_id=5552674">Announced by Nigel</a>.</p>
+
+<b>16 July 2003: swsusp 1.0.1 released</b>
+<p>Some minor bugfixes, as
+<a href="http://sourceforge.net/mailarchive/message.php?msg_id=5543509">announced</a>
+by Nigel. Changes include preemption fixes, and extra sanity checks. Incremental patch
+from 1.0 is available
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.0.1-incremental.bz2?download">here</a>.</p>
+
+<b>15 July 2003: Software Suspend goes 1.0!</b>
+<p>Download it
+<a href="http://prdownloads.sourceforge.net/swsusp/swsusp-1.0-2.4.21.tar.gz?download">here</a>!
+If you're new to Software Suspend, it's recommended that you peruse the
+<a href="options.html">Options</a>, <a href="Software-suspend.html">HOWTO</a>, and
+<a href="FAQ.html">FAQ</a> sections of this website.</p>
+

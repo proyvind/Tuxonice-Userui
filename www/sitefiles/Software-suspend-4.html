@@ -1,0 +1,281 @@
+TITLE=Software Suspend HOWTO;LINUXDOC
+
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
+ <TITLE>Software Suspend HOWTO: Tweaking and Troubleshooting</TITLE>
+ <LINK HREF="Software-suspend-5.html" REL=next>
+ <LINK HREF="Software-suspend-3.html" REL=previous>
+ <LINK HREF="Software-suspend.html#toc4" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="Software-suspend-5.html">Next</A>
+<A HREF="Software-suspend-3.html">Previous</A>
+<A HREF="Software-suspend.html#toc4">Contents</A>
+<HR>
+<H2><A NAME="s4">4.</A> <A HREF="Software-suspend.html#toc4">Tweaking and Troubleshooting</A></H2>
+
+<H2><A NAME="ss4.1">4.1</A> <A HREF="Software-suspend.html#toc4.1">Suspend script configuration</A>
+</H2>
+
+<P> The hibernate.conf file has several options that may help you to get swsusp
+to work correctly on your specific hardware. Most of them are fairly
+self-explanatory. Some often used ones are mentioned below. Running
+<CODE>hibernate -h</CODE> will give you the full list of options and help.</P>
+
+<H3>LeaveXBeforeSuspend</H3>
+
+<P> On some hardware, the graphic chipset isn't properly restored by BIOS upon
+resume and the state memorized by the resumed kernel becomes inconsistent with
+that of the hardware. In this case, it may help to switch to a text console
+before suspending and switch back to X only after resume.</P>
+
+<H3>nVidiaHack</H3>
+
+<P>This option may also help if you experience strange things such as 3D not
+working upon resume. It launches a fake xserver that should cause proper
+initialization of the chipset.</P>
+
+<H3>Services (RestartServices/StopServices/StartServices)</H3>
+
+<P> It is wise to stop before suspension all services that could be resumed in
+a different environment. This includes usb, pcmcia and also network services.
+If your suspension is aborted because a task cannot be stopped by swsusp, and
+this task corresponds to a service, you can tell the hibernate script to stop
+and start these services.</P>
+
+<H3>Modules (UnloadModules/UnloadAllModules/LoadModules)</H3>
+
+<P> In the same spirit it is wise to unload before suspension all modules that
+are unused. You can also force the insertion of specific modules upon resume
+but usually the kernel knows upon resume the modules it needs to reload.</P>
+
+<H3>Unmounting Filesystems (Unmount)</H3>
+
+<P> Suspending while network filesystems or removable devices are mounted may
+lead to unpredictible results. You can specify the mount points that must be
+unused before suspension. If these can not be unmounted successfully, the
+suspend script will abort unless the <CODE>--force</CODE> and/or <CODE>--kill</CODE>
+option is used.  The <CODE>--force</CODE> option will simply ignore those mount
+points. The <CODE>--kill</CODE> option will try to kill the processes that use
+these mountpoints.</P>
+
+<H3>Network interfaces (DownInterfaces/UpInterfaces)</H3>
+
+<P> In the same spirit you can specify the network interfaces that must be shut
+down before suspension. Upon resume, you can ask the suspend script to set some
+interfaces up. You can also use the keyword <B>auto</B> to let the network
+interfaces be restarted in reverse order (the default).</P>
+
+<H3>Check for incompatible programs (IncompatiblePrograms)</H3>
+
+<P> Some programs may be incompatible with swsusp because, for instance,
+they directly access some hardware that ignores power management events.
+You may ask suspend script to abort suspending if specified processes
+are running.</P>
+
+<H3>Save clock on suspend (SaveClock)</H3>
+
+<P> It is a feature that the resumed kernel recovers its entire memory
+image, including the system date which therefore appears incorrect. The
+suspend script calls hwclock on resume to reset the date according to
+the CMOS clock. You can ask the script to also save the system date to
+CMOS just before suspending. Most of the time this is useless and will
+lead your clock becoming increasingly wrong.</P>
+
+<H2><A NAME="ss4.2">4.2</A> <A HREF="Software-suspend.html#toc4.2">Enabling debugging and tuning the system (the /proc interface)</A>
+</H2>
+
+<P>Software Suspend includes a /proc/swsusp/ interface which allows
+you to tune &amp; configure software suspend according to your needs. The
+settings you apply here can also be read &amp; written through a bit vector
+in /proc/swsusp/all_settings (/proc/sys/kernel/swsusp interface is identical
+but being deprecated). This latter interface is handy for storing your
+settings. Eg, you could add the line <CODE>Swsusp2AllSettings N N N ...</CODE> to
+your /etc/hibernate/hibernate.conf (where <CODE>N N N ...</CODE> is taken directly
+from /proc/swsusp/all_settings). Alternately, you might do:</P>
+<P>
+<PRE>
+cat /proc/sys/kernel/swsusp > /etc/swsusp.conf
+</PRE>
+
+And then add to the bottom of your /etc/rc.d/rc.sysinit (or equivalent):
+<PRE>
+cat /etc/swsusp.conf > /proc/sys/kernel/swsusp
+</PRE>
+</P>
+
+<H3>/proc entry descriptions</H3>
+
+<P>The entries within /proc/swsusp/ are:</P>
+<P>
+<DL>
+<DT><B><CODE>activate</CODE></B><DD><P>Echo anything into this to start a suspend.</P>
+<DT><B><CODE>all_settings</CODE></B><DD><P>This replaces the old <CODE>/proc/sys/kernels/swsusp</CODE> - all the settings can be saved or restored at once by reading or writing the contents of this entry.</P>
+<DT><B><CODE>async_io_limit</CODE></B><DD><P>Maximum number of asynchronous I/O transactions
+at once.</P>
+<DT><B><CODE>debug_info</CODE></B><DD><P>(Test versions only) Debug information that should be included with any debugging reports.</P>
+<DT><B><CODE>debug_sections</CODE></B><DD><P>Which sections to show when viewing debug info.
+Only available if debugging is compiled in (see include/linux/suspend-debug.h
+in the kernel source for what each bit controls).</P>
+<DT><B><CODE>default_console_level</CODE></B><DD><P>What to use as an initial console log
+level. (see 
+<A HREF="#debugging-info">Obtaining debugging information</A> below)</P>
+<DT><B><CODE>disable_lzf_compression</CODE></B><DD><P>Disables LZF compression if it was
+compiled into the kernel (LZF compression is on by default when compiled in).</P>
+<DT><B><CODE>disable_gzip_compression</CODE></B><DD><P>Disables GZIP compression if it was
+compiled into the kernel (GZIP compression is on by default when compiled in).</P>
+<DT><B><CODE>enable_escape</CODE></B><DD><P>Enables the possibility of aborting a suspend
+by pressing the Escape key during suspend. (Note: some people consider this a
+security breach if, for example, you activate a suspend, walk away and a
+malicious person aborts the suspend).</P>
+<DT><B><CODE>expected_lzf_compression</CODE></B><DD><P>A guesstimate of the compression
+achieved by the LZF compressor, in order to suspend when there is less swap
+available than memory to be written.</P>
+<DT><B><CODE>expected_gzip_compression</CODE></B><DD><P>A guesstimate of the compression
+achieved by the GZIP compressor, in order to suspend when there is less swap
+available than memory to be written.</P>
+<DT><B><CODE>headerlocations</CODE></B><DD><P>Having made a swapfile and turned it on,
+this file will tell you what to place on your kernel command line (eg something
+along the lines of <CODE>resume2=swap:/dev/hda3:0x560@1024</CODE>)</P>
+<DT><B><CODE>image_size_limit</CODE></B><DD><P>The maximum amount of memory swsusp will
+save in the image (in megabytes).</P>
+<DT><B><CODE>interface_version</CODE></B><DD><P>A read only integer indicating the version
+of the proc interface. Incremented with any change in the /proc interface.</P>
+<DT><B><CODE>last_result</CODE></B><DD><P>Bit flags indicating the result of the last cycle.
+<UL>
+<LI>0x1: on if the last suspend was unsuccessful. The following bits will only be on if this bit is true.</LI>
+<LI>0x2: suspend aborted at user's request.</LI>
+<LI>0x4: suspend aborted because there was no swap space enabled.</LI>
+<LI>0x8: suspend aborted because there was insufficient swap available.</LI>
+<LI>0x10: suspend aborted because all processes could not be frozen (dmesg will show which processes couldn't be frozen).</LI>
+</UL>
+</P>
+
+<DT><B><CODE>log_everything</CODE></B><DD><P>Set to log output that's not normally logged.</P>
+<DT><B><CODE>no_output</CODE></B><DD><P>Set to disable all output from swsusp during the cycle.</P>
+<DT><B><CODE>nopageset2</CODE></B><DD><P>(&lt;=2.0 only) Set to save all data in one
+pageset. Implies a maximum image size of half the amount of low memory.</P>
+<DT><B><CODE>pause_between_steps</CODE></B><DD><P>Pause between the steps of the process
+(useful for debugging).</P>
+<DT><B><CODE>reboot</CODE></B><DD><P>Set to reboot instead of powering off at the end of
+saving the image.</P>
+<DT><B><CODE>resume2</CODE></B><DD><P>Allows you to set what would be on the kernel
+command line as resume2= (saves a reboot if you forget). This tells the kernel
+where to write the suspend image. You will still need to add it to your
+bootloader (LILO or GRUB) in order to resume from the image!</P>
+<DT><B><CODE>slow</CODE></B><DD><P>Slows down the suspend process (for debugging).</P>
+<DT><B><CODE>swapfilename</CODE></B><DD><P>Set the name of the swapfile to use into this
+file if you are using swapfiles (rather than a dedicated swap partition).</P>
+<DT><B><CODE>version</CODE></B><DD><P>Read only. The version of the software suspend
+patch you are using.</P>
+</DL>
+</P>
+
+<H3><A NAME="debugging-info"></A> Obtaining debugging information</H3>
+
+<P>To get debugging information, you first need to have compiled Software
+Suspend with the 'Compile in debugging output' option enabled. You will
+probably also want to compile in SysRq support (in the 'Kernel Hacking'
+section). Having done this, during a suspend cycle, you can press
+the 0-9 keys to change the console loglevel. As you do so, swsusp varies
+the amount of output it produces. Level 0 is the normal 'nice' display.
+Level 1 enables a little more detail. Levels 3+ turn off the nice
+display and give more detailed information.</P>
+
+<P>You can toggle whether swsusp pauses between each step of the process by
+pressing the Pause or Break (useful if you have KDB enabled) keys. There are
+also proc entries to set initial values for these settings. You may not want to
+view all the information swsusp prints. In this case, you can set the
+debug_sections parameter to control what portions of output are printed (see
+include/linux/suspend-debug.h in the kernel source for what each bit controls).</P>
+
+<H2><A NAME="ss4.3">4.3</A> <A HREF="Software-suspend.html#toc4.3">Software suspend hotkeys</A>
+</H2>
+
+<P>When a suspend is in progress there are a number of keys that can be used to
+toggle various settings.</P>
+<P>
+<UL>
+<LI> <B>Esc</B> - if the <CODE>enable_escape</CODE> entry is set to 1, pressing 
+Escape will abort a suspend and restore the machine back to the previous state.
+Perfect for those "Oh, but I just forgot to ..." situations.
+</LI>
+<LI> <B>R</B> - toggles rebooting (same as the <CODE>reboot</CODE> /proc
+entry). This requires that debugging be enabled (compiled in).
+</LI>
+<LI> <B>Pause/Break</B> (&lt;= 2.0 only) - toggles pausing between each
+step of suspension (same as the <CODE>pause_between_steps</CODE> /proc entry). This
+requires that debugging be enabled (compiled in).
+</LI>
+<LI> <B>P</B> (Test versions only) - toggles pausing between major steps when log level > 1.
+</LI>
+<LI> <B>S</B> (Test versions only) - toggles pausing between minor steps
+</LI>
+<LI> <B>Space</B> - continue when paused.
+</LI>
+<LI> <B>L</B> - toggles logging all messages to syslog (same as the
+<CODE>log_everything</CODE> /proc entry). This requires that debugging be enabled (compiled in).
+</LI>
+<LI> <B>0</B>-<B>7</B> - sets the console log level during suspend and
+resume. This requires that debugging be enabled (compiled in).</LI>
+</UL>
+</P>
+
+<H2><A NAME="ss4.4">4.4</A> <A HREF="Software-suspend.html#toc4.4">Using Variation Analysis</A>
+</H2>
+
+<P>Variation Analysis is only available in the latest development versions 
+of the patches (as of April 10, 2004) starting at around 2.0.0.56.</P>
+
+<H3>Purpose</H3>
+
+<P>Variation Analysis lets you examine the differences between the contents
+of memory at two points in time. It shows byte by byte comparisons for
+locations that are different and (when KDB is also compiled in) can
+decode addresses into symbols. This information can be used to check
+suspend is working correctly and should be helpful in diagnosing
+inconsistencies. It is not recommended for normal use.</P>
+
+<H3>Method of operation</H3>
+
+<P>When the compile time option is selected and a suspend cycle is started
+with the Variation Analysis bit of debug_sections (value 65536) turned
+on, Variation Analysis is enabled. In this case, memory for analysing
+differences is allocated irrespective of whether the analysis is used or
+not.</P>
+
+<P>Once the image is prepared, the user may press C at any time to indicate
+the benchmark point, against which comparisons should be done. At this
+point, simple checksums (hence C) are calculated for all pages in the
+image and saved in previously allocated pages. Checksums are unsigned
+longs, calculated as the sum of (index-within-page * (*position)).</P>
+
+<P>When the user presses D at a later stage, checksums are again calculated
+for each page and compared with the original values. Where a variation
+is found, an atomic copy of the current contents of the page is made,
+again into preallocated memory and the metadata stored. Once restoration
+of the image is nearly complete, but before the image is invalidated,
+the original copies of the pages are reloaded and variations displayed.
+Note that inherent in this is the assumption that 'C' is pressed prior
+to making the atomic copy of pageset1 when saving the image.</P>
+
+<P>The functionality could be used to compare memory differences between
+when the image is prepared and when restoration is completed, or between
+the points immediately before the atomic copy of pageset1 is saved and
+after it is restored. In the former case, greater differences would be
+expected. In the later, difference should be minimal and inconsequential
+(there will always be some difference, because suspend changes some of
+its own variables, time values change, debugging information is printed
+and the console restored).
+Since all working memory has to be preallocated, it is possible that all
+differences might not be able to be stored. In this case, the user might
+want to adjust number of pages allocated. Look for the call to
+suspend_allocate_reload_data in kernel/power/suspend2.c.</P>
+
+<P>Decoding of symbols is only enabled if KDB is compiled into the kernel
+(so that KALLSYMS is enabled and the KDB function to locate symbols is
+usable).</P>
+
+<HR>
+<A HREF="Software-suspend-5.html">Next</A>
+<A HREF="Software-suspend-3.html">Previous</A>
+<A HREF="Software-suspend.html#toc4">Contents</A>

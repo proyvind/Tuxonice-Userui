@@ -1,0 +1,156 @@
+TITLE=Software Suspend HOWTO;LINUXDOC
+
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
+ <TITLE>Software Suspend HOWTO: Overview</TITLE>
+ <LINK HREF="Software-suspend-3.html" REL=next>
+ <LINK HREF="Software-suspend-1.html" REL=previous>
+ <LINK HREF="Software-suspend.html#toc2" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="Software-suspend-3.html">Next</A>
+<A HREF="Software-suspend-1.html">Previous</A>
+<A HREF="Software-suspend.html#toc2">Contents</A>
+<HR>
+<H2><A NAME="s2">2.</A> <A HREF="Software-suspend.html#toc2">Overview</A></H2>
+
+<H2><A NAME="ss2.1">2.1</A> <A HREF="Software-suspend.html#toc2.1">Kernel support</A>
+</H2>
+
+<H3>Kernel 2.2.X</H3>
+
+<P> Software suspend was first developped by Gabor Kuti and he used to maintain a page
+<A HREF="http://falcon.sch.bme.hu/~seasons/linux/swsusp.html">http://falcon.sch.bme.hu/~seasons/linux/swsusp.html</A> for his patch.
+A patch is available against 2.2.20 kernel named v7c. Since this patch is no
+longer maintained, this document will not provide much information on this
+version.</P>
+
+<H3>Kernel 2.4.X</H3>
+
+<P> Kernel 2.4.X is the most recent stable release of linux kernel.
+Unfortunately, software suspension isn't part of this kernel and should
+therefore be added using one of the patches provided on the Berlios pages
+mentioned above.  The swsusp patch is named with a few conventions that
+includes: </P>
+<P>
+<UL>
+<LI>A version that is increased from one release of swsusp to the other.</LI>
+<LI>The kernel version on which the swsusp patch applies. This is currently a
+vanilla kernel 2.4.21, 2.4.22, or 2.4.23.</LI>
+<LI>Additional 'option' patches provide support for other patches you might
+have.</LI>
+</UL>
+</P>
+
+<H3>Kernel 2.6.X</H3>
+
+<P>An implementation of Software Suspend is directly included since 2.5.18 in
+the main development kernel tree. Nigel Cunningham has ported the excellent 2.4
+implementation of software suspend to 2.6, and with this patch (available from
+the download page), most of this HOWTO remains the same.</P>
+
+<H2><A NAME="ss2.2">2.2</A> <A HREF="Software-suspend.html#toc2.2">Requirements</A>
+</H2>
+
+<P> Software suspension on a 2.4 kernel base needs a uni-processor machine
+with a CPU featuring pse or pse36 feature (type cat /proc/cpuinfo and
+check the flags line for pse or pse36). SMP support is nearly there although
+needs a little more testing. Your hardware disks should be IDE (swsusp with
+SCSI will hopefully be supported in 2.6 kernel).</P>
+
+<H2><A NAME="ss2.3">2.3</A> <A HREF="Software-suspend.html#toc2.3">Compiling the kernel</A>
+</H2>
+
+<P> Compiling a kernel is not that hard (see the Kernel-HOWTO) but
+be sure to save your running kernel as something like /boot/vmlinuz.old
+and add an entry in your lilo.conf file to be able to boot on this one.</P>
+
+<P> You need to choose the kernel source tree you want to use as basis. The
+latest list of supported kernels is on the 
+<A HREF="http://swsusp.sf.net/">home page</A>. You will need two patches - a kernel-version-specific patch, and the
+core patch. For example, if you have kernel 2.4.23, you'd download the 
+version-specific patch for 2.4.23, and the latest core patch.</P>
+
+<P> 
+Before applying any patch, you should compile the original kernel and set all
+configuration options so that your computer works correctly. Save the
+configuration in /usr/src/myconfig or something like that. The installation
+instructions for a kernel, including lilo setup, can be found on
+<A HREF="http://www.kernel.org">http://www.kernel.org</A>.</P>
+
+<H2><A NAME="ss2.4">2.4</A> <A HREF="Software-suspend.html#toc2.4">Patching the kernel</A>
+</H2>
+
+<P> Once you have succeeded in compiling your kernel and installing it apply
+the software suspend patches against your source tree. Make sure you apply the
+version-specific patch <B>first</B>!</P>
+<P>
+<PRE>
+cd /usr/src/linux (the root directory of your tree)
+patch -p1 &lt; location-of-swsusp-version-specific-patch
+patch -p1 &lt; location-of-swsusp-core-patch
+</PRE>
+</P>
+
+<P>Do likewise for any options patches you want (having already applied the
+main patch).</P>
+
+<P>If the kernel versions match, then no rejects or offsets should occur.
+If that's not the case, you may have to manually edit some rejected
+hunks.</P>
+
+<P>Load your previously saved configuration settings and make menuconfig
+(or equivalent) again. Make sure that you have selected
+<CODE>Prompt for development and/or incomplete code/drivers</CODE> under the
+<CODE>Code Maturity</CODE> menu. Then enter the <CODE>General Setup</CODE> section, and
+enable <CODE>Power Management</CODE>. Enter <CODE>Software Suspend support</CODE> and
+select the <CODE>Swap Writer</CODE> image writer.  (Plus the suspend options if you
+want them). You should find the following somewhere in the generated .config
+file.</P>
+<P>
+<PRE>
+CONFIG_SOFTWARE_SUSPEND2=y
+CONFIG_SOFTWARE_SUSPEND_SWAPWRITER=y
+</PRE>
+</P>
+
+<P>You can now recompile your kernel with software suspend...</P>
+
+<H2><A NAME="ss2.5">2.5</A> <A HREF="Software-suspend.html#toc2.5">Installing the new kernel</A>
+</H2>
+
+<P> You must have a swap partition on your disk. This swap partition should
+be at least 30% larger than your RAM (this is a rough estimation: it
+depends on the number of applications you suspend and their memory
+consumption). If you have 128M RAM, you might want to use 160M swap. It
+has to be formatted by mkswap and used as a swap area through /etc/fstab
+configuration file. You don't need a partition specifically set aside
+for suspending.</P>
+
+<P> You must set the resume kernel option to the swap partition you want to
+use for suspension. If your partition is, for instance, the third
+primary one on first ide disk (/dev/hda3) you have to append
+"resume2=swap:/dev/hda3" as a kernel parameter in your lilo.conf file.
+(As of version 2.0-rc3, resume2= is used to avoid a name clash with another
+implementation in the 2.6 kernel, and the swap parameter introduced to allow
+for multiple "swapwriters" in the future. Versions 2.0-rc2 and prior used simply
+"resume=/dev/hdaX").</P>
+<P><B>IMPORTANT</B>: make this entry the default entry in lilo.conf file.</P>
+
+<P>Otherwise, it is likely that you will reboot a non suspendable kernel on
+a resume image which may lead to unpredictable results, including
+severely damaging your filesystem. It may be useful to have another boot
+option with kernel parameters "resume2=swap:/dev/hda3 noresume2" instead. This
+will allow you to skip resuming and boot normally. Once again, it is
+also advisable to keep an original version of the kernel in your boot
+options.</P>
+
+<P>When you're happy with your file don't forget to run lilo and reboot the
+suspendable kernel. It should boot and run the same way as your original
+kernel. The only difference you should see immediately is that the boot
+messages (dmesg | less) should contain a note that Software Suspend has
+started, and ps should show a ksuspendd thread.</P>
+
+<HR>
+<A HREF="Software-suspend-3.html">Next</A>
+<A HREF="Software-suspend-1.html">Previous</A>
+<A HREF="Software-suspend.html#toc2">Contents</A>

@@ -1,0 +1,169 @@
+TITLE=Software Suspend FAQ;LINUXDOC
+
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
+ <TITLE>Software Suspend FAQ: Compatibility issues</TITLE>
+ <LINK HREF="FAQ-5.html" REL=next>
+ <LINK HREF="FAQ-3.html" REL=previous>
+ <LINK HREF="FAQ.html#toc4" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="FAQ-5.html">Next</A>
+<A HREF="FAQ-3.html">Previous</A>
+<A HREF="FAQ.html#toc4">Contents</A>
+<HR>
+<H2><A NAME="s4">4.</A> <A HREF="FAQ.html#toc4">Compatibility issues</A></H2>
+
+<H2><A NAME="ss4.1">4.1</A> <A HREF="FAQ.html#toc4.1">ext3: I use ext3fs, can I use software suspend?</A>
+</H2>
+
+<P>Yes! You should even be able to have an ext3 root partition. However, you
+<B>must</B> use e2fsprogs version 1.25 or later, otherwise you are likely to
+crash your filesystem and lose all your data. </P>
+
+<H2><A NAME="ss4.2">4.2</A> <A HREF="FAQ.html#toc4.2">reiserfs: I use reiserfs, can I use software suspend?</A>
+</H2>
+
+<P>Yes! Feedback is welcome.</P>
+
+<H2><A NAME="ss4.3">4.3</A> <A HREF="FAQ.html#toc4.3">xfs: I use XFS, can I use software suspend?</A>
+</H2>
+
+<P>Yes! A special patch is no longer required, as XFS is in the mainstream 2.6
+kernels, and in 2.4 since 2.4.25. Swapfiles are not yet verified to work. Watch
+this space, or the mailing list for updates!</P>
+
+
+<H2><A NAME="ss4.4">4.4</A> <A HREF="FAQ.html#toc4.4">SCSI: I use ide-scsi or other scsi modules, can I use Software Suspend?</A>
+</H2>
+
+<P>Yes, provided you can unload the corresponding scsi modules before
+suspension. This is why you can't have an SCSI root or swap partition with
+Software Suspend until SCSI is properly supported.</P>
+
+<H2><A NAME="ss4.5">4.5</A> <A HREF="FAQ.html#toc4.5">Why isn't software suspend a kernel module ?</A>
+</H2>
+
+<P>Resuming must occur at the very beginning of kernel initialization. Modules
+are not available at such an early stage.</P>
+
+<H2><A NAME="ss4.6">4.6</A> <A HREF="FAQ.html#toc4.6">nVidia video cards</A>
+</H2>
+
+<P>(See also the next 2 FAQs). Many people have had success getting Software Suspend 2 to
+work with nVidia's 4496 driver on 2.4.x kernels (downloadable from 
+<A HREF="http://www.nvidia.com/object/linux_display_archive.html">http://www.nvidia.com/object/linux_display_archive.html</A>). Newer versions of nVidia's
+driver, or using a 2.6 kernel causes Software Suspend 2 to fail.</P>
+<P>nVidia are aware of the issue are believe their next release should play
+nicely with power management under 2.6.x and hence with Software Suspend 2. (Thanks to
+Jonathan Sambrook for this answer. May 2004)</P>
+
+<H2><A NAME="ss4.7">4.7</A> <A HREF="FAQ.html#toc4.7">nVidia GeForce4 card: black screen after resuming, amongst other symptoms</A>
+</H2>
+
+<P>The solution below has worked for some people. (Thanks again to Jonathan Sambrook for this answer)
+<OL>
+<LI>Make sure SWSUSP_LEAVE_X_BEFORE_SUSPEND is <EM>NOT</EM> set to
+<CODE>nvidia</CODE> in /etc/suspend.conf. Use either <CODE>yes</CODE> or <CODE>no</CODE>.</LI>
+<LI>Add the following <CODE>Option</CODE> line to your XF86Config:
+<PRE>
+Section "Device"
+  # Your normal card settings here
+  # .
+  # .
+  # .
+  # .
+
+  Option "NvAgp" "0"
+EndSection
+</PRE>
+</LI>
+<LI>Stop X and rmmod nvidia.</LI>
+<LI>Either:
+<UL>
+<LI>Make sure CONFIG_APM is enabled in your kernel (ACPI will safely override
+APM) and run the nvidia driver installation. Or;</LI>
+<LI>Run the nvidia driver installer with the unpack only option (see it's
+--help option) and then find and comment out the following conditional
+compilation directives in usr/src/nv/nv.c (marked below with a <CODE>***</CODE>):
+<PRE>
+*** #if defined(CONFIG_APM)
+    // for now, only APM is supported. once ACPI is fully supported by the
+    // core kernel (looks like 2.6 timeframe), we'll be able to finish up
+    // ACPI support. Unfortunately, this means only older laptops will work
+    // with power management (any laptop that supports win9x has an APM
+    // capable SBIOS/VBIOS and will work).
+    // Attempting to suspend/hibernate on an ACPI-only system is likely to
+    // hang the system, so we continue to try to avoid that case. this check
+    // of the kernel config is a weak attempt really, if the end user loaded
+    // an APM enabled kernel on an ACPI-only system, they're still probably
+    // going to hang here. we'll keep working on better ways of handling
+    // this.
+    case PM_RESUME:
+      nv_printf(NV_DBG_INFO, "NVRM: received PM resume event\n");
+      rm_power_management(NV_STATE_PTR(lnv), 0, rqst);
+      break;
+
+    case PM_SUSPEND:
+      nv_printf(NV_DBG_INFO, "NVRM: received PM suspend event\n");
+      rm_power_management(NV_STATE_PTR(lnv), 0, rqst);
+      break;
+*** #endif
+    default:
+      nv_printf(NV_DBG_INFO, "NVRM: received unknown PM event: 0x%x\n", rqst);
+      return 1;
+    }
+</PRE>
+
+The compile &amp; install this nvidia driver.</LI>
+</UL>
+</LI>
+<LI>Start X</LI>
+<LI><CODE>hibernate</CODE></LI>
+</OL>
+</P>
+
+<H2><A NAME="ss4.8">4.8</A> <A HREF="FAQ.html#toc4.8">3D: Suspension occurs correctly, but when I resume my Xserver has lost 3D acceleration.</A>
+</H2>
+
+<P>This seems to happen for some hardware configurations, for instance Nvidia
+GEforce cards. Launching a fake xserver just after resume may solve the
+problem. This can be done by adding
+<PRE>
+xinit /bin/false -- :1
+</PRE>
+
+at the end of resume script. If you use suspend script, try the <B>nvidia</B>
+keyword in SWSUSP_LEAVE_X_BEFORE_SUSPEND option. Also have a look at the previous FAQ, above.</P>
+
+<H2><A NAME="ss4.9">4.9</A> <A HREF="FAQ.html#toc4.9">pre-emption: Using a 2.5.X kernel, I get an endless loop of errors saying "bad: scheduling while atomic" when suspending.</A>
+</H2>
+
+<P>This issue has been resolved since around version 2.0 - if you are
+experiencing these, make sure you have updated to the latest version.</P>
+
+<H2><A NAME="ss4.10">4.10</A> <A HREF="FAQ.html#toc4.10">PCMCIA: It hangs upon resume when restarting pcmcia!</A>
+</H2>
+
+<P>This has been reported on some hardware when using the kernel pcmcia support
+(yenta_socket). A workaround is to use pcmcia_cs support instead. Disable all
+PCMCIA kernel stuff and compile the pcmcia_cs package instead. Use PCIC=i82365
+(less likely PCIC=tcic) option instead of yenta.</P>
+
+<H2><A NAME="ss4.11">4.11</A> <A HREF="FAQ.html#toc4.11">Radeon and DRI support</A>
+</H2>
+
+<P>Charl Botha has written a page on this at 
+<A HREF="http://cpbotha.net/dri_resume.html">http://cpbotha.net/dri_resume.html</A></P>
+
+<H2><A NAME="ss4.12">4.12</A> <A HREF="FAQ.html#toc4.12">USB issues</A>
+</H2>
+
+<P>Some machines have issues with USB and Software Suspend. The safest solution
+is to compile all your USB drivers in as modules, and unload them prior to
+suspending.</P>
+
+
+<HR>
+<A HREF="FAQ-5.html">Next</A>
+<A HREF="FAQ-3.html">Previous</A>
+<A HREF="FAQ.html#toc4">Contents</A>

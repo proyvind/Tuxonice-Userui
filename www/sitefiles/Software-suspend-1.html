@@ -1,0 +1,72 @@
+TITLE=Software Suspend HOWTO;LINUXDOC
+
+ <META NAME="GENERATOR" CONTENT="LinuxDoc-Tools 0.9.21">
+ <TITLE>Software Suspend HOWTO: Introduction </TITLE>
+ <LINK HREF="Software-suspend-2.html" REL=next>
+
+ <LINK HREF="Software-suspend.html#toc1" REL=contents>
+</HEAD>
+<BODY>
+<A HREF="Software-suspend-2.html">Next</A>
+Previous
+<A HREF="Software-suspend.html#toc1">Contents</A>
+<HR>
+<H2><A NAME="s1">1.</A> <A HREF="Software-suspend.html#toc1">Introduction </A></H2>
+
+<H2><A NAME="ss1.1">1.1</A> <A HREF="Software-suspend.html#toc1.1">What is software suspend?</A>
+</H2>
+
+<P>Software suspend is the ability to take a snapshot of the state of a
+computer's memory and save it to disk, and restore that image later.
+This allows you to fully power down a computer at an arbitrary point in
+time and not need to reload programs and reopen documents on power-up.
+In modern laptops, suspension is not done by the BIOS. They use ACPI and
+ask the operating system to do most of the job. If you can't satisfy
+yourself with standby mode (suspension to RAM) because you leave your
+computer in suspension mode for too long (or because you're not using a
+2.5 or later kernel and therefore lack suspend-to-RAM support), then you
+have to suspend on disk.</P>
+
+<H2><A NAME="ss1.2">1.2</A> <A HREF="Software-suspend.html#toc1.2">Copyright (skip this if you're in a hurry)</A>
+</H2>
+
+<P>This document is an update by Nigel Cunningham of the original howto
+which was Copyright (c) 2002 by Florent Chabaud. You may freely copy and
+distribute (sell or give away) this document in any format. Send any
+corrections and comments to the document maintainer. You may create a
+derivative work and distribute it provided that you:</P>
+<P>
+<OL>
+<LI> If it's not a translation: Email a copy of your derivative work
+to the author(s) and maintainer (could be the same person).</LI>
+<LI>License the derivative work in the spirit of this license or use
+GPL.  Include a copyright notice and at least a pointer to the 
+license used.</LI>
+<LI>Give due credit to previous authors and major contributors.</LI>
+</OL>
+</P>
+
+<H2><A NAME="ss1.3">1.3</A> <A HREF="Software-suspend.html#toc1.3">Why was this document written?</A>
+</H2>
+
+<P>Software suspend has a long story, but for a long time it was considered
+as alpha. This is mainly due to the fact that suspension has to deal
+with a lot of aspects in kernel. It is therefore difficult to follow the
+kernel development (for instance transition from 2.2 to 2.4 was not
+straightforward). The 2.4 patch is now considered stable. If you have a
+single-processor machine with Pentium like CPU and ide disks, it is very
+likely that swsusp will perform correctly. However, installing,
+configuring and using software suspension is not straightforward, since
+it involves recompiling the kernel and setting some boot parameters.
+Software Suspend's website is hosted by Sourceforge. You can visit the mailing
+list, download scripts and updated patches at
+<A HREF="http://developer.berlios.de/project/showfiles.php?group_id=1412">http://developer.berlios.de/project/showfiles.php?group_id=1412</A>.</P>
+
+<P>You may want to peruse the 
+<A HREF="http://softwaresuspend.berlios.de/FAQ.html">FAQ</A> also.</P>
+
+
+<HR>
+<A HREF="Software-suspend-2.html">Next</A>
+Previous
+<A HREF="Software-suspend.html#toc1">Contents</A>
