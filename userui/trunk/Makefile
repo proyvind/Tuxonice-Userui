@@ -1,5 +1,5 @@
 CFLAGS = -Wall -O0 -g
-MODULES = dummy text fbanim fbsplash
+MODULES = text fbanim fbsplash
 TARGETS = $(patsubst %,userui_%,$(MODULES))
 CORE_OBJECTS = userui_core.o
 LDFLAGS = 
