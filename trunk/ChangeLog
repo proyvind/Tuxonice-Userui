@@ -1,4 +1,4 @@
-0.3.1 (unreleased)
+0.3.1 (31 March 2005)
  core:
   - Try not to lag behind when flooded with progress updates.
  text:
