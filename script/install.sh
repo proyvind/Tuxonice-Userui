@@ -1,4 +1,6 @@
 #!/bin/sh
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
 
 CONFIG_DIR=/etc/suspend
 CONFIG_FILE=$CONFIG_DIR/suspend.conf
@@ -38,5 +40,4 @@ chown root:root -R $SCRIPT_DEST $CONFIG_DIR
 echo "Installed."
 echo "Edit $CONFIG_FILE to taste, and see `basename $SCRIPT_DEST` -h for help."
 
-# vim:ft=sh:ts=8:sw=4:noet
 # $Id$

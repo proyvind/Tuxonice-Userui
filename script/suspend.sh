@@ -1,7 +1,6 @@
 #!/bin/sh
-# For emacs: -*- sh -*-
-
-# Version: $Id: suspend.sh 60 2004-07-08 19:39:03Z bernard $
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
 
 # For zsh sanity...
 #   allows splitting strings on whitespace in zsh.
@@ -508,4 +507,4 @@ echo "Resumed at "`date` | $LOGPIPE > /dev/null
 
 exit 0
 
-# vim:ft=sh:ts=8:sw=4:noet
+# $Id: suspend.sh 60 2004-07-08 19:39:03Z bernard $
