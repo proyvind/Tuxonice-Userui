@@ -33,7 +33,7 @@ done
 echo "Setting permissions on installed files ..."
 chmod 700 $SCRIPT_DEST $SCRIPTLET_DIR $SCRIPTLET_DIR/grub
 chmod 600 $CONFIG_FILE
-chown root.root -R $SCRIPT_DEST $CONFIG_DIR
+chown root:root -R $SCRIPT_DEST $CONFIG_DIR
 
 echo "Installed."
 echo "Edit $CONFIG_FILE to taste, and see `basename $SCRIPT_DEST` -h for help."
