@@ -2,6 +2,7 @@
  - Use rmmod, not modprobe -r (Ivo Prikryl)
  - Added new kernel safety scriptlet (Cameron Patrick)
  - Fix /proc/software_suspend/ detection for versions >= 2.1.8
+ - Fallback to xlock for xscreensaver (Stefan Tomanek)
 
 1.05 (9 February 2005)
  - Wait after loading suspend modules until the relevant proc entries are
