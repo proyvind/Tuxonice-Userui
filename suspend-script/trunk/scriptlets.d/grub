@@ -4,6 +4,7 @@
 AddConfigHandler GrubConfigOptions
 AddConfigHelp "ChangeGrubMenu <boolean>" "Change grub's config file to show system is suspended before suspending and restore after resume."
 AddConfigHelp "GrubMenuFile <filename>" "Filename of grub's config file. Default is /boot/grub/grub.conf."
+AddConfigHelp "AlternateGrubMenuFile <filename>" "Filename of the grub config file to put in place when the machine is suspended. If this is not specified, the script will add a small header to the existing grub menu."
 
 AddOptionHandler GrubCmdlineOptions
 AddShortOption 'g'
@@ -15,15 +16,31 @@ GRUB_MENU_FILE="/boot/grub/grub.conf"
 ChangeGrubMenu() {
     if [ x"$CHANGE_GRUB_MENU" = "x1" ] ; then
 	if [ -f $GRUB_MENU_FILE ] ;then
-	    vecho 2 "Changing grub menu..."
 	    # given file exists so change menu
-	    cp -R "$GRUB_MENU_FILE" "$GRUB_MENU_FILE.suspend.sh_bak"
-	    echo  >> "$GRUB_MENU_FILE"
-	    echo "title ______________________________________________" >> "$GRUB_MENU_FILE"
-	    echo "configfile dummy" >> "$GRUB_MENU_FILE"
-	    echo "title WARNING: "`uname -s -r` "is suspended via swsusp!" >> "$GRUB_MENU_FILE"
-	    echo "configfile dummy" >> "$GRUB_MENU_FILE"
-	    # Call sync to ensure it is written to disk (do we still need double/triple syncs?)
+
+	    vecho 2 "Changing grub menu..."
+
+	    # Make a backup, and abort if we fail to.
+	    if ! cp "$GRUB_MENU_FILE" "$GRUB_MENU_FILE.suspend.sh_bak" ; then
+		vecho 0 "Could not make backup of grub menu. Not changing!"
+		return 1 # abort if not forced
+	    fi
+
+	    # If we have an alternate file, use that. Else alter the current one
+	    if [ -n "$ALT_GRUB_MENU_FILE" ] ; then
+		if ! cp -f "$ALT_GRUB_MENU_FILE" "$GRUB_MENU_FILE" ; then
+		    vecho 0 "Could not replace grub menu file with alternate."
+		    return 1 # abort if not forced
+		fi
+	    else
+		echo  >> "$GRUB_MENU_FILE"
+		echo "title ______________________________________________" >> "$GRUB_MENU_FILE"
+		echo "configfile dummy" >> "$GRUB_MENU_FILE"
+		echo "title WARNING: "`uname -s -r` "is suspended via swsusp!" >> "$GRUB_MENU_FILE"
+		echo "configfile dummy" >> "$GRUB_MENU_FILE"
+	    fi
+	    # Call sync to ensure it is written to disk (do we still need
+	    # double/triple syncs?)
 	    sync ; sync
 	else
 	    CHANGE_GRUB_MENU=0
@@ -48,6 +65,15 @@ GrubConfigOptions() {
 	    ;;
 	grubmenufile)
 	    GRUB_MENU_FILE="$2"
+	    return 0
+	    ;;
+	alternategrubmenufile)
+	    if [ ! -r "$2" ] ; then
+		vecho 0 "AlternateGrubMenuFile $2 is not readable."
+		vecho 0 "This configuation option will be ignored."
+		return 0
+	    fi
+	    ALT_GRUB_MENU_FILE="$2"
 	    return 0
 	    ;;
 	*)
