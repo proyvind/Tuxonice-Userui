@@ -11,7 +11,7 @@ EOT
 my $size = 0;
 my $a;
 while (read STDIN,$a,1) {
-	printf "\t.byte 0x%04x\n", ord($a);
+	printf ".byte \%d\n", ord($a);
 	$size++;
 }
 print <<EOT;
