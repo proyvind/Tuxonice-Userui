@@ -115,6 +115,11 @@ int resume_image_from_file(int fd) {
 	int i, j;
 
 	safe_read(fd, &pid, sizeof(pid), "pid");
+
+    extern int start_supervisor(pid_t);
+    if (translate_pids)
+        start_supervisor(pid);
+
     if (want_pid) {
         if (kill(pid, 0) == 0 || errno == EPERM) {
             fprintf(stderr, "Pid is already taken. Refusing to do anything :(\n");
@@ -311,11 +316,13 @@ int resume_image_from_file(int fd) {
 	if (verbosity > 0)
 		fprintf(stderr, "Ready to go!\n");
 
+    /*
     if (translate_pids) {
         extern int supervise_me(pid_t);
         munmap((void*)RESUMER_END, 0xffffffff-RESUMER_END);
         supervise_me(pid);
     }
+    */
 
 	if (do_pause)
 		sleep(2);
@@ -403,6 +410,28 @@ int open_self() {
 	return fd;
 }
 
+void usage(char* argv0) {
+    fprintf(stderr,
+"Usage: %s [options]\n"
+"\n"
+"This is a saved image of process. To resume this process, you can simply run\n"
+"this executable. Some options that may be of interest when restoring\n"
+"this process:\n"
+"\n"
+"    -v      Be verbose while resuming.\n"
+"    -i <fd> Do not restore the given file descriptor.\n"
+"    -c <cs> Specify a new code segment (required when migrating between\n"
+"            kernel versions. (2.4 uses 35. 2.6 uses 115)\n"
+"    -p      Pause between steps before resuming (for debugging)\n"
+"    -P      Attempt to gain original PID by way of fork()'ing a lot\n"
+"    -t      Use ptrace to translate PIDs in system calls (Experimental and\n"
+"            incomplete!)"
+"\n"
+"This image was created by CryoPID. http://cryopid.berlios.de/\n",
+    argv0);
+    exit(1);
+}
+
 void real_main(int argc, char** argv) {
 	int fd;
 	/* Parse options */
@@ -444,15 +473,14 @@ void real_main(int argc, char** argv) {
 			case '?':
 				/* invalid option */
 				fprintf(stderr, "Unknown option on command line.\n");
-				exit(1);
+                usage(argv[0]);
 				break;
 		}
 	}
 
 	if (argc - optind) {
 		fprintf(stderr, "Extra arguments not expected!\n");
-		fprintf(stderr, "Usage: %s [options]\n", argv[0]);
-		exit(1);
+        usage(argv[0]);
 	}
 
 	fd = open_self();
