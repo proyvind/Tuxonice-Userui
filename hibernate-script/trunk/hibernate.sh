@@ -582,7 +582,7 @@ DoWork() {
     for bit in `SortSuspendBits` ; do
 	local new_CHAIN_UP_TO
 	new_CHAIN_UP_TO="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)}\"`" || break
-	[ -n "$new_CHAIN_UP_TO" ] && CHAIN_UP_TO=$new_CHAIN_UP_TO
+	[ -n "$new_CHAIN_UP_TO" ] && CHAIN_UP_TO=$new_CHAIN_UP_TO || continue
 	bit=${bit##$CHAIN_UP_TO}
 	vecho 1 "$EXE: [$CHAIN_UP_TO] Executing $bit ... "
 	[ -n "$OPT_DRY_RUN" ] && continue
