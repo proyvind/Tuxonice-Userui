@@ -6,7 +6,9 @@ AddConfigHelp "EnsureLILOResumes <boolean>" "Makes sure that LILO boots the corr
 
 DoLILOHack() {
     [ x"$ENSURE_LILO_RESUMES" != "x1" ] && return 0
-    lilo -R `sed -e 's/^.*BOOT_IMAGE=//;s/\<noresume2\>//g' < /proc/cmdline` && return 0
+    image=`sed -e 's/^.*BOOT_IMAGE=//;s/\<noresume2\>//g' < /proc/cmdline`
+    vecho 2 "Setting LILO boot-once image to $image"
+    lilo -R $image && return 0
     vecho 0 "lilo -R failed with exit status $?."
     return 1
 }
@@ -26,4 +28,4 @@ LILOConfigOptions() {
     return 0
 }
 
-# $Id: lilo 239 2004-07-16 06:36:30Z bernard $
+# $Id$
