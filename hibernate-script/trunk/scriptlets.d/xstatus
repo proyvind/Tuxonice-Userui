@@ -34,21 +34,21 @@ XStatusProgressStart_kde() {
     fi
 
     KDEPB_DCOPREF="`su $XUSER -c \"kstart --windowclass KDialog --alldesktops kdialog --title Hibernating --progressbar \\\"$1\\\" 100\"`"
-    su $XUSER -c "dcop $KDEPB_DCOPREF showCancelButton 1"
+    su $XUSER -c "dcop \"$KDEPB_DCOPREF\" showCancelButton 1"
 }
 
 XStatusProgressCheckCancel_kde() {
     [ -z "$KDEPB_DCOPREF" ] && return 0
 
     local was_cancelled
-    was_cancelled=`su $XUSER -c "dcop $KDEPB_DCOPREF wasCancelled"`
+    was_cancelled=`su $XUSER -c "dcop \"$KDEPB_DCOPREF\" wasCancelled"`
     [ x"$was_cancelled" = "xtrue" ] && SUSPEND_ABORT=1
 }
 
 XStatusProgressUpdate_kde() {
     [ -z "$KDEPB_DCOPREF" ] && return 0
 
-    su $XUSER -c "dcop $KDEPB_DCOPREF setProgress $XSTATUS_PROGRESS"
+    su $XUSER -c "dcop \"$KDEPB_DCOPREF\" setProgress $XSTATUS_PROGRESS"
     XStatusProgressCheckCancel_kde
 }
 
@@ -56,7 +56,7 @@ XStatusProgressKill_kde() {
     [ -z "$KDEPB_DCOPREF" ] && return 0
 
     XStatusProgressCheckCancel_kde
-    su $XUSER -c "dcop $KDEPB_DCOPREF close"
+    su $XUSER -c "dcop \"$KDEPB_DCOPREF\" close"
 }
 
 XStatusReportErrors_kde() {
