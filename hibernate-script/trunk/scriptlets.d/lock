@@ -6,7 +6,7 @@ AddConfigHelp "LockKDE <boolean> [...]" "Lock all local KDE sessions running bef
 AddConfigHelp "LockXScreenSaver <boolean> [...]" "Lock all local X11 sessions with xscreensaver running before suspending."
 AddConfigHelp "LockConsole <boolean> [...]" "Lock all consoles just after resuming via vlock."
 
-LockKde() {
+LockKDE() {
     local avail_sessions
     local session
 
@@ -27,6 +27,7 @@ LockKde() {
 }
 
 LockXScreensaver() {
+    [ x"$LOCK_XSCREENSAVER" != "x1" ] && return 0
     local avail_sessions
     local display
 
@@ -47,7 +48,6 @@ LockXScreensaver() {
 }
 
 LockConsole() {
-
     [ x"$LOCK_CONSOLE" = "x1" ] || return 1
   
     # use vlock to lock all consoles
@@ -76,36 +76,32 @@ LockOptions() {
 	    
 	    if [ -z "$KDELOCK_HOOKED" ] ; then
 		# do it before switching out of X
-		AddSuspendHook 10 LockKde
+		AddSuspendHook 10 LockKDE
 		KDELOCK_HOOKED=1
 	    fi
 	    ;;
 
 	lockxscreensaver)
-	    if [ -z "$LOCK_XSCREENSAVER" ]; then
-		BoolIsOn "$1" "$2" && LOCK_XSCREENSAVER=1 || LOCK_XSCREENSAVER=0
-		if [ -z "$XSCREENSAVERLOCK_HOOKED" ]; then
-		    AddSuspendHook 10 LockXScreensaver
-		    XSCREENSAVERLOCK_HOOKED=1
-		fi
+	    BoolIsOn "$1" "$2" && LOCK_XSCREENSAVER=1 || LOCK_XSCREENSAVER=0
+	    if [ -z "$XSCREENSAVERLOCK_HOOKED" ]; then
+		AddSuspendHook 10 LockXScreensaver
+		XSCREENSAVERLOCK_HOOKED=1
 	    fi
 	    ;;
 
         lockconsole)
-	    if [ -z "$LOCK_CONSOLE" ] ; then
-		BoolIsOn "$1" "$2" && LOCK_CONSOLE=1 || LOCK_CONSOLE=0
+	    BoolIsOn "$1" "$2" && LOCK_CONSOLE=1 || LOCK_CONSOLE=0
 
-	        if [ -z "$CONSOLELOCK_HOOKED" ] ; then
+	    if [ -z "$CONSOLELOCK_HOOKED" ] ; then
 
-		    # call vlock just after beeing back from resuming system call
-		    # to avoid switching consoles and ask for password
-    		    AddResumeHook 99 LockConsole
+		# call vlock just after beeing back from resuming system call
+		# to avoid switching consoles and ask for password
+		AddResumeHook 99 LockConsole
 
-		    # force switching to an VT to see the question for the password :)
-    		    AddSuspendHook 99 SwitchToLockConsole
+		# force switching to an VT to see the question for the password :)
+		AddSuspendHook 99 SwitchToLockConsole
 
-    		    CONSOLELOCK_HOOKED=1
-		fi
+		CONSOLELOCK_HOOKED=1
 	    fi
 	    ;;
 
