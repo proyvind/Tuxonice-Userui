@@ -88,8 +88,15 @@ ModulesLoad() {
 ModulesUnloadAllOnce() {
     local module
     for module in `awk '($3==0){print $1}' /proc/modules` ;do
-	vecho 2 "Unloading module $module..."
-	rmmod $module && MOD_UNLOADED="$MOD_UNLOADED $module"
+	case $module in
+	    suspend_*)
+		vecho 2 "Skipping suspend module $module."
+		;;
+	    *)
+		vecho 2 "Unloading module $module..."
+		rmmod $module && MOD_UNLOADED="$MOD_UNLOADED $module"
+		;;
+	esac
     done
 }
 
