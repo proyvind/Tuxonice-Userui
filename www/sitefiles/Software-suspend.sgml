@@ -530,4 +530,32 @@ overwrite). Then we copy the old kernel back and restore registers. We
 are now running with the original kernel image. Finally, we load the
 first set of pages we saved, clean up and exit.
 
+<sect>Other configurations
+<sect1>Swap on LVM/dm-crypt
+<p>This requires Software Suspend 2.1.4.2 or later.
+
+<enum>
+<item>You will need to use an initrd or initramfs support, so your kernel must
+have support for this. Since you're using one anyway, you might like to compile
+<url url="FAQ-6.html" name="suspend as modules"> while you're at it :&gt;
+<item>Configure your LVM/encrypted swap/whatever like you normally would.
+<item>Modify your initrd/initramfs as follows:
+    <itemize>
+    <item>install a statically linked version of dmsetup
+    <item>install any suspend/dm modules needed for your configuration
+    <item>ensure that /dev, /dev/mapper, /proc and /sys exist on that filesystem
+    <item>create a link from /dev/mapper/&lt;partition name&gt; to /dev/dm-0
+    <item>use dmsetup table &lt;partition name&gt; to store the configuration for your partition in a file on the initrd|ramfs.
+    <item>in your linuxrc/init:
+        <itemize>
+        <item>mount /proc
+        <item>load modules as required
+        <item>use dmsetup create dm-0 &lt;path to config-file&gt; to set up access to the LVM partition
+        <item>echo &gt; /proc/software_suspend/do_resume
+        <item>do any other actions required (mount rootfs if initramfs...)
+        <item>umount /proc if initrd.
+        </itemize>
+    </itemize>
+</enum>
+
 </article>

@@ -390,6 +390,10 @@ stopping gpm and never restarting it is even better.
 <sect1>It fails to suspend with a message "not enough pages"
 <p>The amount of memory needed depends on a lot of things. For the average user,
 sizeof(RAM)x2 is ample for the swap partition used by Software Suspend 2. 
+<p>Another cause may be if the value of <tt>async_io_limit</tt> is set too high.
+Try setting it to a lower value like 128 (by
+'<tt>echo 128 > /proc/software_suspend/async_io_limit</tt>', or in your
+hibernation script).
 
 <sect1>How can I get Bootsplash to play with Software suspend nicely?<label id="bootsplash">
 <p>Documentation contributed by Alessandro Barbosa (barbosa_alessandro at hotmail dot com): <url url="contrib/Swsusp2_and_Bootsplash_on_FC2.doc" name="Bootsplash and Software Suspend on Fedora Core 2">
@@ -462,6 +466,10 @@ easiest thing to free, the Linux VM will free it first. If you leave the value
 of <tt>image_size_limit</tt> at zero, it will only free as much memory as it
 needs to be able to fit the image into swap.
 
+<p>If you are using the hibernate script, you can add the line
+<tt>ImageSizeLimit nocache</tt> to adjust the image_size_limit to approximate
+dropping caches and buffers.
+
 <sect1>Freezer debugging: It hangs at 'Waiting for activity to finish' or 'Syncing remaining I/O'.
 <p>
 <enum>
@@ -496,6 +504,17 @@ in /etc/suspend.conf and add your extra NFS mounts into SWSUSP_UMOUNTS.
 
 <p>Alternately, upgrade to the new hibernate script which does not call the
 init script in question.
+
+<sect1>On resume, you get a "BIG FAT WARNING!! Failed to translate the device name into a device id."
+<p>This can happen for several reasons:
+<itemize>
+<item>A misspelt <tt>resume2=</tt> option on your kernel command line.
+<item>You are using an initrd, and IDE support is built as modules and the
+modules are not loaded yet. Load the IDE modules before calling the resume
+process in the initrd.
+<item>You are using an initrd, and it does not contain a <tt>/sys/</tt>
+directory.
+</itemize>
 
 <sect1>System hangs on booting a Software Suspend 2 kernel (2.6)
 <p>If CONFIG_CC_OPTIMIZE_FOR_SIZE is enabled, you may get a hang on boot just after:
@@ -654,6 +673,18 @@ cat /etc/suspend_settings > /proc/software_suspend/all_settings
 </verb>
 
 </enum>
+
+<sect1>How can I update my initrd (initramfs) on Fedora?
+<p>Edit the /init file of your initramfs as so:
+<itemize>
+<item>Login as root
+<item><tt>mkdir myinitrd</tt>
+<item><tt>cd myinitrd</tt>
+<item><tt>gzip -dc &lt; /boot/initrd-your-version-here.img | cpio -i</tt>
+<item>edit <tt>init</tt> by adding <tt>echo &gt; /proc/software_suspend/do_resume</tt> near the top of the script (after mounting /proc but before mounting any drives)
+<item><tt>find . | cpio -o -c |gzip -9 > /boot/initrd-your-version-here.img</tt>
+<item>hibernate <tt>:)</tt>
+</itemize>
 
 <sect>Miscellaneous
 

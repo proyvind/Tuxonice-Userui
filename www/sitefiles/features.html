@@ -42,7 +42,7 @@ longer listed here.  The second column refers to what is now commonly called
 <tr>
 <td><b>Kernel config option</b></td>
 <td>CONFIG_SOFTWARE_SUSPEND</td>
-<td>CONFIG_SOFTWARE_SUSPEND</td>
+<td>CONFIG_SOFTWARE_SUSPEND2</td>
 </tr>
 <tr>
 <td><b>Principle author</b></td>
@@ -64,7 +64,7 @@ longer listed here.  The second column refers to what is now commonly called
 <td><tt>echo 4 &gt; /proc/acpi/sleep</tt><br>
 or<br>
 <tt>echo -n disk &gt; /sys/power/state</tt></td>
-<td><tt>echo &gt; /proc/software_suspend/activate</tt></td>
+<td><tt>echo &gt; /proc/software_suspend/do_suspend</tt></td>
 </tr>
 <tr>
 <td><b>Telling kernel not to try and resume in case of a problem</b></td>
@@ -78,7 +78,7 @@ or<br>
 </tr>
 <tr>
  <td><b>Discontiguous memory support</b></td>
- <td>No</td>
+ <td>Yes</td>
  <td>No</td>
 </tr>
 <tr>
@@ -102,14 +102,19 @@ or<br>
  <td>Yes</td>
 </tr>
 <tr>
- <td><b>UML support</b></td>
- <td>No</td>
- <td>No (planned)</td>
-</tr>
-<tr>
  <td><b>Modular support</b></td>
  <td>No</td>
  <td>Yes</td>
+</tr>
+<tr>
+ <td><b>Initrd support</b> (needed for LVM/dm-crypt)</td>
+ <td>No</td>
+ <td>Yes</td>
+</tr>
+<tr>
+ <td><b>UML support</b></td>
+ <td>No</td>
+ <td>No (planned)</td>
 </tr>
 <tr>
  <td><b>Suspend-over-NFS support</b></td>

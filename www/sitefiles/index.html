@@ -9,7 +9,7 @@ the contents and the user can continue from where they left off. No
 documents need to be reloaded or applications reopened and the process
 is much faster than a normal shutdown and start up.</p>
 
-<p class="Note"><a href="#2.1.2">Software Suspend 2.1.2 for Linux 2.6 is out!</a></p>
+<p class="Note"><a href="#2.1.5">Software Suspend 2.1.5 for Linux 2.6 is out!</a></p>
 
 <p>Software Suspend has a long <a href="features.html">feature list</a>,
 including the ability to cancel a suspend by pressing Escape, image compression
@@ -34,10 +34,10 @@ kernel series.</p>
 
 <table border="0">
 <tr><td colspan="2"><hr/></td></tr>
-<tr><td colspan="2" align="left"><b>Latest stable version for 2.6 <!--<i>AND</i> 2.4 -->kernels:</b> 2.1.2</td></tr>
+<tr><td colspan="2" align="left"><b>Latest stable version for 2.6 <!--<i>AND</i> 2.4 -->kernels:</b> 2.1.5</td></tr>
 <tr><td colspan="2">
 <ul>
-<li><a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.2-for-2.6.9.tar.bz2">Software Suspend 2.1.2 for kernel 2.6.9</a>
+<li><a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.5-for-2.6.9.tar.bz2">Software Suspend 2.1.5 for kernel 2.6.9</a>
 <li>Patches for 2.4 kernels coming soon.
 </ul></td></tr>
 <tr><td colspan="2"><hr/></td></tr>
@@ -73,6 +73,29 @@ but again be warned that nobody will be likely to help you.</td></tr>
 
 
 <h2>Latest News</h2>
+
+<a name="2.1.5"></a><b>11 November 2004: Software Suspend 2.1.5</b>
+<p>This version adds better implementation for device mapper support, protection against inserting modules when functionality is compiled in, and some more work on fixing the hanging I/O issues.<br>
+
+<a href="http://lists.berlios.de/pipermail/softwaresuspend-devel/2004-November/000956.html">Announcement</a> &nbsp;&nbsp;&nbsp;
+<a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.5-for-2.6.9.tar.bz2">Download (for 2.6.9)</a>
+</p>
+
+<a name="2.1.4"></a><b>9 November 2004: Software Suspend 2.1.4</b>
+<p>This patch may fix the filesystem corruption observed by some people, amongst
+other things.<br>
+
+<a href="http://lists.berlios.de/pipermail/softwaresuspend-devel/2004-November/000913.html">Announcement</a> &nbsp;&nbsp;&nbsp;
+<a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.4-for-2.6.9.tar.bz2">Download (for 2.6.9)</a>
+</p>
+
+<a name="2.1.3"></a><b>8 November 2004: Software Suspend 2.1.3 - Device Mapper Support</b>
+<p>This release adds support for the device-mapper, enabling you to use
+encrypted swap and other media provided by the device-mapper. (Using this
+requires a statically compiled <tt>dmsetup</tt> in your initrd).<br>
+<a href="http://lists.berlios.de/pipermail/softwaresuspend-devel/2004-November/000885.html">Announcement</a> &nbsp;&nbsp;&nbsp;
+<a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.3-for-2.6.9.tar.bz2">Download (for 2.6.9)</a>
+</p>
 
 <a name="2.1.2"></a><b>6 November 2004: Software Suspend 2.1.2 - yet-another-release!</b>
 <p><b><i>Important:</i></b> In order to facilitate initramfs and
