@@ -1,6 +1,7 @@
-CFLAGS = -Wall -O0 -g
+CFLAGS := -Wall -O0 -g
+LDFLAGS := -r -nostdlib -nostartfiles
+
 TARGET = userui_fbsplash.o
-LDFLAGS = -r -nostdlib -nostartfiles
 OBJECTS = userui_fbsplash_core.o splash_cmd.o splash_common.o splash_parse.o splash_render.o splash_unpack.o
 
 all: $(TARGET)
