@@ -227,7 +227,6 @@ static int send_ready() {
 }
 
 static void message_loop() {
-	fd_set rfds;
 	int n;
 	struct nlmsghdr *nlh;
 
