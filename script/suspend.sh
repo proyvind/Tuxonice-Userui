@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # For zsh sanity...
 setopt SH_WORD_SPLIT 2>/dev/null || true
@@ -331,7 +331,12 @@ ReadConfigFile() {
 		echo "This script probably won't do anything."
 		return 0
 	fi
-	while read option params ; do
+	while : ; do
+		# Doing the read this way allows means we don't require a new-line
+		# at the end of the file.
+		read option params
+		[ $? -ne 0 ] && [ -z "$option" ] && break
+
 		option=`echo $option|tr '[A-Z]' '[a-z]'`
 		case $option in
 			""|\#*)
