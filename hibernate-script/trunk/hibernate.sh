@@ -577,9 +577,6 @@ DoWork() {
 	[ -n "$OPT_DRY_RUN" ] && continue
 	$bit
     done
-
-    # Suicide if we must. Else we'll linger around forever.
-    [ x"$1" = "xhup" ] && kill -HUP $$
 }
 
 ctrlc_handler() {
