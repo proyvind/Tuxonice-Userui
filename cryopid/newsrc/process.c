@@ -537,8 +537,11 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 		if (!get_one_vma(target_pid, map_line, &(proc_image->maps[map_count]), flags & GET_PROC_FULL_IMAGE))
 			fprintf(stderr, "Error parsing map: %s", map_line);
 		else
-			if (proc_image->maps[map_count].start > RESUMER_START &&
-					proc_image->maps[map_count].start < RESUMER_END)
+			if (proc_image->maps[map_count].start >= 0x10000 &&
+					proc_image->maps[map_count].start <= 0x11000)
+				fprintf(stderr, "Ignoring map - looks like resumer.\n");
+			else if (proc_image->maps[map_count].start >= RESUMER_START &&
+					proc_image->maps[map_count].start <= RESUMER_END)
 				fprintf(stderr, "Ignoring map - looks like resumer.\n");
 			else if (proc_image->maps[map_count].start > 0xC0000000)
 				fprintf(stderr, "Ignoring map - in kernel space.\n");
