@@ -3,6 +3,8 @@ MODULES = text fbanim fbsplash
 TARGETS = $(patsubst %,userui_%,$(MODULES))
 CORE_OBJECTS = userui_core.o
 LDFLAGS = 
+PREFIX = /usr/local
+INSTDIR = $(PREFIX)/sbin
 
 all: $(TARGETS)
 	strip $(TARGETS)
@@ -30,4 +32,9 @@ clean:
 	make -C fbsplash clean
 	make -C fbanim clean
 
-.PHONY: all clean
+$(INSTDIR)/%: %
+	install -m 755 -o root -g root $< $@
+
+install: all $(patsubst %,$(INSTDIR)/%,$(TARGETS))
+
+.PHONY: all clean install
