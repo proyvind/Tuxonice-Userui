@@ -377,7 +377,7 @@ LoadScriptlets() {
     CURRENT_SOURCED_SCRIPTLET=""
     for scriptlet_dir in $SCRIPTLET_PATH ; do
 	[ -d "$scriptlet_dir" ] || continue
-	[ -z "`/bin/ls -1 $scriptlet_dir`" ] && return 0
+	[ -z "`/bin/ls -1 $scriptlet_dir`" ] && continue
 	for scriptlet in $scriptlet_dir/* ; do
 	    # Avoid editor backup files.
 	    case "$scriptlet" in *~|*.bak) continue ;; esac
