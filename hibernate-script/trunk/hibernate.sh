@@ -371,7 +371,7 @@ ParseOptions() {
 PreliminaryGetopt() {
     local opt
     local next_is_config
-    for opt in `getopt -q -o hF: -l help,config-file: -- "$@"` ; do
+    for opt in `getopt -q -o hF: -l help,config-file:,version -- "$@"` ; do
 	if [ -n "$next_is_config" ] ; then
 	    CONFIG_FILE="${opt#\'}"
 	    CONFIG_FILE="${CONFIG_FILE%\'}"
@@ -381,6 +381,10 @@ PreliminaryGetopt() {
 	case $opt in
 	    -h|--help) HELP_ONLY=1 ;;
 	    -F|--config-file) next_is_config=1 ;;
+	    --version)
+		echo "Hibernate Script $VERSION"
+		exit 0
+		;;
 	    --) return 0 ;;
 	esac
     done
@@ -516,6 +520,7 @@ ReadConfigFile() {
 # AddInbuiltHelp: Documents the above in-built options.
 AddInbuiltHelp() {
     AddOptionHelp "-h, --help" "Shows this help screen."
+    AddOptionHelp "--version" "Shows the Hibernate Script version."
     AddOptionHelp "-f, --force" "Ignore errors and suspend anyway."
     AddOptionHelp "-k, --kill" "Kill processes if needed, in order to suspend."
     AddOptionHelp "-v<n>, --verbosity=<n>" "Change verbosity level (0 = errors only, 3 = verbose, 4 = debug)"
