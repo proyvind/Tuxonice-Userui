@@ -15,6 +15,12 @@ VBETOOL_VT=61
 VBETOOL_FILE="/tmp/hibernate-vbestate-$$"
 
 VbetoolSuspend() {
+    if fgconsole >/dev/null 2>&1; then
+        VBETOOL_ORIG_VT=$(fgconsole)
+    else
+        # pick a VT that be know has to exist
+        VBETOOL_ORIG_VT=1
+    fi
     chvt $VBETOOL_VT
     tput clear
 
@@ -33,6 +39,12 @@ VbetoolSuspend() {
 }
 
 VbetoolResume() {
+    # switch the screen back on
+    vbetool vbestate restore <$VBETOOL_FILE
+    rm -f $VBETOOL_FILE
+
+    # change back to our original VT
+    chvt $VBETOOL_ORIG_VT
 }
 
 VbetoolOptions() {
