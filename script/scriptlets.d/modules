@@ -81,7 +81,10 @@ ModulesUnloadAll() {
     mod_retry_count=0
     while [ "$modafter" != "$modbefore" ] ; do
 	modbefore="$modafter"
-	usleep 200000
+
+	# Some sleep implementations might not support decimal sleep values:
+	sleep 0.2 > /dev/null 2>&1 ; [ $? -ne 130 ] && sleep 1
+
 	ModulesUnloadAllOnce
 	modafter="`awk '($3==0){print $1}' /proc/modules`"
 	[ "$mod_retry_count" -gt 5 ] && break
