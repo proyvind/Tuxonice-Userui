@@ -2,10 +2,10 @@
 # -*- sh -*-
 # vim:ft=sh:ts=8:sw=4:noet
 
-CONFIG_DIR=/etc/hibernate
+[ -z "$SCRIPT_DEST" ] && SCRIPT_DEST=/usr/local/sbin/hibernate
+[ -z "$CONFIG_DIR" ] && CONFIG_DIR=/etc/hibernate
 CONFIG_FILE=$CONFIG_DIR/hibernate.conf
 SCRIPTLET_DIR=$CONFIG_DIR/scriptlets.d
-SCRIPT_DEST=/usr/local/sbin/hibernate
 
 # Test if the script is already installed.
 if [ -d $CONFIG_DIR -o -f $SCRIPT_DEST ] ; then
@@ -47,7 +47,7 @@ done
 
 echo "Setting permissions on installed files ..."
 chmod 700 $SCRIPT_DEST $CONFIG_DIR
-chown root:root -R $SCRIPT_DEST $CONFIG_DIR
+[ `whoami` = "root" ] && chown root:root -R $SCRIPT_DEST $CONFIG_DIR
 
 echo "Installed."
 echo
@@ -61,5 +61,7 @@ fi
 )
 
 [ $? -ne 0 ] && echo "Install aborted due to errors."
+
+exit 0
 
 # $Id$
