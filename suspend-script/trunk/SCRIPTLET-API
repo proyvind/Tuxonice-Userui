@@ -1,10 +1,12 @@
-API for Suspend scriptlets
+------------------------------------------------------------------------------
+			   API for Hibernate Scriptlets
+------------------------------------------------------------------------------
 
 A scriptlet is written in shell code, and is simply sourced into the main
-script.  This means it can potentially do a lot of things to how suspend works.
-For sanity's sake though, their actions should be restricted to work through a
-small set of functions provided by the main suspend script. These are
-documented below.
+script.  This means it can potentially do a lot of things to how suspending
+works.  For sanity's sake though, their actions should be restricted to work
+through a small set of functions provided by the main hibernate script. These
+are documented below.
 
 A scriptlet can request both extra command-line arguments, or extra
 configuration file options. It can execute arbitrary commands during the
@@ -102,9 +104,9 @@ ORDERING
 
 Each scriptlet can register functions to be called at some stage in the suspend
 process. The stage is identified by a two-digit number, between 11 and 98,
-inclusive. 00 and 99 are reserved for use by a scriptlet that implements
-the suspending itself (eg, swsusp2) which require absolute certainty that they
-are the first and last things executing.
+inclusive. 00 and 99 are reserved for use by scriptlets that implement
+suspending itself (eg, swsusp2) which require absolute certainty that they are
+the first and last things executing.
 
 On suspend, the scripts are called in ascending order.
 On resume, the scripts are called in descending order.
