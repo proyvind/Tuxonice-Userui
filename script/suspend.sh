@@ -443,6 +443,7 @@ ctrlc_handler() {
 ############################### MAIN #########################################
 
 VERBOSITY=0 # for starters
+LOGPIPE="cat" # also for starters
 
 EnsureHavePrerequisites
 EnsureHaveRoot
@@ -451,7 +452,7 @@ ParseOptions "$@"
 ReadConfigFile
 
 # Set a logfile if we need one.
-[ -z "$LOGFILE" ] && LOGPIPE="cat" || LOGPIPE="tee -a $LOGFILE"
+[ -n "$LOGFILE" ] && LOGPIPE="tee -a $LOGFILE"
 
 # Redirect everything to a given VT if we've been given one
 [ -n "$SWSUSPVT" ] && [ -c /dev/tty$SWSUSPVT ] && exec >/dev/tty$SWSUSPVT 2>&1
