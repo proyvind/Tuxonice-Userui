@@ -116,6 +116,9 @@ points to note are:
    even for files in the current directory (./foo).
  - = not == for string comparisons.
 
+For the script to work under zsh, certain options need to be changed in order
+to make zsh act less sensibly (see setopts at the start of suspend.sh).
+
 WHITESPACE NAZI
 ---------------
 
