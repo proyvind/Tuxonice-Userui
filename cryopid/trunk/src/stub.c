@@ -356,8 +356,9 @@ int resume_image_from_file(int fd) {
 	}
 	new_envp[i] = NULL;
 
-	snprintf(fn, 128, "/tmp/cryopid.state.%d", getpid());
-	int f = syscall_check(open(fn, O_WRONLY|O_TRUNC|O_CREAT, 0600), 0, "open");
+	snprintf(fn, 128, "/tmp/cryopid.state.%d.XXXXXX", getpid());
+	int f = syscall_check(mkstemp(fn), 0, "mkstemp");
+	unlink(fn);
 	int i;
 	syscall_check(write(f, &real_argc, sizeof(real_argc)), 0, "write");
 	for(i=0; i < real_argc; i++) {
@@ -365,10 +366,15 @@ int resume_image_from_file(int fd) {
 	    syscall_check(write(f, &l, sizeof(l)), 0, "write");
 	    syscall_check(write(f, real_argv[i], l), 0, "write");
 	}
-	close(f);
+	syscall_check(dup2(f, 42), 0, "dup2");
+	syscall_check(fcntl(42, F_SETFD, 0), 0, "fcntl"); /* disable close-on-exec */
+	if (verbosity > 0)
+	    fprintf(stderr, "Re-exec'ing...\n");
 	execve(real_argv[0], new_argv, new_envp);
 	printf("execve(%s,0x%p,0x%p) failed. Not restoring cmdline. (error: %s)\n",
 		real_argv[0], new_argv, new_envp, strerror(errno));
+	close(f);
+	close(42);
     }
 
     safe_read(fd, &user_data, sizeof(struct user), "user data");
@@ -661,15 +667,11 @@ void usage(char* argv0) {
 }
 
 void real_main(int argc, char** argv) {
-    int fd;
+    int fd = 42;
     /* See if we're being executed for the second time. If so, read arguments
      * from the file.
      */
-    char fn[128];
-    snprintf(fn, 128, "/tmp/cryopid.state.%d", getpid());
-    if ((fd = open(fn, O_RDONLY)) != -1) {
-	unlink(fn);
-
+    if (lseek(fd, 0, SEEK_SET) != -1) {
 	safe_read(fd, &argc, sizeof(argc), "argc from cryopid.state");
 	argv = (char**)malloc(sizeof(char*)*argc+1);
 	argv[argc] = NULL;
@@ -681,6 +683,13 @@ void real_main(int argc, char** argv) {
 	}
 	close(fd);
 	reforked = 1;
+    } else {
+	if (errno != EBADF) {
+	    /* EBADF is the only error we should be expecting! */
+	    fprintf(stderr, "Unexpected error on lseek. Aborting (%s).\n",
+		    strerror(errno));
+	    exit(1);
+	}
     }
 
     /* Parse options */
@@ -725,7 +734,7 @@ void real_main(int argc, char** argv) {
     }
 
     if (argc - optind) {
-	fprintf(stderr, "Extra arguments not expected!\n");
+	fprintf(stderr, "Extra arguments not expected (%s ...)!\n", argv[optind]);
 	usage(argv[0]);
     }
 
