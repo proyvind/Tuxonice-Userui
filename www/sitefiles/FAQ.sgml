@@ -157,7 +157,7 @@ Jonathan Sambrook for this answer. May 2004)
 <p>The solution below has worked for some people. (Thanks again to Jonathan Sambrook for this answer)
 <enum>
 <item>Make sure SWSUSP_LEAVE_X_BEFORE_SUSPEND is <em>NOT</em> set to
-<tt>nvidia</tt> in /etc/suspend.conf. Use either <tt>yes</tt> or <tt>no</tt>.
+<tt>nvidia</tt> in /etc/suspend.conf (or LeaveXBeforeSuspend is not set if using /etc/hibernate/hibernate.conf). Use either <tt>yes</tt> or <tt>no</tt>.
 <item>Add the following <tt>Option</tt> line to your XF86Config:
 <verb>
 Section "Device"
@@ -219,8 +219,9 @@ problem. This can be done by adding
 <verb>
 xinit /bin/false -- :1
 </verb>
-at the end of resume script. If you use suspend script, try the <bf>nvidia</bf>
-keyword in SWSUSP_LEAVE_X_BEFORE_SUSPEND option. Also have a look at the previous FAQ, above.
+at the end of resume script. If you use suspend script, try the
+<bf>nVidiaHack</bf> option in the hibernate script configuration. Also have a
+look at the previous FAQ, above.
 
 <sect1>pre-emption: Using a 2.5.X kernel, I get an endless loop of errors saying "bad: scheduling while atomic" when suspending.
 <p>This issue has been resolved since around version 2.0 - if you are
@@ -492,6 +493,9 @@ directories when calling <tt>mountnfs.sh</tt> (See
 <url url="http://bugs.debian.org/227112" name="Bug #227112">).  The simple
 solution is to remove mountnfs.sh from your SWSUSP_STOP_SERVICES_BEFORE_SUSPEND
 in /etc/suspend.conf and add your extra NFS mounts into SWSUSP_UMOUNTS.
+
+<p>Alternately, upgrade to the new hibernate script which does not call the
+init script in question.
 
 <sect1>System hangs on booting a swsusp kernel (2.6)
 <p>If CONFIG_CC_OPTIMIZE_FOR_SIZE is enabled, you may get a hang on boot just after:
