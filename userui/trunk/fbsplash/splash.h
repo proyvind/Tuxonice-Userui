@@ -21,42 +21,6 @@
 
 #define printerr(args...)	fprintf(stderr, ## args);
 
-#define BOX_NOOVER 0x01
-#define BOX_INTER 0x02
-#define BOX_SILENT 0x04
-
-struct color
-{
-	u8 r, g, b, a;
-} __attribute__ ((packed));
-
-struct colorf
-{
-	double r, g, b, a;
-};
-
-struct splash_box
-{
-	int x1, x2, y1, y2;
-	struct color c_ul, c_ur, c_ll, c_lr; 	/* upper left, upper right, lower left, lower right */
-	u8 attr;
-};
-
-extern struct splash_box cf_boxes[MAX_BOXES];
-extern int cf_boxes_cnt;
-
-struct splash_config
-{
-	u8 bg_color;
-	u16 tx;
-	u16 ty;
-	u16 tw;
-	u16 th;
-	
-} __attribute__ ((packed));
-
-extern struct splash_config cf;
-
 /* splash_common.c */
 
 void detect_endianess(void);
@@ -128,5 +92,41 @@ extern char *config_file;
 
 extern struct fb_image pic;
 extern int fb_fd, fbsplash_fd;
+
+#define BOX_NOOVER 0x01
+#define BOX_INTER 0x02
+#define BOX_SILENT 0x04
+
+struct color
+{
+	u8 r, g, b, a;
+} __attribute__ ((packed));
+
+struct colorf
+{
+	double r, g, b, a;
+};
+
+struct splash_box
+{
+	int x1, x2, y1, y2;
+	struct color c_ul, c_ur, c_ll, c_lr; 	/* upper left, upper right, lower left, lower right */
+	u8 attr;
+};
+
+extern struct splash_box cf_boxes[MAX_BOXES];
+extern int cf_boxes_cnt;
+
+struct splash_config
+{
+	u8 bg_color;
+	u16 tx;
+	u16 ty;
+	u16 tw;
+	u16 th;
+	
+} __attribute__ ((packed));
+
+extern struct splash_config cf;
 
 #define FB_SPLASH_IO_ORIG_USER 1
