@@ -1,0 +1,53 @@
+AddConfigHandler MiscLaunchOptions
+AddConfigHelp "OnSuspend NN <program to execute> [parameters for program]" "Executes a given program before suspending. NN is a number between 10 and 99, inclusive - a higher number means the program will be executed later in the suspend process."
+AddConfigHelp "OnResume NN <program to execute> [parameters for program]" "Executes a given program after resuming. NN is a number between 10 and 99, inclusive - a higher number means the program will be executed earlier in the resume process."
+
+MISC_LAUNCH_COUNT=0
+
+MiscLaunchSuspendProg() {
+	MISC_LAUNCH_COUNT=$(($MISC_LAUNCH_COUNT+1))
+	TMPF=`mktemp`
+	AddSuspendHook $1 MiscLaunchAuxFunc$MISC_LAUNCH_COUNT
+	shift
+	cat <<EOT > $TMPF
+MiscLaunchAuxFunc${MISC_LAUNCH_COUNT}() {
+	vecho 1 "Executing $@..."
+	$@
+}
+EOT
+	. $TMPF
+	rm -f $TMPF
+}
+
+MiscLaunchResumeProg() {
+	MISC_LAUNCH_COUNT=$(($MISC_LAUNCH_COUNT+1))
+	TMPF=`mktemp`
+	AddResumeHook $1 MiscLaunchAuxFunc$MISC_LAUNCH_COUNT
+	shift
+	cat <<EOT > $TMPF
+MiscLaunchAuxFunc${MISC_LAUNCH_COUNT}() {
+	vecho 1 "Executing $@..."
+	$@
+}
+EOT
+	. $TMPF
+	rm -f $TMPF
+}
+
+MiscLaunchOptions() {
+	case $1 in
+		onsuspend)
+			shift
+			MiscLaunchSuspendProg $*
+			;;
+		onresume)
+			shift
+			MiscLaunchResumeProg $*
+			;;
+		*)
+			return 1
+	esac
+	return 0
+}
+
+# vim:ft=sh
