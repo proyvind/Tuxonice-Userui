@@ -156,7 +156,7 @@ def parseSection(section):
 		release_text = '''
 <tr><td colspan="3">
 <ul>
-<i>There are currently no downloads in this section.</i>
+<li><i>There are currently no downloads in this section.</i>
 </ul></td></tr>
 '''
 	return section_text+release_text
