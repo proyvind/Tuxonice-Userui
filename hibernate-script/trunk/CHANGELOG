@@ -6,6 +6,7 @@
  - Add a ProcSetting option to allow setting any arbitrary entry in
    /proc/software_suspend.
  - Support suspending using do_suspend instead of activate.
+ - Added ipw2200 to the blacklist.
 
 0.99 (10 October 2004)
  - Make SCRIPTLET_PATH work again so that user-defined scriptlets can
