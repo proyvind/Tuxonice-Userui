@@ -58,6 +58,7 @@ ModulesUnload() {
 	else
 	    ret=1
 	    vecho 2 "failed!"
+	    [ "$VERBOSITY" -eq 1 ] && echo "Unloading module $mod failed!"
 	fi
 	# It's possible that the module was unloaded anyway (eg, if it Ctrl+C'd)
 	MOD_UNLOADED="$MOD_UNLOADED $mod"
