@@ -19,6 +19,63 @@ SplashProgress()
     return 0
 }
 
+SplashCheckConfigFile() {
+    local orig_args
+    orig_args=$@
+
+    local line
+    local have_good
+    local recommend_line1
+    local recommend_line2
+
+    have_good=0
+    while read line ; do
+	case $line in
+	    box*) ;;
+	    *) continue;
+	esac
+	set -- $line
+	if [ "x$1" = "xbox" -a "x$2" = "xsilent" -a -n "$recommend_line1" -a -z "$recommend_line2" ] ; then
+	    recommend_line2="$1"
+	    shift 2
+	    recommend_line2="$recommend_line2 $*"
+	fi
+
+	if [ "x$1" = "xbox" -a "x$2" = "xsilent" -a "x$3" = "xinter" ] ; then
+	    recommend_line1="$1 $3"
+	    shift 3
+	    recommend_line1="$recommend_line1 $*"
+	fi
+
+	if [ "x$1" = "xbox" -a "$have_good" -eq 1 ] ; then
+	    have_good=2
+	    break
+	fi
+
+	if [ "x$1" = "xbox" -a "x$2" = "xinter" ] ; then
+	    have_good=1
+	fi
+    done < $SPLASH_CONFIG_FILE
+    set -- $orig_args
+
+    [ "$have_good" -eq 2 ] && return 0
+
+    if [ -n "$recommend_line1" -a -n "$recommend_line2" ] ; then
+	vecho 1 "NOTE: Bootsplash progress bar might not work. I recommend adding the"
+	vecho 1 "      following lines to the end of your bootsplash configuration"
+	vecho 1 "      file ($SPLASH_CONFIG_FILE):"
+	vecho 1 "--- snip ---"
+	vecho 1 "$recommend_line1"
+	vecho 1 "$recommend_line2"
+	vecho 1 "--- snip ---"
+	vecho 1
+	return 1
+    fi
+    vecho 1 "Bootsplash config file isn't quite parsable by this script."
+    vecho 1 "I can't tell whether or not it'll work."
+    return 2
+}
+
 SplashStart() {
     [ x"$USE_BOOTSPLASH" != "x1" ] && return 0
 
@@ -40,6 +97,9 @@ SplashStart() {
 	vecho 1 "config file not found. Bootsplash disabled."
 	return 0
     fi
+
+    # Check the config file will co-operate.
+    SplashCheckConfigFile
 
     # go - these lines are magic. (-s and -n ?)
     splash -s -u 0 -n "$SPLASH_CONFIG_FILE"
