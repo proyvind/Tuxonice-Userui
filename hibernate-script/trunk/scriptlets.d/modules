@@ -48,7 +48,7 @@ ModulesUnload() {
 	    continue
 	fi
 
-	if rmmod $mod > /dev/null 2>&1 ; then
+	if rmmod `FindModuleDeps $mod` > /dev/null 2>&1 ; then
 	    vecho 2
 	else
 	    ret=1
