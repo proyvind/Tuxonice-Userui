@@ -39,18 +39,18 @@ ModulesUnload() {
     MOD_UNLOADED=""
     ret=0
     for mod in $MOD_UNLOAD ; do 
-	vecho 1 -n "Unloading module $mod... "
+	vecho 2 -n "Unloading module $mod... "
 
 	if ! grep -q "^$mod " /proc/modules ; then
-	    vecho 1 "not loaded."
+	    vecho 2 "not loaded."
 	    continue
 	fi
 
 	if rmmod $mod > /dev/null 2>&1 ; then
-	    vecho 1
+	    vecho 2
 	else
 	    ret=1
-	    vecho 1 "failed!"
+	    vecho 2 "failed!"
 	fi
 	# It's possible that the module was unloaded anyway (eg, if it Ctrl+C'd)
 	MOD_UNLOADED="$MOD_UNLOADED $mod"
@@ -65,12 +65,12 @@ ModulesLoad() {
     for mod in $MOD_LOAD ; do 
 	if [ "$mod" = "auto" ] ; then
 	    for mod in $MOD_UNLOADED ; do 
-		vecho 1 "Loading module $mod (from auto)..."
+		vecho 2 "Loading module $mod (from auto)..."
 		modprobe $mod
 	    done
 	    continue
 	fi
-	vecho 1 "Loading module $mod..."
+	vecho 2 "Loading module $mod..."
 	modprobe $mod
     done
     return 0
@@ -79,7 +79,7 @@ ModulesLoad() {
 ModulesUnloadAllOnce() {
     local module
     for module in `awk '($3==0){print $1}' /proc/modules` ;do
-	vecho 1 "Unloading module $module..."
+	vecho 2 "Unloading module $module..."
 	modprobe -r $module
     done
 }
@@ -124,14 +124,14 @@ ModulesLoadFromFile() {
     local MOD
     local args
     # Loop over every line in given file.
-    vecho 1 "Loading modules listed $MODULES_FROMFILE" 
+    vecho 2 "Loading modules listed $MODULES_FROMFILE" 
     while : ; do
 	read MOD args
 	[ $? -ne 0 ] && [ -z "$MOD" ] && break
 	case "${MOD}" in
 	    \#*|"") continue ;;
 	esac
-	vecho 1 "Loading $MOD" 
+	vecho 2 "Loading $MOD" 
 	modprobe ${MOD} ${args}
     done < $MODULES_FROMFILE
 
