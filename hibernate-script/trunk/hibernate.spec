@@ -43,7 +43,7 @@ rm -rf $RPM_BUILD_ROOT
 /etc/hibernate/*
 
 %changelog
-* Sun Nov 18 2004 Bernard Blackham <bernard@blackham.com.au> -
+* Thu Nov 18 2004 Bernard Blackham <bernard@blackham.com.au> -
 - Updated to 1.01 final version
 * Sun Nov  7 2004 Bernard Blackham <bernard@blackham.com.au> -
 - Updated to 1.00 final version
