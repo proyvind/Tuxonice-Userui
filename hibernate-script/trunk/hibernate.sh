@@ -560,7 +560,7 @@ DoWork() {
 	fi
 	# A return value of 1 means we can't go any further unless --force is used
 	if [ $ret -gt 0 ] && [ x"$FORCE_ALL" != "x1" ] ; then
-	    vecho 0 "$EXE: Aborting suspend due to errors (use --force to override)."
+	    vecho 0 "$EXE: Aborting suspend due to errors in $bit (use --force to override)."
 	    break
 	fi
 	if [ -n "$SUSPEND_ABORT" ] ; then
