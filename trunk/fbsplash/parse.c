@@ -727,10 +727,9 @@ void parse_text(char *t)
 	if (!strncmp(t, "progress", 8)) {
 		ct->flags |= F_TXT_PROGRESS;
 		t += 8;
-	}
-	if (!strncmp(t, "exec", 4)) {
-		/* ct->flags |= F_TXT_EXEC; Don't honour exec */
-		t += 4;
+	} else if (!strncmp(t, "exec", 4)) {
+		/* Don't honour exec */
+		goto pt_err;
 	}
 	skip_whitespace(&t);
 	if (!(ct->flags & F_TXT_PROGRESS)) {
