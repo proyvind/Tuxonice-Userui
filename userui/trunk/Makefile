@@ -9,7 +9,7 @@ LDFLAGS = -ljpeg -lpng -lz -lm
 all: $(TARGETS) linux
 
 linux:
-	@[ ! -d linux ] && cat README && false
+	@ls -l linux &>/dev/null || cat README && false
 
 userui_program: $(OBJECTS)
 	gcc $(LDFLAGS) $^ -o $@
