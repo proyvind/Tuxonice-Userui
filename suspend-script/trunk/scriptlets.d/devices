@@ -31,6 +31,8 @@ DevicesFree() {
 	    if [ x"$KILL_PROGRAMS" = "x1" ] ; then
 		vecho 1 "Sending SIGKILL to processes using $device..."
 		fuser -s -k -9 $device
+	    else
+		vecho 1 "Device $device is still in use by the following processes: `fuser $device 2>/dev/null`"
 	    fi
 	fi
     done
