@@ -3,6 +3,8 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <sys/time.h>
+#include <libmng.h>
 
 typedef struct {
 	void *data;
@@ -14,7 +16,7 @@ typedef struct {
 	int wait_msecs;
 	struct timeval start_time;
 	int displayed_first;
-} fbsplash_mng_data;
+} mng_anim;
 
 /* mng_render.c */
 extern mng_handle mng_load(char *filename, int fb_bytes_pp);
