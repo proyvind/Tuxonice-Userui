@@ -1,4 +1,4 @@
-0.99 (unreleased)
+0.99 (10 October 2004)
  - Make SCRIPTLET_PATH work again so that user-defined scriptlets can
    be placed in /etc/hibernate /usr/local/share/hibernate will actually
    work.  Place /usr/share/hibernate/scriptlets.d at the end of
