@@ -1,4 +1,5 @@
 #include <sys/ioctl.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -20,7 +21,8 @@ static char rendermessage[512];
 static int lastloglevel;
 static unsigned long cur_value, cur_maximum, last_pos;
 static int video_num_lines, video_num_columns;
-static void* base_image;
+static void *base_image;
+static char *frame_buffer;
 static int base_image_size;
 
 static inline void clear_display() { write(1, "\033c", 2); }
@@ -101,9 +103,9 @@ static void fbsplash_prepare() {
 
 	boot_message = rendermessage;
 
-	fb_fd = open("/dev/fb0", O_WRONLY);
+	fb_fd = open("/dev/fb0", O_RDWR);
 	if (fb_fd == -1) {
-		fb_fd = open("/dev/fb/0", O_WRONLY);
+		fb_fd = open("/dev/fb/0", O_RDWR);
 		if (fb_fd == -1)
 			perror("open(\"/dev/fb0\")");
 	}
@@ -118,12 +120,19 @@ static void fbsplash_prepare() {
 	/* copy the silent pic to base_image for safe keeping */
 	base_image_size = silent_img.width * silent_img.height * (silent_img.depth >> 3);
 	base_image = malloc(base_image_size);
-			
 	if (!base_image) {
 		fprintf(stderr, "Couldn't get enough memory for framebuffer image.\n");
 		return;
 	}
 	memcpy(base_image, (void*)silent_img.data, base_image_size);
+
+	if (fb_fd != -1) {
+		frame_buffer = mmap(NULL, base_image_size, PROT_READ | PROT_WRITE,
+				MAP_SHARED, fb_fd, 0);
+		if (frame_buffer == MAP_FAILED) {
+			frame_buffer = NULL;
+		}
+	}
 
 	/* Allow for the widest progress bar we might have updating 2px at a time */
 	set_progress_granularity(fb_var.xres/2);
@@ -145,6 +154,9 @@ static void fbsplash_cleanup() {
 	free(base_image);
 	base_image = NULL;
 
+	if (frame_buffer)
+		munmap(frame_buffer, base_image_size);
+
 	if (fb_fd >= 0)
 		close(fb_fd);
 
@@ -160,8 +172,13 @@ static void update_fb_img() {
 	if (!silent_img.data)
 		return;
 
-	lseek(fb_fd, 0, SEEK_SET);
-	write(fb_fd, silent_img.data, base_image_size);
+	/* Try mmap'd I/O first */
+	if (frame_buffer) {
+		memcpy(frame_buffer, silent_img.data, base_image_size);
+	} else if (fb_fd != -1) {
+		lseek(fb_fd, 0, SEEK_SET);
+		write(fb_fd, silent_img.data, base_image_size);
+	}
 }
 
 static void fbsplash_update_silent_message() {
