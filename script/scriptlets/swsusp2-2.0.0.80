@@ -31,6 +31,7 @@ Swsusp2OptionHandler() {
 			;;
 		--no-suspend)
 			SWSUSP2_NO_SUSPEND=1
+			;;
 		*)
 			return 1
 	esac
@@ -70,7 +71,7 @@ Swsusp2ConfigRestore() {
 }
 
 ZZZDoSwsusp2() {
-	if [ -n "$SWSUSP2_NO_SUSPEND" ] ; then
+	if [ -z "$SWSUSP2_NO_SUSPEND" ] ; then
 		vecho 1 "$EXE: Activating suspend ..."
 		error=`DoSuspend` && SUSPEND_SUCCESS=1 || SUSPEND_SUCCESS=0
 		PrintErrors $error
