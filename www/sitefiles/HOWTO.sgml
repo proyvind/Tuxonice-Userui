@@ -481,19 +481,19 @@ either during suspending or resuming. Hangs while resuming have two sources:
 <p>Type 1 issues will generally affect areas other than the point where you see
 "<tt>Copying original kernel back</tt>". There are known issues with Software
 Suspend itself (type 1 issues) in the 2.1.5 series which should be fixed in
-2.1.5.15.
+2.1.6.
 
 <p>Type 2 issues are more common, and affect particular hardware (and therefore
 some computers/configurations, but not others). There are usually workarounds
 for these issues, and the workarounds generally involve building functionality
 as modules and stopping related userpace daemons and unloading the modules prior
 to suspend, and reloading/restarting afterwards. Particularly common here are
-issues with USB and DRI/DRM. In the latter case, you can't simply disable
-DRI/DRM prior to resuming, so people (unfortunately) have to choose between
-3D performance and the ability to suspend (unless you're willing to stop X
-prior to suspending and restart it afterwards). As driver writers improve
-their support for suspending and resuming, it is expected that these issues
-will ultimately go away.
+issues with USB, DRI/DRM, FireWire, cpufreq, sound card and network drivers. In
+the case of DRI/DRM, you can't simply disable it prior to resuming, so people
+(unfortunately) have to choose between 3D performance and the ability to
+suspend (unless you're willing to stop X prior to suspending and restart it
+afterwards). As driver writers improve their support for suspending and
+resuming, it is expected that these issues will ultimately go away.
 
 <p>Finding which driver is causing suspend to hang is sometimes less than
 obvious.  In these cases, we recommend starting with a minimal environment
