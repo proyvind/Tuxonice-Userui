@@ -367,46 +367,19 @@ static void text_redraw() {
 
 static void text_keypress(int key) {
 	switch (key) {
-		case 1:
-			send_message(USERUI_MSG_ABORT, NULL, 0);
-			break;
-		case 2:
-		case 3:
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-		case 8:
-		case 9:
-		case 10:
-			console_loglevel = key - 1;
+		case 48:
+		case 49:
+		case 50:
+		case 51:
+		case 52:
+		case 53:
+		case 54:
+		case 55:
+		case 56:
+		case 57:
+			console_loglevel = key - 48;
 			send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
 			break;
-		case 11:
-			console_loglevel = 0;
-			send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
-			break;
-		case 19:
-			/* Toggle reboot with R */
-			suspend_action ^= (1 << SUSPEND_REBOOT);
-			text_prepare_status(1, 0, "Rebooting %sabled.",
-					(suspend_action&(1<<SUSPEND_REBOOT))?"en":"dis");
-			send_message(USERUI_MSG_SET_STATE, &suspend_action, sizeof(suspend_action));
-			send_message(USERUI_MSG_GET_STATE, NULL, 0);
-			break;
-		case 25:
-			/* During suspend, toggle pausing with P */
-			suspend_action ^= (1 << SUSPEND_PAUSE);
-			text_prepare_status(1, 0, "Pause between steps %sabled.",
-					(suspend_action&(1<<SUSPEND_PAUSE))?"en":"dis");
-			send_message(USERUI_MSG_SET_STATE, &suspend_action, sizeof(suspend_action));
-			send_message(USERUI_MSG_GET_STATE, NULL, 0);
-			break;
-//		case 115:
-//			/* Otherwise, if S pressed, toggle single step */
-//			suspend_action ^= (1 << SUSPEND_SINGLESTEP);
-//			suspend2_core_ops->schedule_message(3);
-//			break;
 		default:
 			text_prepare_status(1, 0, "Got key %d", key);
 	}

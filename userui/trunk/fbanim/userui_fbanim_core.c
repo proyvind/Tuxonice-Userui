@@ -405,8 +405,18 @@ static void fbanim_redraw() {
 
 static void fbanim_keypress(int key) {
 	switch (key) {
-		case 1:
-			send_message(USERUI_MSG_ABORT, NULL, 0);
+		case 48:
+		case 49:
+		case 50:
+		case 51:
+		case 52:
+		case 53:
+		case 54:
+		case 55:
+		case 56:
+		case 57:
+			console_loglevel = key - 48;
+			send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
 			break;
 	}
 }

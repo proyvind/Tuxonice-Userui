@@ -31,7 +31,6 @@ static void show_cursor() {
 }
 
 static void silent_on() {
-	printf("Putting it on\n");
 	lseek(fb_fd, 0, SEEK_SET);
 	write(fb_fd, pic.data, pic.width * pic.height * (pic.depth >> 3));
 }
@@ -148,23 +147,17 @@ static void fbsplash_redraw() {
 
 static void fbsplash_keypress(int key) {
 	switch (key) {
-		case 1:
-			send_message(USERUI_MSG_ABORT, NULL, 0);
-			break;
-		case 2:
-		case 3:
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-		case 8:
-		case 9:
-		case 10:
-			console_loglevel = key - 1;
-			send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
-			break;
-		case 11:
-			console_loglevel = 0;
+		case 48:
+		case 49:
+		case 50:
+		case 51:
+		case 52:
+		case 53:
+		case 54:
+		case 55:
+		case 56:
+		case 57:
+			console_loglevel = key - 48;
 			send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
 			break;
 	}
