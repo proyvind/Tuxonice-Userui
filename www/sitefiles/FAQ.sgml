@@ -139,7 +139,7 @@ the first place).
 
 <sect1>nVidia GeForce4 card: black screen after resuming, amongst other symptoms
 <p>Upgrading to the latest nVidia driver (6629 confirmed working), disabling
-agpgart in the kernel, and setting "SwitchToTextVT no" and "UseDummyXServer no"
+agpgart in the kernel, and setting "SwitchToTextMode no" and "UseDummyXServer no"
 in hibernate.conf should resolve this problem.
 
 <sect1>3D: Suspension occurs correctly, but when I resume my Xserver has lost 3D acceleration.
