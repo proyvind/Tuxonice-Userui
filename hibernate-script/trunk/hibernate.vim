@@ -29,6 +29,15 @@ highlight link hibernate_boolean Constant
 syntax match hibernate_integer /\d\+/ contained nextgroup=hibernate_error
 highlight link hibernate_integer Constant
 
+syntax match hibernate_powerdown_method /[345]/ contained nextgroup=hibernate_error
+highlight link hibernate_powerdown_method Constant
+
+syntax match hibernate_procsetting /[a-zA-Z0-9_]\+/ contained nextgroup=hibernate_procvalue
+highlight link hibernate_procsetting Constant
+
+syntax match hibernate_procvalue /.*/ contained nextgroup=hibernate_procvalue
+highlight link hibernate_procvalue Constant
+
 syntax match hibernate_order_num /\d\d/ contained nextgroup=hibernate_filenames
 highlight link hibernate_order_num Constant
 
@@ -148,6 +157,8 @@ syntax keyword hibernate_conf swsusp2allsettings contained nextgroup=hibernate_s
 syntax keyword hibernate_conf suspenddevice contained nextgroup=hibernate_filenames skipwhite
 syntax keyword hibernate_conf loadsuspendmodules contained nextgroup=hibernate_modules skipwhite
 syntax keyword hibernate_conf unloadsuspendmodulesafterresume contained nextgroup=hibernate_boolean skipwhite
+syntax keyword hibernate_conf powerdownmethod contained nextgroup=hibernate_powerdown_method skipwhite
+syntax keyword hibernate_conf procsetting contained nextgroup=hibernate_procsetting skipwhite
 syntax keyword hibernate_conf asynciolimit contained nextgroup=hibernate_integer skipwhite
 
 " sysfspowerstate

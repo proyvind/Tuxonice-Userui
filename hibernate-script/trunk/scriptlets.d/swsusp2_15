@@ -36,6 +36,10 @@ AddConfigHelp "SuspendDevice <device> (requires UseSwsusp2 on)" "If specified, s
 AddConfigHelp "LoadSuspendModules <module name> [...] (requires UseSwsusp2 on)" "Loads the given modules before even detecting Software Suspend. This may be required when Software Suspend is compiled as modules that need to be loaded prior to suspending."
 AddConfigHelp "UnloadSuspendModulesAfterResume <boolean> (requires UseSwsusp2 on)" "If yes, will unload the Software Suspend modules mentioned above after resuming."
 
+AddConfigHelp "PowerdownMethod <3|4|5> (requires UseSwsusp2 on)" "Allows you to choose what Software Suspend 2 should do after writing its image to disk. 3/4/5 correspond to the ACPI states S3 (suspend-to-RAM), S4 (suspend-to-disk), and S5 (power off). Choosing 3 will request your machine to enter the S3 Suspend-to-RAM state if it is supported - this allows you drastically cut the resume time waiting for your BIOS but still consumes power whilst hibernated (though the image is not lost should power run out). Choosing 4 will cause your machine to enter an S4 sleep state which may also reduce the resume time without using any power whilst hibernated. Choosing 5 will cause your machine to switch off after suspending (traditional method)."
+
+AddConfigHelp "ProcSetting <entry name> <value> (requires UseSwsusp2 on)" "Sets the value of /proc/software_suspend/<entry_name> to <value> upon suspending. You can use this setting to set parameters that can't be configured anywhere else in this script. This is executed after all other settings have been set."
+
 AddShortOption "n"
 AddLongOption "no-suspend"
 AddOptionHelp "-n, --no-suspend (requires UseSwsusp2 on)" "Disables actually suspending the system. This is useful for testing the suspend script itself."
@@ -111,6 +115,32 @@ Swsusp2ConfigOptions() {
 	    BoolIsOn "$1" "$2" || return 0
 	    AddResumeHook 05 Swsusp2UnloadModules
 	    ;;
+	powerdownmethod)
+	    case $2 in
+		[3-5])
+		    SWSUSP_POWERDOWN_METHOD=$2
+		    ;;
+		*)
+		    echo "$EXE: Invalid value for $1 ($2). Must be 3 4 or 5."
+		    return 0
+		    ;;
+	    esac
+	    ;;
+	procsetting)
+	    if [ -z "$SWSUSP_EXTRA_PROC_SETTINGS" ] ; then
+		SWSUSP_EXTRA_PROC_SETTINGS=`mktemp`
+		cat <<EOT > $SWSUSP_EXTRA_PROC_SETTINGS
+# Temporary file for hibernate script.
+# If you're reading this then it's probably safe to delete.
+
+EOT
+		AddResumeHook 00 RemoveSwsuspProcCruft
+	    fi
+	    shift
+	    FILE="$1"
+	    shift
+	    echo "echo \"$*\" > $SWSUSP_ROOT/$FILE" >> $SWSUSP_EXTRA_PROC_SETTINGS
+	    ;;
 	*)
 	    return 1
     esac
@@ -118,6 +148,11 @@ Swsusp2ConfigOptions() {
 	AddSuspendHook 98 Swsusp2ConfigSet
 	SWSUSP2_HOOKED=1
     fi
+    return 0
+}
+
+RemoveSwsuspProcCruft() {
+    [ -f "$SWSUSP_EXTRA_PROC_SETTINGS" ] && rm -f $SWSUSP_EXTRA_PROC_SETTINGS
     return 0
 }
 
@@ -155,6 +190,12 @@ Swsusp2ConfigSet() {
 
     [ -n "$SWSUSP_RESUME2" ] && [ -f $SWSUSP_ROOT/resume2 ] && \
     	echo $SWSUSP_RESUME2 > $SWSUSP_ROOT/resume2
+
+    [ -n "$SWSUSP_POWERDOWN_METHOD" ] && [ -f $SWSUSP_ROOT/powerdown_method ] && \
+	echo $SWSUSP_POWERDOWN_METHOD > $SWSUSP_ROOT/powerdown_method
+
+    [ -n "$SWSUSP_EXTRA_PROC_SETTINGS" ] && [ -f "$SWSUSP_EXTRA_PROC_SETTINGS" ] && \
+	. $SWSUSP_EXTRA_PROC_SETTINGS
 
     return 0
 }

@@ -2,6 +2,9 @@
  - Fix a long standing bug when printing error result codes.
  - Add AsyncIOLimit option (Lorenzo Colitti).
  - Make DefaultConsoleLevel not expect a boolean value.
+ - Add the PowerdownMethod option for Software Suspend 2.1.
+ - Add a ProcSetting option to allow setting any arbitrary entry in
+   /proc/software_suspend.
 
 0.99 (10 October 2004)
  - Make SCRIPTLET_PATH work again so that user-defined scriptlets can
