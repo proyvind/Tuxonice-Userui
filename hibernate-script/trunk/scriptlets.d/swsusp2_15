@@ -248,7 +248,8 @@ DoSwsusp2() {
     if [ -z "$SWSUSP2_NO_SUSPEND" ] ; then
 	vecho 1 "$EXE: Activating suspend ..."
 	SaveDmesg
-	error=`DoSuspend` && SUSPEND_SUCCESS=1 || SUSPEND_SUCCESS=0
+	error=`DoSuspend`
+	[ -n "$error" ] && [ $error -ne 0 ] && EXIT_CODE=4
 	if ! PrintErrors $error ; then
 	    OutputDmesgChanges
 	fi
