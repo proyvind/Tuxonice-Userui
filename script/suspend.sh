@@ -72,6 +72,8 @@ EXTRA_LONG_OPTS=""
 # AddOptionHelp <option name> <option help>: Adds the given option name and
 # help text to the help screen.
 AddOptionHelp() {
+    local ADDED
+    local WRAPPED_HELP
     ADDED="  $1"
     [ -n "$CURRENT_SOURCED_SCRIPTLET" ] && ADDED="`printf '%-50s %25s' \"$ADDED\" \"($CURRENT_SOURCED_SCRIPTLET)\"`"
     WRAPPED_HELP="`echo \"$2\" | WrapHelpText`"
@@ -87,6 +89,8 @@ CMDLINE_OPTIONS_HELP=""
 # text. <item help> must only contain line breaks if a new paragraph really
 # does want to be started. Text wrapping is taken care of.
 AddConfigHelp() {
+    local ADDED
+    local WRAPPED_HELP
     ADDED="  $1"
     [ -n "$CURRENT_SOURCED_SCRIPTLET" ] && ADDED="`printf '%-60s %15s' \"$ADDED\" \"($CURRENT_SOURCED_SCRIPTLET)\"`"
     WRAPPED_HELP="`echo \"$2\" | WrapHelpText`"
@@ -155,6 +159,7 @@ END {
 # PluginConfigOption <params>: queries all loaded scriptlets if they want to
 # handle the given option Returns 0 if the option was handled, 1 otherwise.
 PluginConfigOption() {
+    local i
     for i in $CONFIG_OPTION_HANDLERS ; do
 	$i $@ && return 0
     done
@@ -164,6 +169,7 @@ PluginConfigOption() {
 # EnsureHavePrerequisites: makes sure we have all the required utilities to run
 # the script. It exits the script if we don't.
 EnsureHavePrerequisites() {
+    local i
     for i in awk grep sort getopt basename ; do
 	if ! which $i > /dev/null; then
 	    echo "Could not find required program \"$i\". Aborting."
@@ -175,6 +181,8 @@ EnsureHavePrerequisites() {
 	# This implementation fails on strings that contain double quotes.
 	# It does the job for the help screen at least.
 	printf() {
+	    local AWK_FMT
+	    local AWK_PARAMS
 	    AWK_FMT="$1"
 	    shift
 	    AWK_PARAMS=""
@@ -189,6 +197,9 @@ EnsureHavePrerequisites() {
 	# Use a relatively safe equivalent of mktemp. Still suspectible to race
 	# conditions, but highly unlikely.
 	mktemp() {
+	    local CNT
+	    local D
+	    local FN
 	    CNT=1
 	    while :; do
 		D=`date +%s`
@@ -222,6 +233,7 @@ EOT
 # requested parameters until one accepts them. Return 0 if a scriplet did
 # accept them, and 1 otherwise.
 PluginGetOpt() {
+    local opthandler
     for opthandler in $CMDLINE_OPTION_HANDLERS ; do
 	$opthandler $* && return 0
     done
@@ -230,6 +242,8 @@ PluginGetOpt() {
 
 # DoGetOpt <getopt output>: consume getopt output and set options accordingly.
 DoGetOpt() {
+    local opt
+    local optdata
     while [ -n "$*" ] ; do
 	opt="$1"
 	shift
@@ -287,26 +301,29 @@ AddOptionHelp "-F<file>, --config-file=<file>" "Use the given configuration file
 
 # ParseOptions <options>: process all the command-line options given
 ParseOptions() {
+    local opts
     opts="`getopt -n \"$EXE\" -o \"Vhfksv:nqF:$EXTRA_SHORT_OPTS\" -l \"help,force,kill,verbosity:,config-file:$EXTRA_LONG_OPTS\" -- \"$@\"`" || exit 1
     DoGetOpt $opts
 }
 
 # LoadScriptlets: sources all scriptlets in $SCRIPTLET_DIR
 LoadScriptlets() {
+    local prev_pwd
+    local scriptlet
     if [ ! -d "$SCRIPTLET_DIR" ] ; then
 	echo "WARNING: No scriptlets directory ($SCRIPTLET_DIR)."
 	echo "This script probably won't do anything."
 	return 0
     fi
     [ -z "`/bin/ls -1 $SCRIPTLET_DIR`" ] && return 0
-    PREV_PWD="$PWD"
+    prev_pwd="$PWD"
     cd $SCRIPTLET_DIR
     for scriptlet in * ; do
 	CURRENT_SOURCED_SCRIPTLET="$scriptlet"
 	. ./$scriptlet
 	vecho 2 "Loaded scriptlet $scriptlet."
     done
-    cd $PREV_PWD
+    cd $prev_pwd
     CURRENT_SOURCED_SCRIPTLET=""
 }
 
@@ -315,6 +332,7 @@ LoadScriptlets() {
 # about the option and exit. Note, the *opposite* is actually returned, as true
 # is considered 0 in shell world.
 BoolIsOn() {
+    local val
     val=`echo $2|tr '[A-Z]' '[a-z]'`
     [ "$val" = "on" ] && return 0
     [ "$val" = "off" ] && return 1
@@ -329,6 +347,8 @@ BoolIsOn() {
 # ProcessConfigOption: takes a configuration option and it's parameters and
 # passes it out to the relevant scriptlet.
 ProcessConfigOption() {
+    local option
+    local params
     option=`echo $1|tr '[A-Z]' '[a-z]'`
     shift
     params="$@"
@@ -373,6 +393,7 @@ ProcessConfigOption() {
 # ReadConfigFile: reads in a configuration file from stdin and sets the
 # appropriate variables in the script. Returns 0 on success, exits on errors
 ReadConfigFile() {
+    local option params
     if [ ! -f "$CONFIG_FILE" ] ; then
 	echo "WARNING: No configuration file found ($CONFIG_FILE)."
 	echo "This script probably won't do anything."
