@@ -1,21 +1,33 @@
 # XXX still incomplete!
-#AddSuspendHook 80 NetworkStop
-#AddResumeHook 80 NetworkStart
-AddConfigHandler NetworkOptions
+AddConfigHandler NetworkConfigOptions
 
 NetworkStop() {
     return 0
 }
 
 NetworkStart() {
-     return 0
+    return 0
 }
 
-NetworkOptions() {
-    case $1 in
+NetworkConfigOptions() {
+    local opt
+    opt="$1"
+    shift
+    case $opt in
+	downnetworkinterfaces)
+	    NETWORK_DOWNIFS="$NETWORK_DOWNIFS $2"
+	    ;;
+	upnetworkinterfaces)
+	    NETWORK_UPIFS="$NETWORK_UPIFS $2"
+	    ;;
 	*)
 	    return 1
     esac
+    if [ -z "$NETWORK_HOOKED" ] ; then
+	AddSuspendHook 80 NetworkStop
+	AddResumeHook 80 NetworkStart
+	NETWORK_HOOKED=1
+    fi
     return 0
 }
 
