@@ -81,7 +81,8 @@ static void handle_params(int argc, char **argv) {
 				test_run = 1;
 				break;
 			case 'h':
-				printf("Usage: %s [-t]\n", argv[0]);
+				fprintf(stderr, "Usage: %s [-t]\n", argv[0]);
+				fprintf(stderr, "\nThis userui program has been compiled with the \"%s\" module.\n", userui_ops->name);
 				exit(1);
 		}
 
