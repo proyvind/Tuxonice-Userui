@@ -1,4 +1,4 @@
-OBJECTS = freeze
+OBJECTS = make-static
 
 CFLAGS = -g -Wall -O3
 
@@ -11,7 +11,7 @@ LIBC = -nostdlib -nostartfiles ../uclibc/libc.a ../uclibc/crt0.o ../uclibc/crti.
 
 all: $(OBJECTS)
 
-elfwriter.o freeze.o imagewriter.o process.o stub.o: process.h
+elfwriter.o make-static.o imagewriter.o process.o stub.o: process.h
 
 clean:
 	rm -f *.o $(OBJECTS) stub-image.S stub
@@ -19,7 +19,7 @@ clean:
 stub-image.S: stub src2asm.pl
 	perl src2asm.pl < $< > $@
 
-freeze: freeze.o process.o imagewriter.o elfwriter.o stub-image.o
+make-static: make-static.o process.o imagewriter.o elfwriter.o stub-image.o
 
 stub: stub.c supervisor.c
 	gcc -static -Tstub-linking.x -Os -o $@ $^ $(LIBC)
