@@ -455,7 +455,12 @@ ReadConfigFile
 [ -n "$LOGFILE" ] && LOGPIPE="tee -a $LOGFILE"
 
 # Redirect everything to a given VT if we've been given one
-[ -n "$SWSUSPVT" ] && [ -c /dev/tty$SWSUSPVT ] && exec >/dev/tty$SWSUSPVT 2>&1
+if [ -n "$SWSUSPVT" ] && [ -c /dev/tty$SWSUSPVT ] ; then
+    exec >/dev/tty$SWSUSPVT 2>&1
+else
+    # Just redirect stderr to stdout for simplicity.
+    exec 2>&1
+fi
 
 # Use -x if we're being really verbose!
 [ $VERBOSITY -ge 4 ] && set -x
