@@ -1,2 +1,0 @@
-TITLE=Software Suspend FAQ;LINUXDOC
-

@@ -1,7 +1,0 @@
-Things that work but may break:
-
- - eflags is restored from the process's stack. If the process wasn't using a
-   stack in the normal sense, or was 4 bytes off overflowing, badness will
-   ensue.
- - syscalls are restarted. Syscall detection works by seeing if the last
-   instruction executed /ends/ with 0x80cd ... this is not reliable.
