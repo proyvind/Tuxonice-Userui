@@ -1,5 +1,5 @@
 Name: hibernate
-Version: 1.00
+Version: 1.01
 Release: 1
 License: GPL
 Group: Applications/System
@@ -43,6 +43,8 @@ rm -rf $RPM_BUILD_ROOT
 /etc/hibernate/*
 
 %changelog
+* Sun Nov 18 2004 Bernard Blackham <bernard@blackham.com.au> -
+- Updated to 1.01 final version
 * Sun Nov  7 2004 Bernard Blackham <bernard@blackham.com.au> -
 - Updated to 1.00 final version
 * Fri Aug 20 2004 Bernard Blackham <bernard@blackham.com.au> -
