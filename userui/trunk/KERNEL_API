@@ -11,14 +11,17 @@ with it.
 /proc/software_suspend/userui_program) and waits until it sends a USERUI_MSG_READY
 message or a timeout expires (10 seconds).
 
-3. userui runs, does the necessary preparation, and sends a USERUI_MSG_READY
-message with the pid of the process in the netlink message. It then simply
-waits for events to occur and process them.
+3. userui runs, and sends a USERUI_MSG_NOFREEZE_ME packet.
 
-4. suspend_userui sets the PF_NOFREEZE flag on the userui process and proceeds
-with suspending as normal.
+4. suspend_userui sets the PF_NOFREEZE flag on the userui process, so that this
+may be inherited by any children it spawns. It the sends an ack back to the
+processing telling it to proceed.
 
-5. suspend_userui sends messages to the userui process to inform it about the
+5. suspend_userui does the necessary preparation, and sends a USERUI_MSG_READY
+when it's done its preparation.  It then simply waits for events to occur and
+process them.
+
+6. suspend_userui sends messages to the userui process to inform it about the
 progress of suspending and any keypress events (if HANDLE_KEYPRESSES_IN_KERNEL
 is not defined).
 

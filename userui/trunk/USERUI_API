@@ -129,9 +129,8 @@ Disk access
 
 Forking or threading
  - Don't fork mid-suspend. Resource limits will probably ensure that it fails.
-   In theory you can probably create some forks or thread in prepare() but this
-   has not been tested. It should be safe so long as all threads follow these
-   same rules.
+   You can create forks or threads in prepare().  It should be safe so long as
+   all threads follow these same rules.
 
 Exiting
  - Exiting before the suspend/resume cycle has finished may corrupt the image.
