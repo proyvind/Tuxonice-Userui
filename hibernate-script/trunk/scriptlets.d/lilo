@@ -22,7 +22,7 @@ LILOConfigOptions() {
 	    return 1
     esac
     if [ -z "$LILO_HOOKED" ] ; then
-	AddSuspendHook 97 DoLILOHack
+	AddSuspendHook 92 DoLILOHack
 	LILO_HOOKED=1
     fi
     return 0
