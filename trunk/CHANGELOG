@@ -1,0 +1,7 @@
+0.3.1 (unreleased)
+ - Sync with splashutils 1.1.9.1 code.
+ - Use new ttf code from splashutils to render text.
+ - Fix UTF-8 handling on terminals.
+
+0.3.0 (9 March 2005)
+ - First public release
