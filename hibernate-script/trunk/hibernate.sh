@@ -19,6 +19,8 @@
 # Place - Suite 330, Boston, MA 02111-1307, USA.
 #
 
+umask 077
+
 USING_ZSH=
 USING_BASH=
 NEED_POSIX=
@@ -520,7 +522,7 @@ BoolIsOn() {
     exit 1
 }
 
-# ProcessConfigOption: takes a configuration option and it's parameters and
+# ProcessConfigOption: takes a configuration option and its parameters and
 # passes it out to the relevant scriptlet.
 ProcessConfigOption() {
     local option
