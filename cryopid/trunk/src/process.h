@@ -44,6 +44,11 @@ struct map_entry_t {
 	void* data; /* length end-start */ /* in file, simply true if is data */
 };
 
+struct fcntl_data_t {
+    int close_on_exec;
+    /* FIXME more fcntl things here */
+};
+
 struct fd_entry_t {
 	char filename[1024];
 	int fd;
@@ -52,6 +57,8 @@ struct fd_entry_t {
 	int flags;
 
     struct termios termios;
+
+    struct fcntl_data_t fcntl_data;
 
 	int data_length;
 	char *data;

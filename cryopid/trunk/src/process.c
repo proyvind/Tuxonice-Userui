@@ -576,6 +576,37 @@ int get_termios(pid_t pid, int fd, struct termios *t) {
 	return 1;
 }
 
+int get_fcntl_data(pid_t pid, int fd, struct fcntl_data_t *f) {
+	struct user_regs_struct r;
+    char* pagebackup;
+
+	if (ptrace(PTRACE_GETREGS, pid, 0, &r) == -1) {
+		perror("ptrace(GETREGS)");
+        return 0;
+    }
+
+	r.eax = __NR_fcntl;
+	r.ebx = fd;
+    r.ecx = F_GETFD;
+
+    pagebackup = backup_page(pid, (void*)scribble_zone);
+
+    if (!do_syscall(pid, &r)) return 0;
+
+	/* Error checking! */
+	if (r.eax < 0) {
+		errno = -r.eax;
+        perror("target fcntl");
+        restore_page(pid, (void*)scribble_zone, pagebackup);
+		return 0;
+	}
+    f->close_on_exec = r.eax;
+
+    restore_page(pid, (void*)scribble_zone, pagebackup);
+
+	return 1;
+}
+
 /* FIXME: split this into several functions */
 struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 	FILE *f;
@@ -716,10 +747,15 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 		if (S_ISCHR(stat_buf.st_mode) && (stat_buf.st_rdev == term_dev)) {
 			printf("    this looks like our terminal...\n");
 			proc_image->fds[fd_count].flags |= FD_IS_TERMINAL;
-            if (get_termios(target_pid, fd_count, &proc_image->fds[fd_count].termios)) {
+            if (get_termios(target_pid, proc_image->fds[fd_count].fd, &proc_image->fds[fd_count].termios)) {
                 proc_image->fds[fd_count].flags |= FD_TERMIOS;
             }
 		}
+        if (!get_fcntl_data(target_pid, proc_image->fds[fd_count].fd, &proc_image->fds[fd_count].fcntl_data)) {
+            printf("Couldn't get fcntl data :(\n");
+        } else {
+            printf("fcntl: close-on-exec:%d\n", proc_image->fds[fd_count].fcntl_data.close_on_exec);
+        }
 
 		/* Locate the offset of the file */
 		if (S_ISREG(stat_buf.st_mode)) {
