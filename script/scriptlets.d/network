@@ -1,5 +1,7 @@
 # XXX still incomplete!
 AddConfigHandler NetworkConfigOptions
+AddConfigHelp "DownNetworkInterfaces <ifname> [...]" "The names of network interfaces to bring down before suspending."
+AddConfigHelp "UpNetworkInterfaces auto|<ifname> [...]" "The names of network interfaces to bring up after suspending. If the parameter \"auto\" is given, the interfaces stoped before suspending will be started in reverse order."
 
 NetworkStop() {
     return 0
