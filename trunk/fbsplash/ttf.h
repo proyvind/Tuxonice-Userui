@@ -22,8 +22,10 @@ extern TTF_Font *global_font;
 extern char *boot_message;
 
 int TTF_Init(void);
+void TTF_Quit(void);
 void TTF_CloseFont(TTF_Font* font);
 TTF_Font* TTF_OpenFont(const char *file, int ptsize);
+int TTF_PrimeCache(char *text, TTF_Font *font, int style);
 int TTF_Render(u8 *target, char *text, TTF_Font *font, int style, int x, int y, color col);
 int load_fonts(void);
 int free_fonts(void);

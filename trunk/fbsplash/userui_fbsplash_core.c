@@ -74,6 +74,11 @@ static void fbsplash_prepare() {
 	video_num_lines = winsz.ws_row;
 	video_num_columns = winsz.ws_col;
 
+	/* Kick start our TTF library */
+	if (TTF_Init() < 0) {
+		fprintf(stderr, "Couldn't initialise TTF.\n");
+	}
+
 	/* Find out the FB size */
 	if (get_fb_settings(0))
 		return;
@@ -87,11 +92,10 @@ static void fbsplash_prepare() {
 	parse_cfg(config_file);
 	free(config_file);
 
-	arg_vc = get_active_vt();
+	/* Prime the font cache with glyphs so we don't need to allocate them later */
+	TTF_PrimeCache("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -.", global_font, TTF_STYLE_NORMAL);
 
-	if (TTF_Init() < 0) {
-		fprintf(stderr, "Couldn't initialise TTF.\n");
-	}
+	arg_vc = get_active_vt();
 
 	boot_message = lastheader;
 
@@ -137,6 +141,8 @@ static void fbsplash_cleanup() {
 
 	free(base_image);
 	base_image = NULL;
+
+	free_fonts();
 
 	TTF_Quit();
 }

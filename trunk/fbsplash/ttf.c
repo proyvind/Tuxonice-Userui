@@ -239,7 +239,6 @@ void TTF_CloseFont(TTF_Font* font)
 void TTF_SetFontStyle(TTF_Font* font, int style)
 {
 	font->style = style;
-	Flush_Cache(font);
 }
     
 TTF_Font* TTF_OpenFontIndex(const char *file, int ptsize, long index)
@@ -771,6 +770,21 @@ void TTF_RenderUNICODE_Shaded(u8 *target, const unsigned short *text,
 	free(textbuf);
 }
 
+int TTF_PrimeCache(char *text, TTF_Font *font, int style) {
+	char *p;
+
+	if (!text || !font)
+		return -1;
+
+	TTF_SetFontStyle(font, style);
+	Flush_Cache(font);
+
+	for (p = text; *p; ++p) {
+		Find_Glyph(font, *p, CACHED_METRICS|CACHED_PIXMAP);
+	}
+	
+	return 0;
+}
 
 int TTF_Render(u8 *target, char *text, TTF_Font *font, int style, int x, int y, color col)
 {
