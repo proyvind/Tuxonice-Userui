@@ -101,16 +101,17 @@ EXTRA_LONG_OPTS=""
 # help text to the help screen.
 AddOptionHelp() {
     [ -n "$DISABLE_HELP" ] && return
-    local ADDED
+    local ATEXT
+    local BIT
     local WRAPPED_HELP
-    ADDED="  $1"
-    [ -n "$CURRENT_SOURCED_SCRIPTLET" ] && ADDED="`printf '%-50s %25s' \"$ADDED\" \"($CURRENT_SOURCED_SCRIPTLET)\"`"
+    ATEXT="  $1"
+    [ -n "$CURRENT_SOURCED_SCRIPTLET" ] && ATEXT=`LeftRightPadText "$ATEXT" "[$CURRENT_SOURCED_SCRIPTLET]"`
     WRAPPED_HELP="`echo \"$2\" | WrapHelpText`"
-    ADDED="$ADDED
+    ATEXT="$ATEXT
 $WRAPPED_HELP
 
 "
-    CMDLINE_OPTIONS_HELP="$CMDLINE_OPTIONS_HELP$ADDED"
+    CMDLINE_OPTIONS_HELP="$CMDLINE_OPTIONS_HELP$ATEXT"
 }
 CMDLINE_OPTIONS_HELP=""
 
@@ -119,16 +120,16 @@ CMDLINE_OPTIONS_HELP=""
 # does want to be started. Text wrapping is taken care of.
 AddConfigHelp() {
     [ -n "$DISABLE_HELP" ] && return
-    local ADDED
+    local ATEXT
     local WRAPPED_HELP
-    ADDED="  $1"
-    [ -n "$CURRENT_SOURCED_SCRIPTLET" ] && ADDED="`printf '%-60s %15s' \"$ADDED\" \"($CURRENT_SOURCED_SCRIPTLET)\"`"
+    ATEXT="  $1"
+    [ -n "$CURRENT_SOURCED_SCRIPTLET" ] && ATEXT=`LeftRightPadText "$ATEXT" "[$CURRENT_SOURCED_SCRIPTLET]"`
     WRAPPED_HELP="`echo \"$2\" | WrapHelpText`"
-    ADDED="$ADDED
+    ATEXT="$ATEXT
 $WRAPPED_HELP
 
 "
-    CONFIGURATION_OPTIONS_HELP="$CONFIGURATION_OPTIONS_HELP$ADDED"
+    CONFIGURATION_OPTIONS_HELP="$CONFIGURATION_OPTIONS_HELP$ATEXT"
 }
 CONFIGURATION_OPTIONS_HELP=""
 
@@ -185,6 +186,22 @@ END {
     print "\n"
 }
 '
+}
+
+# LeftRightPadText <left> <right>": returns a string comprised of the two
+# arguments with padding in between to make the string 78 characters long.
+LeftRightPadText() {
+    (echo "$1" ; echo "$2") | awk '
+BEGIN {
+    OFS=""; ORS="";
+    getline
+    print
+    a=78-length()
+    getline
+    for(a-=length(); a>=0; a--) {print " "}
+    print
+}'
+
 }
 
 # PluginConfigOption <params>: queries all loaded scriptlets if they want to
