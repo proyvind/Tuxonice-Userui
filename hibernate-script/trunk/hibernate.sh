@@ -3,21 +3,21 @@
 # vim:ft=sh:ts=8:sw=4:noet
 #
 # Suspend Script - Copyright (C) 2004 Bernard Blackham <bernard@blackham.com.au>
-# 
+#
 # The hibernate-script package is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option) any later
 # version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 # FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
 # details.
-# 
+#
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, write to the Free Software Foundation, Inc., 59 Temple
 # Place - Suite 330, Boston, MA 02111-1307, USA.
-# 
+#
 
 # For zsh sanity...
 #   allows splitting strings on whitespace in zsh.
@@ -234,7 +234,7 @@ EnsureHavePrerequisites() {
 	    AWK_FMT="$1"
 	    shift
 	    AWK_PARAMS=""
-	    for i in "$@" ; do 
+	    for i in "$@" ; do
 		AWK_PARAMS="$AWK_PARAMS, \"$i\""
 	    done
 	    awk "BEGIN { printf ( \"$AWK_FMT\" $AWK_PARAMS ) }"
@@ -435,15 +435,15 @@ ProcessConfigOption() {
     params="$@"
     case $option in
 	alwaysforce)
-	    [ -z "$FORCE_ALL" ] && 
+	    [ -z "$FORCE_ALL" ] &&
 		BoolIsOn "$option" "$params" && FORCE_ALL=1
 	    ;;
 	alwayskill)
-	    [ -z "$KILL_PROGRAMS" ] && 
+	    [ -z "$KILL_PROGRAMS" ] &&
 		BoolIsOn "$option" "$params" && KILL_PROGRAMS=1
 	    ;;
 	logfile)
-	    [ -z "$LOGFILE" ] && 
+	    [ -z "$LOGFILE" ] &&
 		LOGFILE="$params"
 	    ;;
 	logverbosity)
@@ -453,7 +453,7 @@ ProcessConfigOption() {
 	    SWSUSPVT="$params"
 	    ;;
 	verbosity)
-	    [ -z "$OPT_VERBOSITY" ] && 
+	    [ -z "$OPT_VERBOSITY" ] &&
 		VERBOSITY="$params"
 	    ;;
 	distribution)
