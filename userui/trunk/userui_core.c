@@ -227,7 +227,7 @@ static void do_test_run() {
 	int i;
 
 	userui_ops->message(0, 0, 1, "Hello World");
-	for (i = 0; i < 20; i++) {
+	for (i = 0; i <= 20; i++) {
 		userui_ops->update_progress(i, 20, "Suspending to disk...");
 		usleep(100*1000);
 	}
