@@ -9,7 +9,7 @@ AddConfigHelp "UseSwsusp2 <boolean>" "Enable/disable the use of Software Suspend
 AddConfigHelp "Reboot <boolean> (requires UseSwsusp2 on)" "Controls whether or not swsusp should reboot after suspending. Setting this to yes will force a reboot. Setting this to no will force shutting down. Omitting this option will leave rebooting behaviour unchanged."
 AddShortOption "r::"
 AddLongOption "reboot::"
-AddOptionHelp "-r[0|1], --reboot[=<0|1>]" "If 0 is specified, disables rebooting after suspend, regardless of the Reboot option in the configuration file. If 1 or omitted, will force a reboot after suspending."
+AddOptionHelp "-r[0|1], --reboot[=<0|1>] (requires UseSwsusp2 on)" "If 0 is specified, disables rebooting after suspend, regardless of the Reboot option in the configuration file. If 1 or omitted, will force a reboot after suspending."
 
 AddConfigHelp "EnableEscape <boolean> (requires UseSwsusp2 on)" "If specified, allows (or disallows) the use of the escape key to abort a suspend. If this line is not specified, the Escape key's behaviour is unchanged."
 
@@ -19,7 +19,7 @@ AddConfigHelp "Swsusp2AllSettings <params> (requires UseSwsusp2 on)" "If specifi
 
 AddShortOption "n"
 AddLongOption "no-suspend"
-AddOptionHelp "-n, --no-suspend" "Disables actually suspending the system. This is useful for testing the suspend script itself."
+AddOptionHelp "-n, --no-suspend (requires UseSwsusp2 on)" "Disables actually suspending the system. This is useful for testing the suspend script itself."
 
 SWSUSP_ROOT="/proc/swsusp"
 SWSUSP_INTERFACE_VERSION=15
@@ -36,9 +36,13 @@ Swsusp2ConfigEnabler() {
 }
 
 Swsusp2OptionHandler() {
+    # Don't parse options if we're not being used.
+    [ -z "$USING_SWSUSP2" ] && return 1
+
     case $1 in
 	-r|--reboot)
 	    if [ -z "$2" ] ; then
+		# Cmd-line options will always override config file
 		OPT_REBOOT=1
 	    else
 		BoolIsOn "-r" "$2" && OPT_REBOOT=1 || OPT_REBOOT=0
@@ -50,10 +54,6 @@ Swsusp2OptionHandler() {
 	*)
 	    return 1
     esac
-    if [ -z "$SWSUSP2_HOOKED" ] ; then
-	AddSuspendHook 98 Swsusp2ConfigSet
-	SWSUSP2_HOOKED=1
-    fi
     return 0
 }
 
