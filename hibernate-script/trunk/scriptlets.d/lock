@@ -1,0 +1,118 @@
+# -*- sh -*-
+# vim:ft=sh:ts=8:sw=4:noet
+
+AddConfigHandler LockOptions
+AddConfigHelp "LockKDE <boolean> [...]" "Lock all local KDE sessions running before suspending."
+AddConfigHelp "LockXScreenSaver <boolean> [...]" "Lock all local X11 sessions with xscreensaver running before suspending."
+AddConfigHelp "LockConsole <boolean> [...]" "Lock all consoles just after resuming via vlock."
+
+LockKde() {
+    local avail_sessions
+    local session
+
+    [ x"$LOCK_KDE" = "x1" ] || return 1
+
+    # get all sessions (ignore non local ones!)
+    avail_sessions=`dcop --all-users --list-sessions | grep .DCOP | grep __0`
+
+    #send to all sessions the lock command
+    for session in $avail_sessions; do
+	vecho 1 "Locking $session"
+	# dev/null because dcop warns if it can't connect to X (this is normal!)
+        dcop --session $session --all-users kdesktop KScreensaverIface lock > /dev/null 2>&1
+    done
+
+    # returning 0 cause dcop warns if it can't connect to X (this is normal!)
+    return 0
+}
+
+LockXScreensaver() {
+    local avail_sessions
+    local display
+
+    # find a list of running X servers
+    displays=$(find /tmp -name '.X*-lock' -maxdepth 1 -print | sed -e 's/.*X\([0-9]\)\+-lock/\1/g')
+
+    for display in $displays; do
+	local xpid xauth
+	xpid=$(awk '{print $1;}' /tmp/.X$display-lock)
+	xauth=$(cat /proc/$xpid/cmdline | sed -e 's/\(.\|[^.]\)*[^[:print:]]-auth[^[:print:]]\(.*\)[^[:print:]]\(.\|[^.]\)*/\2/g')
+	vecho 2 "Locking xscreensaver on display :$display using authority file $xauth"
+	DISPLAY=:$display XAUTHORITY=$xauth xscreensaver-command -lock
+    done
+
+    # it takes a while for xscreensaver to actually lock
+    # FIXME is this ideal behaviour? it slows down suspending :(
+    sleep 2
+}
+
+LockConsole() {
+
+    [ x"$LOCK_CONSOLE" = "x1" ] || return 1
+  
+    # use vlock to lock all consoles
+    vecho 1 "Locking all consoles"
+    vlock -a || return 1
+
+    # switch back to console before locking
+    [ -n "$LOCK_ORIGINAL_VT" ] && chvt $LOCK_ORIGINAL_VT
+	
+}
+
+SwitchToLockConsole() {
+
+    # stolen from xhacks
+    which fgconsole > /dev/null 2>&1 && LOCK_ORIGINAL_VT=`fgconsole` || LOCK_ORIGINAL_VT=1
+    [ -z "$SWSUSPVT" ] && LOCK_DEST_VT=15 || LOCK_DEST_VT="$SWSUSPVT"
+    vecho 2 "lock: changing console from $LOCK_ORIGINAL_VT to $LOCK_DEST_VT"
+    chvt $DEST_VT || return 1
+				
+}
+
+LockOptions() {
+    case $1 in
+        lockkde)
+	    BoolIsOn "$1" "$2" && LOCK_KDE=1 || LOCK_KDE=0
+	    
+	    if [ -z "$KDELOCK_HOOKED" ] ; then
+		# do it before switching out of X
+		AddSuspendHook 10 LockKde
+		KDELOCK_HOOKED=1
+	    fi
+	    ;;
+
+	lockxscreensaver)
+	    if [ -z "$LOCK_XSCREENSAVER" ]; then
+		BoolIsOn "$1" "$2" && LOCK_XSCREENSAVER=1 || LOCK_XSCREENSAVER=0
+		if [ -z "$XSCREENSAVERLOCK_HOOKED" ]; then
+		    AddSuspendHook 10 LockXScreensaver
+		    XSCREENSAVERLOCK_HOOKED=1
+		fi
+	    fi
+	    ;;
+
+        lockconsole)
+	    if [ -z "$LOCK_CONSOLE" ] ; then
+		BoolIsOn "$1" "$2" && LOCK_CONSOLE=1 || LOCK_CONSOLE=0
+
+	        if [ -z "$CONSOLELOCK_HOOKED" ] ; then
+
+		    # call vlock just after beeing back from resuming system call
+		    # to avoid switching consoles and ask for password
+    		    AddResumeHook 99 LockConsole
+
+		    # force switching to an VT to see the question for the password :)
+    		    AddSuspendHook 99 SwitchToLockConsole
+
+    		    CONSOLELOCK_HOOKED=1
+		fi
+	    fi
+	    ;;
+
+	*)
+	    return 1
+    esac
+
+    return 0
+}
+
