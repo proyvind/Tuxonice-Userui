@@ -468,6 +468,20 @@ button event.
 <sect1>It hangs when "Copying original kernel back"
 <p>See <url url="HOWTO-5.html#ss5.2" name="the HOWTO">.
 
+<sect1>It hangs when "Reading caches" and I have a Toshiba laptop
+<p>This is a known problem that emerged somewhere between kernel versions 2.6.7
+and 2.6.9.  The machine will hang at a different point every time - sometimes
+when "Copying original kernel back", sometimes during "Reading caches".
+Occasionally, resuming will succeed. This appears to be because of some
+periodic ACPI event that is sent whilst resuming which affects the resume
+process.
+<p>One workaround is to boot with <tt>acpi=off</tt> on the kernel command-line
+when resuming.  However this means that many ACPI devices on your system will
+not function after resuming, including buttons, ACPI-controlled fans, and
+possibly battery status.  Some systems are even completely unusable if resumed
+with acpi=off.
+<p>We're looking to the ACPI guys for a solution to this one.
+
 <sect>Modular Software Suspend<label id="modular">
 
 <p>The "HOWTO" part of this section has been moved to the <url url="HOWTO-7.html#modular" name="HOWTO">
