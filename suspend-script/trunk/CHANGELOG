@@ -1,7 +1,8 @@
 0.92
- - /etc/suspend/ and suspend.conf are now called /etc/hibernate/ and
-   hibernate.conf for consistency.
- - Redirect stderr to stdout so that both get logged.
+ - /etc/suspend/, suspend.conf, and swsusp.log are now called /etc/hibernate/,
+   hibernate.conf and hibernate.log for consistency.
+ - Redirect stderr to stdout so that both get logged. $LOGPIPE is also no
+   longer required in scriptlets.
  - Cause abort if module unloading fails. (Cameron Patrick)
  - Lots of speed improvements!
 

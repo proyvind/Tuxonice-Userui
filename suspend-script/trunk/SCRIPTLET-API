@@ -14,8 +14,8 @@ STDOUT/STDERR
 -------------
 
 A scriptlet should use vecho rather than echo, and choose a verbosity level
-appropriately (see vecho, below). It should also either redirect subprocess's
-output to /dev/null if irrelevant, or pipe to $LOGPIPE if worth logging.
+appropriately (see vecho, below). All scriptlet output is automatically send to
+$LOGPIPE
 
 FUNCTIONS
 ---------
