@@ -7,13 +7,22 @@ AddConfigHelp "LoadModulesFromFile <filename>" "Load default modules after resum
 ModulesUnload() {
     [ -z "$MOD_UNLOAD" ] && return 0
     local mod
+    local ret
     MOD_UNLOADED=""
+    ret=0
     for mod in $MOD_UNLOAD ; do 
-	vecho 1 "Unloading module $mod..."
-	modprobe -r $mod | $LOGPIPE
-	MOD_UNLOADED="$MOD_UNLOADED $mod"
+	vecho 1 -n "Unloading module $mod... "
+
+	grep -vq "$mod " /proc/modules && vecho 1 "not loaded." && continue
+
+	if modprobe -r $mod > /dev/null 2>&1 ; then # FIXME - use $LOGPIPE
+	    vecho 1
+	    MOD_UNLOADED="$MOD_UNLOADED $mod"
+	else
+	    vecho 1 "failed!"
+	fi
     done
-    return 0
+    return $ret
 }
 
 ModulesLoad() {
@@ -55,11 +64,13 @@ ModulesUnloadAll() {
 
     # check which are still loaded and retry until nothing changes
     mod_retry_count=0
-    while [ "$modafter" != "$modules" ] ; do
+    while [ "$modafter" != "$modbefore" ] ; do
+	modbefore="$modafter"
 	usleep 200000
 	ModulesUnloadAllOnce
-	modafter=`awk '($3==0){print $1}' /proc/modules`
+	modafter="`awk '($3==0){print $1}' /proc/modules`"
 	[ "$mod_retry_count" -gt 5 ] && break
+	[ -z "$modafter" ] && return 0
 	mod_retry_count=$(($mod_retry_count+1))
     done
 
