@@ -32,6 +32,8 @@ int write_proc_image_to_file(struct proc_image_t* p, int fd) {
 	fwrite(&p->user_data, sizeof(p->user_data), 1, f);
 	fwrite(&p->i387_data, sizeof(p->i387_data), 1, f);
 
+	fwrite(&p->uses_tls, sizeof(p->uses_tls), 1, f);
+
 	fwrite(&p->num_maps, sizeof(p->num_maps), 1, f);
 	for (i = 0; i < p->num_maps; i++) {
 		fwrite(&p->maps[i], sizeof(p->maps[i]), 1, f);

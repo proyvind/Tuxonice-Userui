@@ -73,6 +73,7 @@ struct proc_image_t {
     pid_t pid;
 	struct user user_data;
 	struct user_i387_struct i387_data;
+    int uses_tls;
 	int num_maps;
 	struct map_entry_t *maps;
 	int num_tls;
