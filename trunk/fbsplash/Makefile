@@ -1,5 +1,5 @@
 CFLAGS := -Wall -O3 -g
-INCLUDES = -I. -I/usr/include/freetype2/
+INCLUDES = -I/usr/include/freetype2/
 
 TARGET = userui_fbsplash.o
 OBJECTS = userui_fbsplash_core.o cmd.o common.o image.o list.o parse.o render.o ttf.o

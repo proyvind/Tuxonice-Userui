@@ -23,7 +23,7 @@
 #include "splash.h"
 
 #ifdef CONFIG_FBSPLASH
-#include <linux/console_splash.h>
+#include "linux/console_splash.h"
 
 void cmd_setstate(unsigned int state, unsigned char origin)
 {
