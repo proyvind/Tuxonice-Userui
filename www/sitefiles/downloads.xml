@@ -9,17 +9,15 @@
 
  <section name="Development Patches">
 
-  <!--
-  <release name="2.1.7.2">
-   <kernel name="2.6.11-rc5"></kernel>
+  <release name="2.1.8.1">
+   <kernel name="2.6.11"></kernel>
   </release>
-  -->
 
  </section>
 
  <section name="Stable Patches">
 
-  <release name="2.1.8.1">
+  <release name="2.1.8">
    <kernel name="2.6.11"></kernel>
   </release>
 
