@@ -108,12 +108,9 @@ static void fbsplash_prepare() {
 
 	boot_message = rendermessage;
 
-	fb_fd = open("/dev/fb0", O_RDWR);
-	if (fb_fd == -1) {
-		fb_fd = open("/dev/fb/0", O_RDWR);
-		if (fb_fd == -1)
-			perror("open(\"/dev/fb0\")");
-	}
+	fb_fd = open_fb();
+	if (fb_fd == -1)
+		return;
 
 	fbsplash_fd = open(SPLASH_DEV, O_WRONLY); /* Don't worry if it fails */
 

@@ -199,7 +199,7 @@ int open_fb()
 		sprintf(dev, "/dev/fb/%d", arg_fb);
 		if ((c = open(dev, O_RDWR)) == -1) {
 			printerr("Failed to open /dev/fb%d or /dev/fb/%d.\n", arg_fb, arg_fb);
-			return 0;
+			return -1;
 		}
 	}
 
