@@ -59,10 +59,9 @@ void cmd_setcfg(unsigned char origin)
 	};
 	
 	fd = open(SPLASH_DEV, O_WRONLY);
-	if (fd == -1) {
-		fprintf(stderr, "Can't open %s\n", SPLASH_DEV);
+	if (fd == -1)
 		return;
-	}
+
 	vc_cfg.tx = cf.tx;
 	vc_cfg.ty = cf.ty;
 	vc_cfg.twidth = cf.tw;

@@ -87,6 +87,9 @@ static void fbsplash_prepare() {
 	if (get_fb_settings(0))
 		return;
 
+	arg_vc = get_active_vt();
+	arg_mode = 's';
+
 	/* Read theme config file */
 	arg_theme = DEFAULT_THEME;
 	config_file = get_cfg_file(arg_theme);
@@ -99,8 +102,6 @@ static void fbsplash_prepare() {
 	/* Prime the font cache with glyphs so we don't need to allocate them later */
 	TTF_PrimeCache("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -.", global_font, TTF_STYLE_NORMAL);
 
-	arg_vc = get_active_vt();
-
 	boot_message = lastheader;
 
 	fb_fd = open("/dev/fb0", O_WRONLY);
@@ -112,6 +113,7 @@ static void fbsplash_prepare() {
 
 	do_getpic(FB_SPLASH_IO_ORIG_USER, 0, 's');
 	do_config(FB_SPLASH_IO_ORIG_USER);
+	cmd_setstate(1, FB_SPLASH_IO_ORIG_USER);
 
 	/* copy the silent pic to base_image for safe keeping */
 	base_image_size = silent_img.width * silent_img.height * (silent_img.depth >> 3);
