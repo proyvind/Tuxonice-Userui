@@ -78,7 +78,7 @@ H1 {
 	TEXT-ALIGN: center;
 	FONT-FAMILY: verdana, arial, helvetica, sans-serif;
 	FONT-SIZE: large;
-    FONT-WEIGHT: bold;
+	FONT-WEIGHT: bold;
 	BACKGROUND-COLOR: #222266;
 	COLOR: #FFFFBB;
 	TEXT-SHADOW: 0.2em 0.2em;
@@ -91,12 +91,12 @@ H1 {
 	TEXT-ALIGN: right;
 	FONT-FAMILY: verdana, arial, helvetica, sans-serif;
 	FONT-SIZE: medium;
-    FONT-WEIGHT: bold;
+	FONT-WEIGHT: bold;
 	/*BACKGROUND-COLOR: #444488;*/
-    BORDER-BOTTOM-STYLE: dashed;
-    BORDER-LEFT-STYLE: dashed;
-    BORDER-RIGHT-STYLE: dashed;
-    BORDER-COLOR: #222266;
+	BORDER-BOTTOM-STYLE: dashed;
+	BORDER-LEFT-STYLE: dashed;
+	BORDER-RIGHT-STYLE: dashed;
+	BORDER-COLOR: #222266;
 	COLOR: #222266;
 	TEXT-SHADOW: 0.2em 0.2em;
 	PADDING-TOP: 0.2em;
@@ -176,7 +176,7 @@ ADDRESS {
 
 .download_section {
 	BACKGROUND-COLOR: #222266;
-	COLOR: #cccccc;
+	COLOR: #FFFFBB;
 	FONT-WEIGHT: bold;
 	PADDING-LEFT: 1em;
 }
