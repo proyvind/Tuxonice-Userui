@@ -471,7 +471,7 @@ for bit in `SortSuspendBits` ; do
     $bit
     ret="$?"
     # A return value >= 2 denotes we can't go any further, even with --force.
-    if [ $ret -gt 2 ] ; then
+    if [ $ret -ge 2 ] ; then
 	vecho 1 "$EXE: $bit refuses to let us continue."
 	vecho 0 "$EXE: Aborting."
 	break
