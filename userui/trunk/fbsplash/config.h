@@ -3,3 +3,4 @@
 /* #undef CONFIG_PNG */
 
 #define THEME_DIR "/etc/splash"
+#define DEFAULT_THEME "suspend2"

@@ -77,7 +77,7 @@ static void fbsplash_prepare() {
 		return;
 
 	/* Read theme config file */
-	arg_theme = "suspend2";
+	arg_theme = DEFAULT_THEME;
 	config_file = get_cfg_file(arg_theme);
 	if (config_file)
 		parse_cfg(config_file);
@@ -169,8 +169,7 @@ static void fbsplash_update_progress(unsigned long value, unsigned long maximum,
 	arg_progress = tmp;
 	arg_task = paint;
 
-	if (console_loglevel < SUSPEND_ERROR)
-		draw_boxes((u8*)pic.data, 's', FB_SPLASH_IO_ORIG_USER);
+	draw_boxes((u8*)pic.data, (console_loglevel < SUSPEND_ERROR)?'s':'v', FB_SPLASH_IO_ORIG_USER);
 }
 
 static void fbsplash_log_level_change(int loglevel) {
