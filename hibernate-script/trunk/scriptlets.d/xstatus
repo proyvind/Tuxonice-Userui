@@ -86,7 +86,7 @@ XStatusProgressStart_gnome() {
 	ZENITY_FIFO=`mktemp /tmp/tmp.hibernate.XXXXXX`
 	rm -f $ZENITY_FIFO
 	mknod $ZENITY_FIFO p
-	XStatusProgressStart_gnomeZenityHelper < $ZENITY_FIFO &
+	XStatusProgressStart_gnomeZenityHelper $1 < $ZENITY_FIFO &
 	ZENITY_PID=$!
 	exec 8>$ZENITY_FIFO
     else
