@@ -139,3 +139,32 @@ means that it renders well anywhere (tabstops are universally 8 spaces), and
 tabbing is consistent. Don't worry too much - I'll generally fix the whitespace
 in any code I commit.
 
+SKELETON EXAMPLE
+----------------
+
+This needs more work, but gives you the general idea of structure.
+
+--- snip: scriptlets.d/skeleton ---
+AddConfigHandler SkeletonOptions
+
+SkeletonSuspend() {
+    return 0
+}
+
+SkeletonResume() {
+    return 0
+}
+
+SkeletonOptions() {
+    case $1 in
+	*)
+	    return 1
+    esac
+
+    if [ -z "$SKELETON_HOOKED" ] ; then
+	AddSuspendHook 20 SkeletonSuspend
+	AddResumeHook 20 SkeletonResume
+	SKELETON_HOOKED=1
+    fi
+    return 0
+}
