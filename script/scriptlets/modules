@@ -51,7 +51,7 @@ ModulesAutoLoad() {
 		# This is distribution specific	
 		# XXX - add code for other distros
 		
-		if [ "$DISTRIBUTION" == "Gentoo" ] ;then
+		if [ "$DISTRIBUTION" = "gentoo" ] ;then
 			# for gentoo users
 			source /sbin/functions.sh
 			# taken from gentoo's /etc/init.d/modules
@@ -82,7 +82,7 @@ ModulesAutoLoad() {
 
 			while read MOD args ; do
 				case "${MOD}" in
-					#*|"") continue ;;
+					\#*|"") continue ;;
 				esac
 				vecho 1 "Loading $MOD" 
 				modprobe ${MOD} ${args} | $LOGPIPE
