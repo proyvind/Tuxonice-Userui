@@ -37,6 +37,7 @@
 
 static int nlsock = -1;
 static int test_run = 0;
+static int need_cleanup = 0;
 
 char software_suspend_version[32];
 
@@ -195,6 +196,10 @@ static void enforce_lifesavers() {
  * risking corrupting the image. */
 static void sig_hand(int sig) {
 	printf("userui: Ack! SIG %d\n", sig);
+	if (test_run && need_cleanup) {
+		userui_ops->cleanup();
+		exit(1);
+	}
 	sleep(60*60*1); /* 1 hour */
 	_exit(1);
 }
@@ -429,6 +434,8 @@ int main(int argc, char **argv) {
 	lock_memory();
 
 	userui_ops->prepare();
+
+	need_cleanup = 1;
 
 	nice(1);
 
