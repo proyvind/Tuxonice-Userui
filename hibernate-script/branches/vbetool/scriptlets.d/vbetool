@@ -19,10 +19,10 @@ VbetoolOptions() {
         vbetoolenable)
             BoolIsOn "$1" "$2" && LOCK_VBETOOL=1 || LOCK_VBETOOL=0
 
-            if [ -z "$KDELOCK_HOOKED" ] ; then
+            if [ -z "$VBETOOL_HOOKED" ] ; then
                 AddSuspendHook 97 VbetoolSuspend
                 AddResumeHook 97 VbetoolResume
-                KDELOCK_HOOKED=1
+                VBETOOL_HOOKED=1
             fi
             ;;
         *)
