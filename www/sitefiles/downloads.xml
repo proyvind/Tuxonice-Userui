@@ -9,7 +9,7 @@
 
  <section name="Development Patches">
 
-  <release name="2.1.8.1">
+  <release name="2.1.8.2">
    <kernel name="2.6.11"></kernel>
   </release>
 
