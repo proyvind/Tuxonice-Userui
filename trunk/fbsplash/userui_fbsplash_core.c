@@ -112,6 +112,7 @@ static void fbsplash_prepare() {
 	}
 
 	do_getpic(FB_SPLASH_IO_ORIG_USER, 0, 's');
+	do_config(FB_SPLASH_IO_ORIG_USER);
 
 	/* copy the silent pic to base_image for safe keeping */
 	base_image_size = silent_img.width * silent_img.height * (silent_img.depth >> 3);

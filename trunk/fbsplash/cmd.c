@@ -26,6 +26,22 @@
 
 void cmd_setstate(unsigned int state, unsigned char origin)
 {
+	int fd;
+	struct fb_splash_iowrapper wrapper = {
+		.vc = arg_vc,
+		.origin = origin,
+		.data = &state,
+	};
+	
+	/* As the kernel fbsplash patch is optional, we won't care about errors here. */
+
+	fd = open(SPLASH_DEV, O_WRONLY);
+	if (fd == -1)
+		return;
+
+	ioctl(fd, FBIOSPLASH_SETSTATE, &wrapper);
+
+	close(fd);
 }
 
 void cmd_setpic(struct fb_image *img, unsigned char origin)
@@ -34,14 +50,29 @@ void cmd_setpic(struct fb_image *img, unsigned char origin)
 
 void cmd_setcfg(unsigned char origin)
 {
+	int fd;
 	struct vc_splash vc_cfg;
+	struct fb_splash_iowrapper wrapper = {
+		.vc = arg_vc,
+		.origin = origin,
+		.data = &vc_cfg,
+	};
 	
+	fd = open(SPLASH_DEV, O_WRONLY);
+	if (fd == -1) {
+		fprintf(stderr, "Can't open %s\n", SPLASH_DEV);
+		return;
+	}
 	vc_cfg.tx = cf.tx;
 	vc_cfg.ty = cf.ty;
 	vc_cfg.twidth = cf.tw;
 	vc_cfg.theight = cf.th;
 	vc_cfg.bg_color = cf.bg_color;
 	vc_cfg.theme = arg_theme;
+	
+	if (ioctl(fd, FBIOSPLASH_SETCFG, &wrapper))
+		printerr("FBIOSPLASH_SETCFG failed, error code %d.\n", errno);
+	close(fd);
 }
 
 void cmd_getcfg()
