@@ -64,9 +64,9 @@ help on debugging.
 AUTHOR
 ------
 This script was written by Bernard Blackham, with contributions from:
- - Carsten Rietzschel (modules, bootsplash and grub scriptlets. many ideas and
-   bugfixes)
- - Cameron Patrick (many bugfixes and ideas, Debian packaging)
+ - Carsten Rietzschel (modules, devices, bootsplash and grub scriptlets. many
+   ideas and bugfixes)
+ - Cameron Patrick (acpi_s3, many bugfixes and ideas, Debian packaging)
  - Kevin Fenzi (rpm packaging, ideas)
 
 LICENSE
