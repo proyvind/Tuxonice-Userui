@@ -1,7 +1,12 @@
 0.3.1 (unreleased)
- - Sync with splashutils 1.1.9.1 code.
- - Use new ttf code from splashutils to render text.
- - Fix UTF-8 handling on terminals.
+ core:
+  - Try not to lag behind when flooded with progress updates.
+ text:
+  - Fix UTF-8 handling on terminals (don't use \233).
+ fbsplash:
+  - Sync with splashutils 1.1.9.1 code.
+  - Use new ttf code from splashutils to render text.
+  - Support text-in-progress bar messages.
 
 0.3.0 (9 March 2005)
  - First public release
