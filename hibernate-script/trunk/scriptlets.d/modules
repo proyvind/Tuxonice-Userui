@@ -46,7 +46,7 @@ ModulesUnload() {
 	    continue
 	fi
 
-	if modprobe -r $mod > /dev/null 2>&1 ; then
+	if rmmod $mod > /dev/null 2>&1 ; then
 	    vecho 1
 	else
 	    ret=1
