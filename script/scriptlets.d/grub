@@ -14,8 +14,8 @@ GRUB_MENU_FILE="/boot/grub/grub.conf"
 
 ChangeGrubMenu() {
     if [ x"$CHANGE_GRUB_MENU" = "x1" ] ; then
-	vecho 2 "Changing grub menu..."
 	if [ -f $GRUB_MENU_FILE ] ;then
+	    vecho 2 "Changing grub menu..."
 	    # given file exists so change menu
 	    cp -R "$GRUB_MENU_FILE" "$GRUB_MENU_FILE.suspend.sh_bak"
 	    echo  >> "$GRUB_MENU_FILE"
@@ -25,14 +25,17 @@ ChangeGrubMenu() {
 	    echo "configfile dummy" >> "$GRUB_MENU_FILE"
 	    # Call sync to ensure it is written to disk (do we still need double/triple syncs?)
 	    sync ; sync
+	else
+	    CHANGE_GRUB_MENU=0
+	    vecho 1 "Grub config file not found. Grub scriptlet disabled."
 	fi
     fi
 }
 
 RestoreGrubMenu() {
     if [ x"$CHANGE_GRUB_MENU" = "x1" ] ; then
-	vecho 2 "Restoring grub menu..."
 	if [ -f $GRUB_MENU_FILE.suspend.sh_bak ] ; then
+	    vecho 2 "Restoring grub menu..."
 	    mv -f "$GRUB_MENU_FILE.suspend.sh_bak" "$GRUB_MENU_FILE"
 	fi
     fi
@@ -61,7 +64,7 @@ GrubConfigOptions() {
 GrubCmdlineOptions() {
     case $1 in
 	-g|--restore-grub)
-	    AddSuspendHook 00 ARestoreGrub
+	    AddSuspendHook 00 RestoreGrubStandalone
 	    ;;
 	*)
 	    return 1
@@ -69,7 +72,7 @@ GrubCmdlineOptions() {
     return 0
 }
 
-ARestoreGrub() {
+RestoreGrubStandalone() {
     # we want to restore always
     CHANGE_GRUB_MENU=1
     RestoreGrubMenu
