@@ -366,6 +366,22 @@ ParseOptions() {
     DoGetOpt $opts
 }
 
+# CheckImplicitAlternateConfig <$0> : checks $0 to see if we should be
+# implicitly using a different configuration file.
+CheckImplicitAlternateConfig() {
+    local self
+    self=`basename $0`
+    case $self in
+	hibernate-*) 
+	    CONFIG_FILE="$SWSUSP_D/${self#hibernate-}.conf"
+	    vecho 1 "Using implicit configuration file $CONFIG_FILE"
+	    ;;
+	*)
+	    ;;
+    esac
+    return 0
+}
+
 # PreliminaryGetopt <options> : detects a few command-line options that need to
 # be dealt with before scriptlets and before other command-line options.
 PreliminaryGetopt() {
@@ -621,6 +637,8 @@ LOGPIPE="cat"
 
 EnsureHavePrerequisites
 EnsureHaveRoot
+
+CheckImplicitAlternateConfig $0
 
 # Test for options that will affect future choices (-h and -F currently)
 PreliminaryGetopt "$@"
