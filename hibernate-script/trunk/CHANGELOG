@@ -1,3 +1,10 @@
+0.98 ()
+ - Add ImageSizeLimit option (including "nocache" for excluding caches &
+   buffers)
+ - Initial support for a module blacklist.
+ - Stop RPM from clobbering config file.
+ - Support recursing module unloading.
+
 0.97 (30 July 2004)
  - Added lilo scriptlet to ensure the current kernel boots next time to resume.
    (inspired by Fedor Karpelevitch).
