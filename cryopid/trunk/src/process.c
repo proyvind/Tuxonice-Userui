@@ -506,7 +506,6 @@ int is_in_syscall(pid_t pid, void* eip) {
 
 int get_signal_handler(pid_t pid, int sig, struct k_sigaction *ksa) {
     struct user_regs_struct r;
-    char* pagebackup;
 
     if (ptrace(PTRACE_GETREGS, pid, 0, &r) == -1) {
 	perror("ptrace(GETREGS)");
@@ -519,15 +518,12 @@ int get_signal_handler(pid_t pid, int sig, struct k_sigaction *ksa) {
     r.edx = scribble_zone+0x100;
     r.esi = sizeof(ksa->sa_mask);
 
-    pagebackup = backup_page(pid, (void*)scribble_zone);
-
     if (!do_syscall(pid, &r)) return 0;
 
     /* Error checking! */
     if (r.eax < 0) {
 	errno = -r.eax;
 	perror("target rt_sigaction");
-	restore_page(pid, (void*)scribble_zone, pagebackup);
 	return 0;
     }
 
@@ -535,14 +531,11 @@ int get_signal_handler(pid_t pid, int sig, struct k_sigaction *ksa) {
 
     //printf("sigaction %d was 0x%lx mask 0x%x flags 0x%x restorer 0x%x\n", sig, ksa->sa_hand, ksa->sa_mask.sig[0], ksa->sa_flags, ksa->sa_restorer);
 
-    restore_page(pid, (void*)scribble_zone, pagebackup);
-
     return 1;
 }
 
 int get_termios(pid_t pid, int fd, struct termios *t) {
     struct user_regs_struct r;
-    char* pagebackup;
 
     if (ptrace(PTRACE_GETREGS, pid, 0, &r) == -1) {
 	perror("ptrace(GETREGS)");
@@ -554,28 +547,22 @@ int get_termios(pid_t pid, int fd, struct termios *t) {
     r.ecx = TCGETS;
     r.edx = scribble_zone+0x50;
 
-    pagebackup = backup_page(pid, (void*)scribble_zone);
-
     if (!do_syscall(pid, &r)) return 0;
 
     /* Error checking! */
     if (r.eax < 0) {
 	errno = -r.eax;
 	perror("target ioctl");
-	restore_page(pid, (void*)scribble_zone, pagebackup);
 	return 0;
     }
 
     memcpy_from_target(pid, t, (void*)(scribble_zone+0x50), sizeof(struct termios));
-
-    restore_page(pid, (void*)scribble_zone, pagebackup);
 
     return 1;
 }
 
 int get_fcntl_data(pid_t pid, int fd, struct fcntl_data_t *f) {
     struct user_regs_struct r;
-    char* pagebackup;
 
     if (ptrace(PTRACE_GETREGS, pid, 0, &r) == -1) {
 	perror("ptrace(GETREGS)");
@@ -586,20 +573,15 @@ int get_fcntl_data(pid_t pid, int fd, struct fcntl_data_t *f) {
     r.ebx = fd;
     r.ecx = F_GETFD;
 
-    pagebackup = backup_page(pid, (void*)scribble_zone);
-
     if (!do_syscall(pid, &r)) return 0;
 
     /* Error checking! */
     if (r.eax < 0) {
 	errno = -r.eax;
 	perror("target fcntl");
-	restore_page(pid, (void*)scribble_zone, pagebackup);
 	return 0;
     }
     f->close_on_exec = r.eax;
-
-    restore_page(pid, (void*)scribble_zone, pagebackup);
 
     return 1;
 }
@@ -619,6 +601,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
     off_t file_offset;
     DIR *proc_fd;
     struct dirent *fd_dirent;
+    char* pagebackup;
 
     proc_image = malloc(sizeof(struct proc_image_t));
 
@@ -648,6 +631,8 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
     fclose(f);
     proc_image->num_maps = map_count;
     fprintf(stderr, "[+] Read %d maps\n", map_count);
+
+    pagebackup = backup_page(target_pid, (void*)scribble_zone);
 
     /* Get process's user data (includes gen regs) */
     if (!get_user_data(target_pid, &(proc_image->user_data))) {
@@ -795,7 +780,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
     /* Save the process's command line */
     proc_image->cmdline = (char*)malloc(65536);
     sprintf(tmp_fn, "/proc/%d/cmdline", target_pid);
-    f = fopen(tmp_fn, "r");
+    f = fopen(tmp_fn, "r"); /* XXX error checking! */
     memset(proc_image->cmdline, 0, 65536);
     proc_image->cmdline_length = fread(proc_image->cmdline, sizeof(char), 65536, f);
     proc_image->cmdline[proc_image->cmdline_length++] = '\0';
@@ -804,7 +789,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
     /* Save the process's environment */
     proc_image->environ = (char*)malloc(65536);
     sprintf(tmp_fn, "/proc/%d/environ", target_pid);
-    f = fopen(tmp_fn, "r");
+    f = fopen(tmp_fn, "r"); /* XXX error checking! */
     memset(proc_image->environ, 0, 65536);
     proc_image->environ_length = fread(proc_image->environ, sizeof(char), 65536, f);
     proc_image->environ[proc_image->environ_length++] = '\0';
@@ -821,6 +806,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
     }
     printf("\n");
 
+    restore_page(target_pid, (void*)scribble_zone, pagebackup);
     end_ptrace(target_pid);
     return proc_image;
 }
