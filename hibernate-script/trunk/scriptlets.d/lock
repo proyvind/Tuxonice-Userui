@@ -98,6 +98,12 @@ SwitchToLockConsole() {
 	return 1 # abort, unless forced
     fi
 
+    if ! which tput > /dev/null 2>&1 ; then
+	vecho 0 'Cannot lock console. `tput` program not found.'
+	LOCK_CONSOLE_USER=
+	return 1 # abort, unless forced
+    fi
+
     if ! which vlock > /dev/null 2>&1 ; then
 	vecho 0 'Cannot lock console. `vlock` program not found.'
 	LOCK_CONSOLE_USER=
