@@ -72,7 +72,7 @@ hosted by Sourceforge. You can visit the mailing list, download scripts and
 updated patches at
 <url url="http://developer.berlios.de/project/showfiles.php?group_id=1412">.
 
-<p>You may want to peruse the <url url="http://softwaresuspend.berlios.de/FAQ.html" name="FAQ"> also.
+<p>You may want to peruse the <url url="http://softwaresuspend.berlios.de/FAQ" name="FAQ"> also.
 
 
 <sect> Overview
@@ -664,7 +664,7 @@ hibernation breaks.
 
 <sect1>Asking for help
 <p>People on the softwaresuspend-help and softwaresuspend-devel
-<url url="lists.html" name="mailing lists"> are generally pretty helpful, but
+<url url="###BASE###lists" name="mailing lists"> are generally pretty helpful, but
 they'll be better able to help you if you can provide more information. In
 particular, it will help if you provide information regaring what make/model of
 computer you have, what modules you have loaded while trying to suspend, and a
@@ -799,11 +799,11 @@ well with the world.
 INITRD!!</bf>
 
 <sect2>Problems
-<p>See the <url url="FAQ-6.html#modular" name="Modules FAQ"> for solutions to
+<p>See the <url url="###BASE###FAQ-6#modular" name="Modules FAQ"> for solutions to
 common problems.
 
 <sect2>Distribution specific tips
-<p>See the <url url="FAQ-6.html#ss6.4" name="Modules FAQ"> for some
+<p>See the <url url="###BASE###FAQ-6#ss6.4" name="Modules FAQ"> for some
 distribution-specific tips.
 
 <sect1>Using a swapfile<label id="swapfiles">
@@ -900,7 +900,7 @@ script.
 <p>If you are using an initramfs, you will need to do the same thing to your
 /sbin/init script, else you will never be able to resume.
 
-<p>See the <url url="FAQ-6.html#ss6.4" name="Modules FAQ"> for some
+<p>See the <url url="###BASE###FAQ-6#ss6.4" name="Modules FAQ"> for some
 distribution-specific tips.
 
 </article>

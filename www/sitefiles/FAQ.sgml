@@ -217,7 +217,7 @@ power down</tt> the suspend is complete and you can manually power off.
 option. On the lilo prompt, type something like "linux noresume2".  You may find
 useful to have one of your lilo choices launch your kernel with the noresume2
 option.  You now have to figure out why it didn't work ;-) See the
-<url url="HOWTO-5.html" name="Troubleshooting"> section of the HOWTO.
+<url url="###BASE###HOWTO-5" name="Troubleshooting"> section of the HOWTO.
 
 <sect1>Suspending and resuming takes ages, what can I do?
 <p>Using the suspend script, most of the delay is due to the necessity of
@@ -373,7 +373,7 @@ filesystem damage as well.
 
 <sect3>Scenario 2 - a second kernel does not recognise the suspend image
 <p>This is described in detail in the
-<url url="HOWTO-4.html#dataloss1" name="HOWTO (Avoiding data loss)">.
+<url url="###BASE###HOWTO-4#dataloss1" name="HOWTO (Avoiding data loss)">.
 
 <sect1>Is there any way to convince Software Suspend 2 to free things like disk
 caches and buffers but nothing else?
@@ -454,7 +454,7 @@ events). You can tell acpid only to react to one event my editing your
 button event.
 
 <sect1>It hangs when "Copying original kernel back"
-<p>See <url url="HOWTO-5.html#ss5.2" name="the HOWTO">.
+<p>See <url url="###BASE###HOWTO-5#ss5.2" name="the HOWTO">.
 
 <sect1>It hangs when "Reading caches" and I have a Toshiba laptop
 <p>This is a known problem that emerged somewhere between kernel versions 2.6.7
@@ -472,7 +472,7 @@ with acpi=off.
 
 <sect>Modular Software Suspend<label id="modular">
 
-<p>The "HOWTO" part of this section has been moved to the <url url="HOWTO-7.html#modular" name="HOWTO">
+<p>The "HOWTO" part of this section has been moved to the <url url="###BASE###HOWTO-7#modular" name="HOWTO">
 
 <sect1> I get messages about the size of struct module not agreeing when the initrd tries to insert my suspend modules.
 
