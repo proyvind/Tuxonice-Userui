@@ -6,6 +6,7 @@
  - Make mktemp calls compatible with RHEL3. (Andreas Mohr)
  - Extra error checking for numerical values. (Cameron Patrick)
  - Set a sane umask before doing anything else.
+ - Include vbetool scriptlet for better S3 support. (Cameron Patrick)
 
 1.03 (5 January 2005)
  - Add ndiswrapper to blacklist.
