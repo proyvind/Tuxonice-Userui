@@ -13,7 +13,6 @@
 int verbosity = 0;
 int do_pause = 0;
 int want_pid = 0;
-int new_cs = 0;
 int translate_pids = 0;
 int tls_hack = 1;
 long tls_start = 0;
@@ -87,7 +86,7 @@ void put_shell_code(struct user_regs_struct r, char* code) {
     /* jump back to where we were. */
 	*cp++=0xea;
 	*(unsigned long*)(cp) = r.eip; cp+= 4;
-    if (new_cs) r.cs = new_cs;
+    asm("mov %%cs,%0": "=m"(r.cs));
 	*(unsigned short*)(cp) = r.cs; cp+= 2; /* jmp cs:foo */
 }
 
@@ -545,8 +544,6 @@ void usage(char* argv0) {
 "\n"
 "    -v      Be verbose while resuming.\n"
 "    -i <fd> Do not restore the given file descriptor.\n"
-"    -c <cs> Specify a new code segment (required when migrating between\n"
-"            kernel versions. (2.4 uses 35. 2.6 uses 115)\n"
 "    -p      Pause between steps before resuming (for debugging)\n"
 "    -P      Attempt to gain original PID by way of fork()'ing a lot\n"
 "    -t      Use ptrace to translate PIDs in system calls (Experimental and\n"
@@ -581,9 +578,6 @@ void real_main(int argc, char** argv) {
 				break;
             case 'P':
                 want_pid = 1;
-                break;
-            case 'c':
-                new_cs = atoi(optarg);
                 break;
             case 't':
                 translate_pids = 1;
