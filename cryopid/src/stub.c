@@ -68,6 +68,10 @@ void put_shell_code(struct user_regs_struct r, char* code) {
 	*cp++=0xbf;*(long*)(cp) = r.edi; cp+=4; /* mov foo, %edi  */
 	*cp++=0xbd;*(long*)(cp) = r.ebp; cp+=4; /* mov foo, %ebp  */
 	*cp++=0xbc;*(long*)(cp) = r.esp; cp+=4; /* mov foo, %esp  */
+
+    *cp++=0x9d; /* pop eflags */
+
+    /* jump back to where we were. */
 	*cp++=0xea;
 	*(unsigned long*)(cp) = r.eip; cp+= 4;
 	*(unsigned short*)(cp) = r.cs; cp+= 2; /* jmp cs:foo */
@@ -223,7 +227,12 @@ int resume_image_from_file(int fd) {
 	syscall_check(
 			(int)mmap((void*)0x10000, 0x1000, PROT_READ|PROT_WRITE|PROT_EXEC,
 			MAP_FIXED|MAP_PRIVATE|MAP_ANONYMOUS, 0, 0), 0, "mmap");
+    /* put eflags onto the process' stack so we can pop it off */
+    user_data.regs.esp-=4;
+    *(long*)user_data.regs.esp = user_data.regs.eflags;
+    
 	put_shell_code(user_data.regs, (void*)0x10000);
+
 	if (do_pause)
 		sleep(2);
 	asm("jmp 0x10000");

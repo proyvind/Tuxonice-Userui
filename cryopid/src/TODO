@@ -1,5 +1,4 @@
 Sooner:
-- eflags
 - tid?
 - debug registers
 - FPU state
