@@ -28,12 +28,12 @@ static int video_num_lines, video_num_columns, cur_x = -1, cur_y = -1;
 static int vcsa_fd = -1;
 
 static inline void disable_utf8() { write(1, "\033%@", 3); }
-static inline void clear_display() { write(1, "\2332J", 3); }
-static inline void clear_to_eol() { write(1, "\233K", 2); }
-static inline void hide_cursor() { write(1, "\233?1c", 4); }
-static inline void restore_cursor() { write(1, "\233?0c", 4); }
-static inline void move_cursor_to(int c, int r) { printf("\233%d;%dH", r, c); }
-static inline void unblank_screen_via_file() { write(1, "\23313]", 4); }
+static inline void clear_display() { write(1, "\033[2J", 4); }
+static inline void clear_to_eol() { write(1, "\033K", 3); }
+static inline void hide_cursor() { write(1, "\033[?1c", 5); }
+static inline void restore_cursor() { write(1, "\033[?0c", 5); }
+static inline void move_cursor_to(int c, int r) { printf("\033[%d;%dH", r, c); }
+static inline void unblank_screen_via_file() { write(1, "\033[13]", 5); }
 
 static int update_cursor_pos(void) {
 	struct {
