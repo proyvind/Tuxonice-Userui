@@ -143,8 +143,8 @@ int resume_image_from_file(int fd) {
 		safe_read(fd, tlsdata, 0x1000, "tls data");
         if (!tls.base_addr) continue;
 
-        asm("mov %%gs, %0" : "=m"(savegs));
-        asm("mov %0, %%gs" : : "r"((tls.entry_number*8)+3));
+        asm("mov %%gs, %w0" : "=q"(savegs));
+        asm("mov %w0, %%gs" : : "q"((tls.entry_number*8)+3));
         for(j = 0, ptr = (void*)0xffffe000; j < 0x1000; ptr+=4, j+=4) {
             asm(
                     "movl %0,%%eax\n"
@@ -153,7 +153,7 @@ int resume_image_from_file(int fd) {
                     : : "m"(tlsdata[j/4]), "m"(ptr)
                     );
         }
-        asm("mov %0, %%gs" : : "m"(savegs));
+        asm("mov %w0, %%gs" : : "q"(savegs));
 	}
     free(tlsdata);
 
