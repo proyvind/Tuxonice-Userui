@@ -4,6 +4,7 @@ Sooner:
 - FPU state
 - termcaps
 - check all thread entry_nums ?
+- supervisor process?
 
 Later:
 - compressor support
