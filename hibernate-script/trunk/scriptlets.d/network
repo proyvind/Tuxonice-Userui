@@ -68,8 +68,8 @@ NetworkConfigOptions() {
 	    return 1
     esac
     if [ -z "$NETWORK_HOOKED" ] ; then
-	AddSuspendHook 80 NetworkStop
-	AddResumeHook 80 NetworkStart
+	AddSuspendHook 60 NetworkStop
+	AddResumeHook 60 NetworkStart
 	NetworkDetectDistro
 	NETWORK_HOOKED=1
     fi
