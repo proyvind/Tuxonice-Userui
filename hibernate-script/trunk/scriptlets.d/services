@@ -65,15 +65,12 @@ ServicesDetectDistro() {
     case "$DISTRIBUTION" in
 	gentoo)
 	    INITDIR=/etc/init.d
-	    RLVLDIR=/etc/init.d
 	    ;;
 	suse|mandrake)
 	    INITDIR=/etc/init.d
-	    RLVLDIR=/etc/rc.d
 	    ;;
 	debian|slackware|redhat|fedora)
 	    INITDIR=/etc/init.d
-	    RLVLDIR=/etc
 	    ;;
     	*)
 	    # Auto-detect
@@ -85,19 +82,8 @@ ServicesDetectDistro() {
 		vecho 1 "Can not determine init.d directory. Services will not be suspended!"
 		SERVICES_HOOKED=""
 	    fi
-
-	    if [ -d "/etc/rc.d/rc0.d/" ] ; then
-	    	RLVLDIR=/etc/rc.d
-	    elif [ -d "/etc/init.d/rc0.d" ] ; then
-	    	RLVLDIR=/etc/init.d
-	    elif [ -d "/etc/rc0.d" ] ; then
-	    	RLVLDIR=/etc
-	    else
-		vecho 1 "Can not determine rc.d directory. Services will not be suspended!"
-		SERVICES_HOOKED=""
-	    fi
     esac
-    vecho 3 "Using '$INITDIR' and init.d directory and '$RLVLDIR' as rc.d directory."
+    vecho 3 "Using '$INITDIR' as init.d directory."
     return 0
 }
 
