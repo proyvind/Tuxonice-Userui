@@ -29,7 +29,7 @@ SWSUSP_D="/etc/hibernate"
 SCRIPTLET_PATH="/usr/share/hibernate/scriptlets.d $SWSUSP_D/scriptlets.d /usr/local/share/hibernate/scriptlets.d"
 CONFIG_FILE="$SWSUSP_D/hibernate.conf"
 EXE=`basename $0`
-VERSION="0.96-rc1"
+VERSION="0.96-rc2"
 
 # vecho N <echo params>: acts like echo but with verbosity control - If it's
 # high enough to go to stdout, then it'll get logged as well.  Else write it to

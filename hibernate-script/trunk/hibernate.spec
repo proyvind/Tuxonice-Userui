@@ -1,9 +1,9 @@
 Name: hibernate
 Version: 0.96
-Release: rc1
+Release: rc2
 License: GPL
 Group: Applications/System
-URL: http://dagobah.ucc.asn.au/swsusp/script2/hibernate-script-0.96-rc1.tar.gz
+URL: http://dagobah.ucc.asn.au/swsusp/script2/hibernate-script-0.96-rc2.tar.gz
 Source0: hibernate-script-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Summary: software suspend 2 hibernate script
@@ -43,6 +43,8 @@ rm -rf $RPM_BUILD_ROOT
 /etc/hibernate/*
 
 %changelog
+* Sat Jul 24 2004 Bernard Blackham <bernard@blackham.com.au> -
+- Updated to 0.96-rc2 version
 * Sat Jul 24 2004 Bernard Blackham <bernard@blackham.com.au> -
 - Updated to 0.96-rc1 version
 * Fri Jul 23 2004 Bernard Blackham <bernard@blackham.com.au> -
