@@ -3,7 +3,6 @@ Sooner:
 - debug registers
 - FPU state
 - termcaps
-- signal handlers
 - check all thread entry_nums ?
 
 Later:
