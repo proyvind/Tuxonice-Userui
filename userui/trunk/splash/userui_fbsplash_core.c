@@ -224,6 +224,11 @@ static void fbsplash_redraw() {
 static void fbsplash_keypress(int key) {
 }
 
+static unsigned long fbsplash_memory_required() {
+	/* Reserve enough for another frame buffer */
+	return (fb_var.xres * fb_var.yres * (fb_var.bits_per_pixel >> 3));
+}
+
 static struct userui_ops userui_fbsplash_ops = {
 	.name = "fbsplash",
 	.prepare = fbsplash_prepare,
@@ -233,6 +238,7 @@ static struct userui_ops userui_fbsplash_ops = {
 	.log_level_change = fbsplash_log_level_change,
 	.redraw = fbsplash_redraw,
 	.keypress = fbsplash_keypress,
+	.memory_required = fbsplash_memory_required,
 };
 
 struct userui_ops *userui_ops = &userui_fbsplash_ops;
