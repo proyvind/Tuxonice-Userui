@@ -29,7 +29,7 @@ SWSUSP_D="/etc/hibernate"
 SCRIPTLET_DIR="$SWSUSP_D/scriptlets.d/"
 CONFIG_FILE="$SWSUSP_D/hibernate.conf"
 EXE=`basename $0`
-VERSION="0.92.1"
+VERSION="0.93"
 
 # vecho N <echo params>: acts like echo but with verbosity control - If it's
 # high enough to go to stdout, then it'll get logged as well.  Else write it to
@@ -483,6 +483,56 @@ EnsureHaveRoot() {
     return 0
 }
 
+# DoWork: Does the actual calling of scriptlet functions. We wrap this to make
+# it easy to decide whether or not to pipe its output to $LOGPIPE or not.
+DoWork() {
+    # Trap Ctrl+C
+    trap ctrlc_handler INT
+
+    # Do everything we need to do to suspend. If anything fails, we don't
+    # suspend.  Suspend itself should be the last one in the sequence.
+
+    local ret
+    local CHAIN_UP_TO
+    local bit
+
+    CHAIN_UP_TO=0
+    for bit in `SortSuspendBits` ; do
+	CHAIN_UP_TO="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)}\"`"
+	bit=${bit##$CHAIN_UP_TO}
+	vecho 1 "$EXE: Executing $bit ... "
+	$bit
+	ret="$?"
+	# A return value >= 2 denotes we can't go any further, even with --force.
+	if [ $ret -ge 2 ] ; then
+	    # If the return value is 3 or higher, be silent.
+	    if [ $ret -eq 2 ] ; then
+		vecho 1 "$EXE: $bit refuses to let us continue."
+		vecho 0 "$EXE: Aborting."
+	    fi
+	    break
+	fi
+	# A return value of 1 means we can't go any further unless --force is used
+	if [ $ret -gt 0 ] && [ x"$FORCE_ALL" != "x1" ] ; then
+	    vecho 0 "$EXE: Aborting suspend due to errors."
+	    break
+	fi
+	if [ -n "$SUSPEND_ABORT" ] ; then
+	    vecho 0 "$EXE: Aborted suspend with Ctrl+C."
+	    break
+	fi
+    done
+
+    # Resume and cleanup and stuff.
+    for bit in `SortResumeBits` ; do
+	THIS_POS="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)}\"`"
+	bit=${bit##$THIS_POS}
+	[ "$THIS_POS" -gt "$CHAIN_UP_TO" ] && continue
+	vecho 1 "$EXE: Executing $bit ... "
+	$bit
+    done
+}
+
 ctrlc_handler() {
     SUSPEND_ABORT=1
 }
@@ -511,7 +561,7 @@ ParseOptions "$@"
 ReadConfigFile
 
 # Set a logfile if we need one.
-[ -n "$LOGFILE" ] && LOGPIPE="tee -a $LOGFILE"
+[ -n "$LOGFILE" ] && LOGPIPE="tee -a -i $LOGFILE"
 
 # Redirect everything to a given VT if we've been given one
 if [ -n "$SWSUSPVT" ] && [ -c /dev/tty$SWSUSPVT ] ; then
@@ -524,52 +574,13 @@ fi
 # Use -x if we're being really verbose!
 [ $VERBOSITY -ge 4 ] && set -x
 
-# Trap Ctrl+C
-trap ctrlc_handler INT
-
 echo "Starting suspend at "`date` | $LOGPIPE > /dev/null
 
-( # We log everything from here on to $LOGPIPE as well
-
-# Do everything we need to do to suspend. If anything fails, we don't suspend.
-# Suspend itself should be the last one in the sequence.
-CHAIN_UP_TO=0
-for bit in `SortSuspendBits` ; do
-    CHAIN_UP_TO="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)}\"`"
-    bit=${bit##$CHAIN_UP_TO}
-    vecho 1 "$EXE: Executing $bit ... "
-    $bit
-    ret="$?"
-    # A return value >= 2 denotes we can't go any further, even with --force.
-    if [ $ret -ge 2 ] ; then
-	# If the return value is 3 or higher, be silent.
-	if [ $ret -eq 2 ] ; then
-	    vecho 1 "$EXE: $bit refuses to let us continue."
-	    vecho 0 "$EXE: Aborting."
-	fi
-	break
-    fi
-    # A return value of 1 means we can't go any further unless --force is used
-    if [ $ret -gt 0 ] && [ x"$FORCE_ALL" != "x1" ] ; then
-	vecho 0 "$EXE: Aborting suspend due to errors."
-	break
-    fi
-    if [ -n "$SUSPEND_ABORT" ] ; then
-	vecho 0 "$EXE: Aborted suspend with Ctrl+C."
-	break
-    fi
-done
-
-# Resume and cleanup and stuff.
-for bit in `SortResumeBits` ; do
-    THIS_POS="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)}\"`"
-    bit=${bit##$THIS_POS}
-    [ "$THIS_POS" -gt "$CHAIN_UP_TO" ] && continue
-    vecho 1 "$EXE: Executing $bit ... "
-    $bit
-done
-
-) | $LOGPIPE
+if [ "$LOGPIPE" = "cat" ] ; then
+    DoWork
+else
+    DoWork | $LOGPIPE
+fi
 
 echo "Resumed at "`date` | $LOGPIPE > /dev/null
 
