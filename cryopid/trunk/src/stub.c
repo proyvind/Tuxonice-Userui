@@ -189,7 +189,8 @@ void segv_handler(int sig, siginfo_t *si, void *ucontext) {
         voodoo_ptr = pt;
         return;
     }
-    if (old_segvhandler && old_segvhandler != SIG_IGN && old_segvhandler != SIG_DFL)
+    if (old_segvhandler &&
+            old_segvhandler != (void*)SIG_IGN && old_segvhandler != (void*)SIG_DFL)
         old_segvhandler(sig, si, ucontext);
     printf("Unhandled segfault at 0x%08lx!\n", uc->uc_mcontext.eip);
     _exit(1);
@@ -413,7 +414,7 @@ int resume_image_from_file(int fd) {
         safe_read(fd, &sa, sizeof(sa), "sigaction");
         if (i == SIGKILL || i == SIGSTOP) continue;
         if (i == SIGSEGV && tls_hack) {
-            sa.sa_hand = segv_handler;
+            sa.sa_hand = (__sighandler_t)segv_handler;
             sa.sa_flags |= SA_SIGINFO;
             sa.sa_flags &= ~SA_ONESHOT;
         }
@@ -422,7 +423,7 @@ int resume_image_from_file(int fd) {
                     i, strerror(i));
         }
         if (i == SIGSEGV) {
-            old_segvhandler = oksa.sa_hand;
+            old_segvhandler = (void*)oksa.sa_hand;
         }
     }
 
