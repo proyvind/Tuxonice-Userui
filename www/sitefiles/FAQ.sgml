@@ -549,10 +549,9 @@ cat /etc/suspend_settings > /proc/software_suspend/all_settings
 <sect1>What's left to do?
 <p>Plenty! SCSI is not well tested if used on root/swap partitions, only IDE. A
 lot of hardware is not restored properly, including some graphic chipsets. This
-means that this hardware is in a different state upon resume than the kernel
-thinks it is. For the kernel, the hardware is reinitialized although it has
-been reset by BIOS. Sometimes, this may be solved by setting the BIOS option
-(if it exists) to non PnP OS.
+means that the hardware is in a different state upon resume than the kernel
+thinks it is. The solution is to implement functional suspend/resume support in the
+devices' drivers.
 
 <sect1>Software Suspend seems nice, but can I use it for doing snapshots?
 

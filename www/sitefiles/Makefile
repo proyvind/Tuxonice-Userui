@@ -97,7 +97,7 @@ $(FAQ_TARGET): $(FAQ_BASENAME).sgml
 	linuxdoc -B html $< -H faq-top.txt -F /dev/null
 
 clean:
-	rm -f $(HOWTO_BASENAME)*.html $(FAQ_BASENAME)*.html
+	rm -f $(HOWTO_BASENAME)*.html $(FAQ_BASENAME)*.html index-download-snippet.html
 	# Not touching the site base directory!
 
 backup: clean
