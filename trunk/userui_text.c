@@ -27,7 +27,6 @@ static int video_num_lines, video_num_columns, cur_x = -1, cur_y = -1;
 
 static int vcsa_fd = -1;
 
-static inline void disable_utf8() { write(1, "\033%@", 3); }
 static inline void clear_display() { write(1, "\033[2J", 4); }
 static inline void clear_to_eol() { write(1, "\033K", 3); }
 static inline void hide_cursor() { write(1, "\033[?1c", 5); }
@@ -310,7 +309,6 @@ static void text_prepare() {
 	vcsa_fd = open("/dev/vcsa0", O_RDONLY);
 	/* if it errors, don't worry. we'll check later */
 
-	disable_utf8();
 	clear_display();
 }
 

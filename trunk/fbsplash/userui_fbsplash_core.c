@@ -22,7 +22,6 @@ static int video_num_lines, video_num_columns;
 static void* base_image;
 static int base_image_size;
 
-static inline void disable_utf8() { write(1, "\033%@", 3); }
 static inline void clear_display() { write(1, "\033c", 2); }
 static inline void move_cursor_to(int c, int r) { printf("\033[%d;%dH", r, c); }
 static void hide_cursor() {
@@ -127,7 +126,6 @@ static void fbsplash_prepare() {
 	/* Allow for the widest progress bar we might have */
 	set_progress_granularity(fb_var.xres);
 
-	disable_utf8();
 	move_cursor_to(0,0);
 	clear_display();
 }
