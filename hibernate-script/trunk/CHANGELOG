@@ -7,6 +7,7 @@
  - Clear the screen before locking virtual consoles with vlock.
      (Cameron Patrick)
  - Explicitly add /sbin to PATH to ensure we find rmmod and friends.
+ - Make mawk compatible.
 
 0.98 (20 August 2004)
  - Add ImageSizeLimit option (including "nocache" for excluding caches &
