@@ -1,4 +1,4 @@
-0.97 ()
+0.97 (30 July 2004)
  - Added lilo scriptlet to ensure the current kernel boots next time to resume.
    (inspired by Fedor Karpelevitch).
  - Added the Mount option to mount filesystems after resume.
