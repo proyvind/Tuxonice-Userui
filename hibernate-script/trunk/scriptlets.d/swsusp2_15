@@ -283,9 +283,10 @@ EOT
     if [ -f "$SWSUSP_ROOT/activate" -a ! -f "$SWSUSP_ROOT/version" ] ; then
 	cat <<EOT
 Can not find $SWSUSP_ROOT/version. Have you loaded the suspend_core
-module?  Proceeding anyway, but don't expect this to work...
+module?
 
 EOT
+	return 1 # abort unless forced
     fi
 
     # Check the interface version matches. Warn if it doesn't.
