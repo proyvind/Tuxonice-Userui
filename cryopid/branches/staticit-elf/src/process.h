@@ -92,7 +92,8 @@ struct proc_image_t {
 };
 
 struct proc_image_t* get_proc_image(pid_t target_pid, int flags);
-int write_proc_image(int fd, struct proc_image_t* p);
+int write_proc_image_to_file(struct proc_image_t* p, int fd);
+int write_proc_image_to_elf(struct proc_image_t* p, int fd);
 
 struct proc_header_t {
     pid_t pid;

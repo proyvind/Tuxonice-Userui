@@ -14,7 +14,6 @@
 #include "process.h"
 
 extern void write_stub(int fd);
-extern int write_proc_image_to_file(struct proc_image_t* p, int fd);
 
 void usage(char* argv0) {
     fprintf(stderr,
@@ -22,8 +21,6 @@ void usage(char* argv0) {
 "\n"
 "This is used to suspend the state of a single running process to a\n"
 "self-executing file.\n"
-"\n"
-"    -l      Include libraries in the image of the file for a full image.\n"
 "\n"
 "This program is part of CryoPID. http://cryopid.berlios.de/\n",
     argv0);
@@ -118,24 +115,20 @@ int main(int argc, char** argv) {
     pid_t target_pid;
     struct proc_image_t* proc_image;
     int c;
-    int flags = 0;
+    int flags = GET_LIBRARIES_TOO;
     int fd;
 
     /* Parse options */
     while (1) {
 	int option_index = 0;
 	static struct option long_options[] = {
-	    {"libraries", 0, 0, 'l'},
 	    {0, 0, 0, 0},
 	};
 
-	c = getopt_long(argc, argv, "l", long_options, &option_index);
+	c = getopt_long(argc, argv, "", long_options, &option_index);
 	if (c == -1)
 	    break;
 	switch(c) {
-	    case 'l':
-		flags |= GET_LIBRARIES_TOO;
-		break;
 	    case '?':
 		/* invalid option */
 		usage(argv[0]);
@@ -161,8 +154,8 @@ int main(int argc, char** argv) {
 	return 1;
     }
 
-    write_stub(fd);
-    write_proc_image_to_file(proc_image, fd);
+    write_proc_image_to_elf(proc_image, fd);
+    close(fd);
 
     return 0;
 }
