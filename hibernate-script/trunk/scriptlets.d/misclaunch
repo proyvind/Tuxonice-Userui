@@ -47,18 +47,11 @@ EOT
     rm -f $tmpf
 }
 
-CheckNum() {
-    case "$1" in
-	*[!0-9]*) return 1 ;;
-	*) return 0
-    esac
-}
-
 MiscLaunchOptions() {
     case $1 in
 	onsuspend)
 	    shift
-	    if ! CheckNum $1 ; then
+	    if ! IsANumber $1 ; then
 		vecho 0 "First argument to OnSuspend must be a number between 00 and 99!"
 		exit 1
 	    fi
@@ -66,7 +59,7 @@ MiscLaunchOptions() {
 	    ;;
 	onresume)
 	    shift
-	    if ! CheckNum $1 ; then
+	    if ! IsANumber $1 ; then
 		vecho 0 "First argument to OnResume must be a number between 00 and 99!"
 		exit 1
 	    fi
