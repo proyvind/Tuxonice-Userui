@@ -1,3 +1,2 @@
 - Fix jerkiness of fbanim
 - Fix memory usage - either use it, or get rid of it.
-- Don't queue up progress events (in case we're too slow).

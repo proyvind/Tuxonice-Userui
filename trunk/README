@@ -7,16 +7,18 @@ To get things going, you'll need the following:
 
  - A Software Suspend 2 enabled kernel with suspend_userui enabled either as a
    kernel module or compiled into the kernel.
- - The userspace UI sources. These are available by subversion - you can check
-   them out by running
-     svn checkout http://svn.ucc.asn.au:8080/dagobah/userui userui
-   As this matures, there may be tarballs made available at some point which
-   will be downloadable from the Berlios download page.
- - For userui_fbsplash - some images. One sample animation is at
-   http://dagobah.ucc.asn.au/swsusp/penguin-images.tgz - this tarball extracts
-   over your root filesystem and will place the images into
-   /etc/suspend_userui/images/ . These will only work on a 1024x768
-   framebuffer.
+   
+   If you have fbsplash compiled into your kernel, you will be able to get the
+   verbose splash screens for higher console levels for added eyecandy, but
+   this is not required.
+
+ - The userspace UI sources. These are available from the download page at
+   http://www.suspend2.net/downloads/ under the "Userspace UI" section. You can
+   also get bleeding edge code from the subversion repository:
+     svn checkout http://svn.suspend2.net/suspend2-userui/trunk suspend2-userui
+
+ - For suspend2_fbsplash - a suitable fbsplash theme. See
+   http://wiki.suspend2.net/UserUI/Themes to grab one you like.
 
 Steps:
 
@@ -27,33 +29,42 @@ Steps:
    hibernate script ("ProcSetting disable_textmode_support 1" in
    hibernate.conf)
 
-2. Download the userui sources from the subversion repository or tarballs
-   mentioned above, and compile them by typing "make". This will create
-   userui_text and userui_fbsplash. The latter will only succeed in compiling
-   if you have all the relevant libraries and dev files (libpng, libz,
-   libjpeg).
+2. Download the userui sources from the website, extract the tarball, compile
+   by running "make", and install with "make install".  This will create
+   suspend2ui_text and suspend2ui_fbsplash and install them into
+   /usr/local/sbin by default. The fbsplash module will only succeed in
+   compiling if you have all the relevant libraries and dev files (libpng,
+   libz, libjpeg, libtruetype2).
 
-3. In your hibernate script, put the path to the userui_text or userui_fbsplash
-   binary into /proc/software_suspend/userui_program.
+3. In your hibernate script, put the path to the suspend2ui_text or
+   suspend2ui_fbsplash binary into /proc/software_suspend/userui_program.
 
-4. [This step is somewhatoptional - if you omit it, you simply will not have a
+4. [This step is somewhat optional - if you omit it, you simply will not have a
     user interface for the first portion of resuming].
-   Add the userui_text or userui_fbsplash binary to your initrd image and set
-   your initrd script to set the userui_program path appropriately (if it is
-   in a different location in the initrd image).
+   Add the suspend2ui_text or suspend2ui_fbsplash binary to your initrd image
+   and set your initrd script to set the userui_program path appropriately (if
+   it is in a different location in the initrd image).
 
 5. [This step for fbsplash only]
-   Download some fbsplash images as PNGs into /etc/suspend_userui/images/ (see
-   url above).
-   If you want to see the images for the first portion of resuming too, you
-   will need to put this into the initrd too. If you only want to use a single
-   image, and not have an animation, make sure it's a PNG that matches your
-   framebuffer size and colour depth, and put it into
-   /etc/suspend_userui/images/ with no other images.
+   Download your favourite fbsplash theme (see
+   http://wiki.suspend2.net/UserUI/Themes). Extract the tarball into
+   /etc/splash, and create a symlink called /etc/splash/suspend2 to point to
+   your preferred theme. For example:
 
-6. Suspend!
+        /etc/splash# ln -s debian-black-suspend2 suspend2
 
-Please report any bugs to either the softwaresuspend-devel mailing list or
+   would set your theme to debian-black-suspend2.
+
+   If you want to see the splash for the first portion of resuming too, you
+   will need to put this theme into the initrd too.
+
+6. Login on a console as root, and run "/usr/local/sbin/suspend2_fbsplash -t" (or
+   suspend2_text) to check that everything goes to plan. This runs the user
+   interface in test mode. If it doesn't work here, it's unlikely to work when
+   suspending.
+
+7. Suspend!
+
+Please report any bugs to either the suspend2-devel mailing list or
 bernard@blackham.com.au
-
 
