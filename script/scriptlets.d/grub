@@ -73,4 +73,5 @@ else
     AddConfigHelp "GrubMenuFile <filename>" "Filename of grub's config file. Default is /boot/grub/grub.conf."
 fi
 
+# $Id$
 # vim:ft=sh:ts=8:sw=4:noet

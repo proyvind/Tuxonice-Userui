@@ -62,4 +62,5 @@ ProgramsOptions() {
     return 0
 }
 
+# $Id$
 # vim:ft=sh:ts=8:sw=4:noet
