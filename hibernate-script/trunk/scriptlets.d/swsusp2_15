@@ -131,9 +131,8 @@ Swsusp2ConfigSet() {
 	    [ "x$field" = "xMemFree:" ] && free=$val
 	    [ "x$field" = "xBuffers:" ] && buffers=$val
 	    [ "x$field" = "xCached:" ] && cached=$val
-	    [ "x$field" = "xMemShared:" ] && shared=$val
 	done < /proc/meminfo
-	result=$((($total-$cached-$buffers-$shared-$free+10240)/1024))
+	result=$((($total-$cached-$buffers-$free+10240)/1024))
 	vecho 2 "Setting image size limit to $result."
 	echo $result > $SWSUSP_ROOT/image_size_limit
     else
