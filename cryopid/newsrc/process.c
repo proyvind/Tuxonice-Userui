@@ -480,6 +480,16 @@ struct user_desc *get_tls_info(pid_t pid, int entry_num) {
     return u;
 }
 
+int is_in_syscall(pid_t pid, void* eip) {
+	long inst;
+	inst = ptrace(PTRACE_PEEKDATA, pid, eip-2, 0);
+	if (errno) {
+		perror("ptrace(PEEKDATA)");
+		return 0;
+	}
+	return (inst&0xffff) == 0x80cd;
+}
+
 /* FIXME: split this into several functions */
 struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 	FILE *f;
@@ -528,6 +538,11 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 	if (!get_user_data(target_pid, &(proc_image->user_data))) {
 		fprintf(stderr, "Error getting user data.\n");
 		return NULL;
+	}
+	if (is_in_syscall(target_pid, (void*)proc_image->user_data.regs.eip)) {
+		fprintf(stderr, "Process is probably in syscall, reexecuting.\n");
+		proc_image->user_data.regs.eip-=2;
+		proc_image->user_data.regs.eax = proc_image->user_data.regs.orig_eax;
 	}
 
 	/* Get FP regs */
