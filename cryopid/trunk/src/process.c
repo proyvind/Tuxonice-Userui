@@ -78,7 +78,7 @@ int memcpy_into_target(pid_t pid, void* dest, const void* src, size_t n) {
 	d = (long*) dest;
 	s = (long*) src;
 	for (i = 0; i < n / sizeof(long); i++) {
-		if (ptrace(PTRACE_POKETEXT, pid, d+(i*sizeof(long)), s[i]) == -1) {
+		if (ptrace(PTRACE_POKETEXT, pid, d+i, s[i]) == -1) {
 			perror("ptrace(PTRACE_POKETEXT)");
 			return 0;
 		}
@@ -93,8 +93,9 @@ int memcpy_from_target(pid_t pid, void* dest, const void* src, size_t n) {
 	long *d, *s;
 	d = (long*) dest;
 	s = (long*) src;
-	for (i = 0; i < n / sizeof(long); i++) {
-		d[i] = ptrace(PTRACE_PEEKTEXT, pid, s+(i*sizeof(long)), 0);
+    n /= sizeof(long);
+	for (i = 0; i < n; i++) {
+		d[i] = ptrace(PTRACE_PEEKTEXT, pid, s+i, 0);
 		if (errno) {
 			perror("ptrace(PTRACE_PEEKTEXT)");
 			return 0;
@@ -507,7 +508,7 @@ int is_in_syscall(pid_t pid, void* eip) {
 	return (inst&0xffff) == 0x80cd;
 }
 
-int get_signal_handler(pid_t pid, int sig, struct sigaction *sa) {
+int get_signal_handler(pid_t pid, int sig, struct k_sigaction *ksa) {
 	struct user_regs_struct r;
     char* pagebackup;
 
@@ -516,10 +517,11 @@ int get_signal_handler(pid_t pid, int sig, struct sigaction *sa) {
         return 0;
     }
 
-	r.eax = __NR_sigaction;
+	r.eax = __NR_rt_sigaction;
 	r.ebx = sig;
     r.ecx = 0;
     r.edx = scribble_zone+0x100;
+    r.esi = sizeof(ksa->sa_mask);
 
     pagebackup = backup_page(pid, (void*)scribble_zone);
 
@@ -528,13 +530,14 @@ int get_signal_handler(pid_t pid, int sig, struct sigaction *sa) {
 	/* Error checking! */
 	if (r.eax < 0) {
 		errno = -r.eax;
-        perror("target sigaction");
+        perror("target rt_sigaction");
         restore_page(pid, (void*)scribble_zone, pagebackup);
 		return 0;
 	}
 
-    memcpy_from_target(pid, sa, (void*)(scribble_zone+0x100), sizeof(struct sigaction));
-    printf("sigaction is 0x%lx mask 0x%x flags 0x%x restorer 0x%x\n", sa->sa_handler, sa->sa_mask, sa->sa_flags, sa->sa_restorer);
+    memcpy_from_target(pid, ksa, (void*)(scribble_zone+0x100), sizeof(struct k_sigaction));
+
+    //printf("sigaction %d was 0x%lx mask 0x%x flags 0x%x restorer 0x%x\n", sig, ksa->sa_hand, ksa->sa_mask.sig[0], ksa->sa_flags, ksa->sa_restorer);
 
     restore_page(pid, (void*)scribble_zone, pagebackup);
 

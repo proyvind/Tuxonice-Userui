@@ -20,7 +20,17 @@
 
 #define IMAGE_VERSION 0x01
 
-#define MAX_SIGS 64
+#define MAX_SIGS 31
+
+struct k_sigaction {
+        __sighandler_t sa_hand;
+        unsigned long sa_flags;
+        void (*sa_restorer)(void);
+        struct {
+            unsigned long sig[2];
+        } sa_mask;       /* mask last for extensibility */
+};
+
 
 struct map_entry_t {
 	long start, length;
@@ -65,7 +75,7 @@ struct proc_image_t {
 	char cmdline[1024]; /* FIXME arbitrary */
 	int cmdline_length;
 
-    struct sigaction sigs[MAX_SIGS];
+    struct k_sigaction sigs[MAX_SIGS];
 };
 
 struct proc_image_t* get_proc_image(pid_t target_pid, int flags);

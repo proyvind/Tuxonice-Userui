@@ -81,6 +81,17 @@ void put_shell_code(struct user_regs_struct r, char* code) {
 _syscall1(int,set_thread_area,struct user_desc*,u_info);
 #endif
 
+int set_rt_sigaction(int sig, const struct k_sigaction* ksa) {
+    int ret;
+    asm (
+            "int $0x80"
+            : "=a"(ret)
+            : "a"(__NR_rt_sigaction), "b"(sig),
+              "c"(ksa), "d"(0), "S"(sizeof(ksa->sa_mask))
+        );
+    return ret;
+}
+
 int resume_image_from_file(int fd) {
 	int num_maps, num_fds, num_tls;
 	int fd2;
@@ -91,7 +102,7 @@ int resume_image_from_file(int fd) {
 	pid_t pid;
 	struct user user_data;
 	struct user_i387_struct i387_data;
-    struct sigaction sa;
+    struct k_sigaction sa;
 	sigset_t zeromask;
 	char dir[1024];
 	int cmdline_length;
@@ -168,7 +179,6 @@ int resume_image_from_file(int fd) {
 		fprintf(stderr, "Reading %d file descriptors...\n", num_fds);
 	while (num_fds--) {
 		safe_read(fd, &fd_entry, sizeof(struct fd_entry_t), "an fd_entry");
-		if (fd_entry.fd == 255) continue;
 		if (verbosity > 0) {
 			fprintf(stderr, "fd: name=%s  fd=%d  mode=%d  flags=%d\n", fd_entry.filename, fd_entry.fd, fd_entry.mode, fd_entry.flags);
 		}
@@ -222,10 +232,15 @@ int resume_image_from_file(int fd) {
 		fprintf(stderr, "Changing directory to %s\n", dir);
 	syscall_check(chdir(dir), 0, "chdir %s", dir);
 
+	if (verbosity > 0)
+		fprintf(stderr, "Restoring signal handlers...\n", dir);
     for (i = 1; i <= MAX_SIGS; i++) {
         safe_read(fd, &sa, sizeof(sa), "sigaction");
         if (i == SIGKILL || i == SIGSTOP) continue;
-        sigaction(i, &sa, NULL);
+        if (set_rt_sigaction(i, &sa) == -1) {
+            fprintf(stderr, "Couldn't restore signal handler %d: %s\n",
+                    i, strerror(i));
+        }
     }
 
 	close(fd);

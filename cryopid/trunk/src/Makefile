@@ -1,4 +1,4 @@
-OBJECTS = freeze stub
+OBJECTS = freeze
 
 CFLAGS = -g
 
@@ -11,8 +11,10 @@ LIBC = -nostdlib -nostartfiles ../uclibc/libc.a ../uclibc/crt0.o ../uclibc/crti.
 
 all: $(OBJECTS)
 
+elfwriter.o freeze.o imagewriter.o process.o stub.o: process.h
+
 clean:
-	rm -f *.o $(OBJECTS) stub-image.S
+	rm -f *.o $(OBJECTS) stub-image.S stub
 
 stub-image.S: stub src2asm.pl
 	perl src2asm.pl < $< > $@
