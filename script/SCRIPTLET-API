@@ -84,6 +84,14 @@ vecho N <echo params>
     3: print functions executed with lots of debugging
     4: use shell's -x option to print every command executed (very noisy)
 
+HOOK FUNCTIONS
+--------------
+
+Hook functions are called at the relevant point in the suspend/resume chain
+with no arguments. Suspend hooks must return 0 if they are successful, 1 if
+they are unsuccessful but can be overridden with --force, or 2 if they are
+unsuccessful and the suspend *must* be stopped.
+
 ORDERING
 --------
 
