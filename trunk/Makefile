@@ -3,7 +3,7 @@ LDFLAGS := -static
 
 DESTDIR := 
 PREFIX := /usr/local
-INSTDIR := $(DESTDIR)/$(PREFIX)/sbin
+INSTDIR := $(DESTDIR)$(PREFIX)/sbin
 
 MODULES = text fbsplash
 TARGETS = $(patsubst %,suspend2ui_%,$(MODULES))
