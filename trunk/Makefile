@@ -9,7 +9,7 @@ MODULES = text fbsplash
 TARGETS = $(patsubst %,suspend2ui_%,$(MODULES))
 CORE_OBJECTS = userui_core.o
 
-FBSPLASH_LIBS = -lpng -ljpeg -lz -lm -lfreetype
+FBSPLASH_LIBS = -lpng -ljpeg -lz -lm -lfreetype -llcms -lmng
 
 all: fbsplash fbanim $(TARGETS)
 
@@ -23,7 +23,7 @@ suspend2ui_fbsplash: $(CORE_OBJECTS) fbsplash/userui_fbsplash.o
 	$(CC) $(LDFLAGS) $^ -o $@ $(FBSPLASH_LIBS)
 
 suspend2ui_fbanim: $(CORE_OBJECTS) fbanim/userui_fbanim.o
-	$(CC) -ljpeg -lpng -lz -lm -lpthread $(LDFLAGS) $^ -o $@
+	$(CC) $(LDFLAGS) $(FBANIM_LIBS) $^ -o $@
 
 clean:
 	$(RM) *.o $(TARGETS)
