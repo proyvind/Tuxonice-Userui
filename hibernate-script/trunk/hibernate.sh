@@ -37,6 +37,22 @@ shopt > /dev/null 2>&1 && USING_BASH=1
 
 [ -z "$USING_BASH$USING_ZSH" ] && NEED_POSIX=1
 
+# We prefer to use dash if we've got it.
+if [ -z "$NEED_POSIX" ] && [ -z "$TRIED_DASH" ] &&
+	command -v dash > /dev/null 2>&1 ; then
+
+    if [ "`basename $0`" = "$0" ] ; then
+	myself=`command -v $0` || myself=
+    elif [ -x "$0" ] ; then
+	myself=$0
+    fi
+
+    TRIED_DASH=1
+    export TRIED_DASH
+    [ -n "$myself" ] && exec dash $myself $*
+fi
+unset TRIED_DASH
+
 SWSUSP_D="/etc/hibernate"
 SCRIPTLET_PATH="$SWSUSP_D/scriptlets.d /usr/local/share/hibernate/scriptlets.d /usr/share/hibernate/scriptlets.d"
 CONFIG_FILE="$SWSUSP_D/hibernate.conf"
