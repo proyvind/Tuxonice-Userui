@@ -1,6 +1,10 @@
 /*
  * splash_cmd.c - Functions for handling communication with the kernel
  *
+ * Suspend2 userui adaptations:
+ *   Copyright (C) 2005 Bernard Blackham <bernard@blackham.com.au>
+ *
+ * Based on the original splashutils code:
  * Copyright (C) 2004-2005 Michal Januszewski <spock@gentoo.org>
  * 
  * This file is subject to the terms and conditions of the GNU General Public

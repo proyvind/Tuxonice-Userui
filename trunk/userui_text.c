@@ -1,3 +1,17 @@
+/*
+ * userui_text.c - Text mode userspace user interface module.
+ *
+ * Copyright (C) 2005, Bernard Blackham <bernard@blackham.com.au>
+ *
+ * Based on the suspend_text module from Software Suspend 2, written by
+ * Nigel Cunningham <ncunningham@cyclades.com>
+ * 
+ * This file is subject to the terms and conditions of the GNU General Public
+ * License v2.  See the file COPYING in the main directory of this archive for
+ * more details.
+ *
+ */
+
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>

@@ -1,6 +1,10 @@
 /*
  * list.c - list utility functions 
  * 
+ * Suspend2 userui adaptations:
+ *   Copyright (C) 2005 Bernard Blackham <bernard@blackham.com.au>
+ *
+ * Based on the original splashutils code:
  * Copyright (C) 2005 Michal Januszewski <spock@gentoo.org>
  * 
  * This file is subject to the terms and conditions of the GNU General Public

@@ -1,3 +1,14 @@
+/*
+ * mng_render.c - Functions for rendering MNG animations.
+ *
+ * Copyright (C) 2005 Bernard Blackham <bernard@blackham.com.au>
+ *
+ * This file is subject to the terms and conditions of the GNU General Public
+ * License v2.  See the file COPYING in the main directory of this archive for
+ * more details.
+ *
+ */
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>

@@ -1,7 +1,10 @@
 /*
  * tty.c - support for True Type fonts
  *
- * Splashutils adaptations:
+ * Suspend2 userui adaptations:
+ *   Copyright (C) 2005 Bernard Blackham <bernard@blackham.com.au>
+ *
+ * Based on the original splashutils code:
  *   Copyright (C) 2004-2005 Michal Januszewski <spock@gentoo.org>
  *
  * Fbtruetype code:
