@@ -19,11 +19,21 @@
 # Place - Suite 330, Boston, MA 02111-1307, USA.
 #
 
+USING_ZSH=
+USING_BASH=
+NEED_POSIX=
+
 # For zsh sanity...
 #   allows splitting strings on whitespace in zsh.
-setopt SH_WORD_SPLIT 2>/dev/null || true
+setopt SH_WORD_SPLIT 2>/dev/null && USING_ZSH=1 || true
 #   allows sourced files to know they're sourced in zsh.
 unsetopt FUNCTION_ARGZERO 2>/dev/null || true
+
+# Detect bash and tell it not to be POSIX, because we like it better that way.
+shopt > /dev/null 2>&1 && USING_BASH=1
+[ -n "$USING_BASH" ] && set +o posix 2>/dev/null
+
+[ -z "$USING_BASH$USING_ZSH" ] && NEED_POSIX=1
 
 SWSUSP_D="/etc/hibernate"
 SCRIPTLET_PATH="$SWSUSP_D/scriptlets.d /usr/local/share/hibernate/scriptlets.d /usr/share/hibernate/scriptlets.d"
@@ -153,6 +163,49 @@ $WRAPPED_HELP
 }
 CONFIGURATION_OPTIONS_HELP=""
 
+FindXServer() {
+    [ -n "$FIND_X_SERVER_RESULT" ] && return $FIND_X_SERVER_RESULT
+
+    [ -z "$DISPLAY" ] && DISPLAY=:0
+    export DISPLAY
+
+    # See if we need to authenticate to this X server.
+    xhost=`PATH=/usr/bin/X11:/usr/X11R6/bin:$PATH which xhost 2>/dev/null`
+    if [ $? -ne 0 ] ; then
+	vecho 0 "$EXE: Could not find xhost program. Disabling X scriptlets."
+	FIND_X_SERVER_RESULT=1
+	return 1
+    fi
+
+    # Find a useful XAUTHORITY and ideally a username too if we can!
+    local xuser xauth xpid
+    for xpid in `pidof kwrapper ksmserver kdeinit gnome-session X XFree86 Xorg` ; do
+	xauth=`awk 'BEGIN{RS="\\000";FS="="}($1 == "XAUTHORITY"){print $2}' < /proc/$xpid/environ`
+	xhome=`awk 'BEGIN{RS="\\000";FS="="}($1 == "HOME"){print $2}' < /proc/$xpid/environ`
+	xuser=`/bin/ls -ld /proc/$xpid/ | awk '{print $3}'`
+	[ -z $xauth ] && [ -n $xhome ] && [ -f $xhome/.Xauthority ] && xauth=$xhome/.Xauthority
+
+	XAUTHORITY=$xauth su $xuser -c "$xhost" > /dev/null 2>&1 && break
+
+	xauth=
+	xuser=
+    done
+    if [ -n $xuser ] ; then
+	XUSER=$xuser
+	if [ -n "$xauth" ] ; then
+	    XAUTHORITY=$xauth
+	    export XAUTHORITY
+	fi
+    else
+	FIND_X_SERVER_RESULT=1
+	vecho 0 "$EXE: Could not attach to X server on $DISPLAY. Disabling X scriptlets."
+	return 1
+    fi
+
+    FIND_X_SERVER_RESULT=0
+    return 0
+}
+
 ##############################################################################
 ### Helper functions                                                       ###
 ##############################################################################
@@ -240,7 +293,7 @@ EnsureHavePrerequisites() {
     local i
     for i in awk grep sort getopt basename ; do
 	if ! which $i > /dev/null; then
-	    echo "Could not find required program \"$i\". Aborting."
+	    vecho 0 "Could not find required program \"$i\". Aborting."
 	    exit 1
 	fi
     done
@@ -502,6 +555,10 @@ ProcessConfigOption() {
 	    [ -z "$DISTRIBUTION" ] &&
 		DISTRIBUTION="$params"
 	    ;;
+	xdisplay)
+	    DISPLAY="$params"
+	    export DISPLAY
+	    ;;
 	*)
 	    if ! PluginConfigOption $option $params ; then
 		echo "$EXE: Unknown configuration option ($option)"
@@ -555,6 +612,7 @@ AddInbuiltHelp() {
     AddConfigHelp "AlwaysForce <boolean>" "If set to yes, the script will always run as if --force had been passed."
     AddConfigHelp "AlwaysKill <boolean>" "If set to yes, the script will always run as if --kill had been passed."
     AddConfigHelp "Distribution <debian|fedora|mandrake|redhat|gentoo|suse|slackware>" "If specified, tweaks some scriptlets to be more integrated with the given distribution."
+    AddConfigHelp "XDisplay <display location>" "Specifies where scriptlets that use the X server should find one. (Default: :0)"
 }
 
 EnsureHaveRoot() {
@@ -569,7 +627,7 @@ EnsureHaveRoot() {
 # it easy to decide whether or not to pipe its output to $LOGPIPE or not.
 DoWork() {
     # Trap Ctrl+C
-    trap ctrlc_handler INT
+    trap ctrlc_handler INT HUP
 
     # Do everything we need to do to suspend. If anything fails, we don't
     # suspend.  Suspend itself should be the last one in the sequence.
@@ -605,7 +663,7 @@ DoWork() {
 	    break
 	fi
 	if [ -n "$SUSPEND_ABORT" ] ; then
-	    vecho 0 "$EXE: Aborted suspend with Ctrl+C."
+	    vecho 0 "$EXE: Suspend aborted by user."
 	    EXIT_CODE=3
 	    break
 	fi
@@ -634,6 +692,7 @@ ctrlc_handler() {
 VERBOSITY=0
 LOG_VERBOSITY=1
 LOGPIPE="cat"
+ERROR_TEXT=""
 
 EnsureHavePrerequisites
 EnsureHaveRoot
@@ -676,12 +735,11 @@ if [ "$LOGPIPE" = "cat" ] ; then
 else
     # Sigh. Our portable way to obtain exit codes has issues in bash, so if
     # we're using bash, we do it the not-so-portable way :)
-    if shopt > /dev/null 2>&1 ; then
-	# we're using something like bash hopefully! :)
+    if [ -n "$USING_BASH" ] ; then
 	DoWork | $LOGPIPE
 	eval 'EXIT_CODE=${PIPESTATUS[0]}'
     else
-	# Evilness requires to pass the exit code back to us in a pipe.
+	# Evilness required to pass the exit code back to us in a pipe.
 	trap "" INT
 	exec 3>&1
 	eval `

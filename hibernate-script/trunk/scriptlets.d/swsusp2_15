@@ -384,25 +384,25 @@ DoSuspend() {
 # include/linux/suspend-debug.h
 PrintAnErrorString() {
     case "$1" in
-	0) echo "Suspend was aborted (see dmesg)."
+	0) ERROR_TEXT="${ERROR_TEXT}Suspend was aborted (see dmesg).\n"
 	;;
-	1) echo "Suspend was aborted by user (see dmesg if unexpected)."
+	1) ERROR_TEXT="${ERROR_TEXT}Suspend was aborted by user (see dmesg if unexpected).\n"
 	;;
-	2) echo "No swapspace was available. Try swapon?"
+	2) ERROR_TEXT="${ERROR_TEXT}No swapspace was available. Try swapon?\n"
 	;;
-	3) echo "Not enough swapspace available. Free some memory?"
+	3) ERROR_TEXT="${ERROR_TEXT}Not enough swapspace available. Free some memory?\n"
 	;;
-	4) echo "Freezing processes failed. Wacky driver problems :( (see dmesg)"
+	4) ERROR_TEXT="${ERROR_TEXT}Freezing processes failed. Wacky driver problems :( (see dmesg)\n"
 	;;
-	5) echo "Internal error - an unexpected memory allocation occured. Driver problems? (see dmesg)"
+	5) ERROR_TEXT="${ERROR_TEXT}Internal error - an unexpected memory allocation occured. Driver problems? (see dmesg)\n"
 	;;
-	6) echo "Image has been kept as requested."
+	6) ERROR_TEXT="${ERROR_TEXT}Image has been kept as requested.\n"
 	;;
-	7) echo "Suspend would have eaten memory. Yumm...."
+	7) ERROR_TEXT="${ERROR_TEXT}Suspend would have eaten memory. Yumm....\n"
 	;;
-	8) echo "Unable to free enough memory."
+	8) ERROR_TEXT="${ERROR_TEXT}Unable to free enough memory.\n"
 	;;
-	*) echo "Unknown error! (see dmesg?)"
+	*) ERROR_TEXT="${ERROR_TEXT}Unknown error! (see dmesg?)\n"
 	;;
     esac
     return 0
@@ -417,17 +417,20 @@ PrintErrors() {
     code="$1"
     [ -n "$code" ] && [ "$code" -eq 0 ] && return 0
 
-    echo "$EXE: Suspend reported the following errors:"
+    ERROR_TEXT="${ERROR_TEXT}$EXE: Suspend reported the following errors:\n"
 
     if [ -z "$code" ] ; then
-	echo " - No status was returned. Might be a buggy or incompatible kernel?"
+	ERROR_TEXT="${ERROR_TEXT}\n - No status was returned. Might be a buggy or incompatible kernel?"
+	/bin/echo -ne $ERROR_TEXT
 	return 1
     fi
 
     # A special case for "suspend aborted" and "suspend aborted by user"
     # because it'd look silly to have both.
     if [ $(($code&3)) -eq 3 ] ; then
-	echo -n " - " && PrintAnErrorString 1 # aborted by user
+	ERROR_TEXT="${ERROR_TEXT} - "
+	PrintAnErrorString 1 # aborted by user
+	/bin/echo -ne $ERROR_TEXT
 	return 0
     fi
 
@@ -438,6 +441,7 @@ PrintErrors() {
 	bit_num=$(($bit_num+1))
 	code=$(($code>>1))
     done
+    /bin/echo -ne "$ERROR_TEXT"
     return 1
 }
 
