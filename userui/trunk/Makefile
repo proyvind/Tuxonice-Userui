@@ -1,9 +1,12 @@
-CFLAGS = -Wall -O2
-TARGET = userui_program
-OBJECTS = userui_text.o userui_core.o splash/userui_fbsplash.o
+CFLAGS = -Wall -O0 -g
+#TARGETS = userui_program dummy_test
+TARGETS = userui_program
+UI_OBJECTS = userui_text.o splash/userui_fbsplash.o
+OBJECTS = userui_core.o $(UI_OBJECTS)
+DUMMY_OBJECTS = dummy_test.o $(UI_OBJECTS)
 LDFLAGS = -ljpeg -lpng -lz -lm
 
-all: $(TARGET) linux
+all: $(TARGETS) linux
 
 linux:
 	@[ ! -d linux ] && cat README && false
@@ -12,11 +15,14 @@ userui_program: $(OBJECTS)
 	gcc $(LDFLAGS) $^ -o $@
 	strip $@
 
+dummy_test: $(DUMMY_OBJECTS)
+	gcc $(LDFLAGS) $^ -o $@
+
 splash/userui_fbsplash.o:
 	make -C splash
 
 $(OBJECTS): userui.h
 
 clean:
-	rm -f *.o $(TARGET)
+	rm -f *.o $(TARGETS)
 	make -C splash clean

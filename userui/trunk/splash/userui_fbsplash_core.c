@@ -1,5 +1,6 @@
-#include <sys/types.h>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -7,6 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <linux/fb.h>
+#include <linux/kd.h>
 
 #include "splash.h"
 #include "../userui.h"
@@ -19,7 +21,7 @@ static int fb_fd;
 static int num_fb_pics;
 
 static void make_pic_cur(struct fb_image *src) {
-	int data_len = src->width * src->height * src->depth;
+	int data_len = src->width * src->height * (src->depth >> 3);
 
 	cur_fb_pic.width = src->width;
 	cur_fb_pic.height = src->height;
@@ -42,9 +44,12 @@ static int read_pics(int for_real, int max_to_load) {
 		return -1;
 
 	for (i = 0; i < n; i++) {
-		char *s;
+		char *s = NULL;
 		struct fb_image *fb_pic = NULL;
-		s = namelist[i]->d_name;
+		s = (char*) malloc(strlen(namelist[i]->d_name)+strlen(FB_IMAGE_DIR)+2);
+		if (!s)
+			goto next;
+		sprintf(s, "%s/%s", FB_IMAGE_DIR, namelist[i]->d_name);
 		if (strcmp(s+strlen(s)-4, ".png") != 0)
 			goto next;
 
@@ -59,9 +64,10 @@ static int read_pics(int for_real, int max_to_load) {
 		if (!(fb_pic = (struct fb_image *)malloc(sizeof(struct fb_image))))
 			goto next;
 
-		fb_pic->width  = fb_var.xres; /* FIXME */
-		fb_pic->height = fb_var.yres; /* FIXME */
-		fb_pic->depth  = fb_var.bits_per_pixel; /* FIXME */
+		fb_pic->width  = fb_var.xres;
+		fb_pic->height = fb_var.yres;
+		fb_pic->depth  = fb_var.bits_per_pixel;
+		fb_pic->data   = NULL;
 
 		if (load_png(s, fb_pic, 'v')) {
 			free(fb_pic);
@@ -69,23 +75,40 @@ static int read_pics(int for_real, int max_to_load) {
 		}
 		fb_pics[num_fb_pics++] = fb_pic;
 next:
+		if (s)
+			free(s);
 		free(namelist[i]);
 	}
 	free(namelist);
 	return usable;
 }
 
+static void hide_cursor() {
+	//ioctl(STDOUT_FILENO, KDSETMODE, KD_GRAPHICS);
+	write(1, "\033[?1c", 5);
+}
+
+static void show_cursor() {
+	//ioctl(STDOUT_FILENO, KDSETMODE, KD_TEXT);
+	write(1, "\033[?0c", 5);
+}
+
 static void fbsplash_prepare() {
 	int n;
+
+	hide_cursor();
 
 	num_fb_pics = 0;
 
 	fb_fd = -1;
 
+	if (get_fb_settings(0))
+		return;
+
 	cur_fb_pic.width = fb_var.xres;
 	cur_fb_pic.height = fb_var.yres;
 	cur_fb_pic.depth = fb_var.bits_per_pixel;
-	cur_fb_pic.data = malloc(fb_var.xres * fb_var.yres * fb_var.bits_per_pixel);
+	cur_fb_pic.data = malloc(fb_var.xres * fb_var.yres * (fb_var.bits_per_pixel >> 3));
 	if (!cur_fb_pic.data)
 		return;
 
@@ -115,6 +138,8 @@ static void fbsplash_cleanup() {
 	}
 	free(fb_pics);
 
+	show_cursor();
+
 	if (fb_fd >= 0)
 		close(fb_fd);
 }
@@ -138,16 +163,18 @@ static void fbsplash_update_progress(unsigned long value, unsigned long maximum,
 
 	image_num = value * num_fb_pics / maximum;
 
-	if (image_num < 0 || image_num >= num_fb_pics)
-		return;
+	if (image_num < 0)
+		image_num = 0;
+	if (image_num >= num_fb_pics)
+		image_num = num_fb_pics-1;
 
 	make_pic_cur(fb_pics[image_num]);
 
 	box.x1 = fb_var.xres/10;
 	box.x2 = (fb_var.xres/10)+((fb_var.xres*8/10)*value/maximum);
-	box.y1 = fb_var.yres*8/10;
-	box.y2 = fb_var.yres*9/10;
-	box.c_ul = box.c_ur = box.c_ll = box.c_lr = ({struct color c = { 1, 0, 0, 0 }; c;});
+	box.y1 = fb_var.yres*17/20;
+	box.y2 = fb_var.yres*18/20;
+	box.c_ul = box.c_ur = box.c_ll = box.c_lr = ({struct color c = { 255, 0, 0, 255 }; c;});
 
 	draw_box((u8*)cur_fb_pic.data, box, fb_fd);
 }

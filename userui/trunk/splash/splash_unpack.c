@@ -199,7 +199,7 @@ int load_png(char *filename, struct fb_image *img, char mode)
 			row_pointer = (u8*)img->data + info_ptr->width * bytespp * i;
 		}
 		
-	        png_read_row(png_ptr, row_pointer, NULL);
+		png_read_row(png_ptr, row_pointer, NULL);
 		
 		if (fb_var.bits_per_pixel > 8) {
 			truecolor2fb((truecolor*)buf, (u8*)img->data + info_ptr->width * bytespp * i, info_ptr->width, i);

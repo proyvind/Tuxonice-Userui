@@ -1,6 +1,8 @@
 #ifndef _USERUI_H_
 #define _USERUI_H_
 
+#include "linux/kernel/power/suspend_userui.h"
+
 struct userui_ops {
 	char *name;
 	void (*prepare) ();
@@ -11,5 +13,10 @@ struct userui_ops {
 	void (*redraw) ();
 	void (*keypress) (int key);
 };
+
+
+int send_message(int type, void* buf, int len);
+
+extern char software_suspend_version[32];
 
 #endif /* _USERUI_H_ */

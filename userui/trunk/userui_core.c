@@ -14,7 +14,6 @@
 #include <unistd.h>
 #include <asm/types.h>
 
-#include "linux/kernel/power/suspend_userui.h"
 #include "userui.h"
 
 #define NETLINK_SUSPEND2_USERUI 10
@@ -23,15 +22,38 @@
 
 static char buf[4096];
 static int nlsock;
+static int test_run = 0;
+
+char software_suspend_version[32];
 
 extern struct userui_ops userui_text_ops;
 
 static struct userui_ops *userui_ops = &userui_text_ops; /* default */
 
+int send_message(int type, void* buf, int len) {
+	struct nlmsghdr nl;
+	struct iovec iovec[2];
+
+	nl.nlmsg_len = NLMSG_LENGTH(len);
+	nl.nlmsg_type = type;
+	nl.nlmsg_flags = NLM_F_REQUEST;
+	nl.nlmsg_pid = getpid();
+
+	iovec[0].iov_base = &nl; iovec[0].iov_len = sizeof(nl);
+	iovec[1].iov_base = buf; iovec[1].iov_len = len;
+
+	if (writev(nlsock, iovec, (buf && len > 0)?2:1) == -1) {
+		perror("writev");
+		return 0;
+	}
+	return 1;
+}
+
 static void handle_params(int argc, char **argv) {
-	static char *optstring = "h";
+	static char *optstring = "ht";
 	static struct option longopts[] = {
 		{"help", 0, 0, 'h'},
+		{"test", 0, 0, 't'},
 	};
 
 	int c;
@@ -44,6 +66,9 @@ static void handle_params(int argc, char **argv) {
 			break;
 
 		switch (c) {
+			case 't':
+				test_run = 1;
+				break;
 			case 'h':
 				printf("Help!\n");
 				exit(1);
@@ -60,6 +85,16 @@ static void lock_memory() {
 	/* Make sure we don't get swapped out or wiped out mid suspend */
 	if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1)
 		bail("mlockall");
+}
+
+static void get_info() {
+	FILE *f = fopen("/proc/software_suspend/version", "r");
+	if (!f)
+		bail("fopen(/proc/software_suspend/version)");
+	fgets(software_suspend_version, sizeof(software_suspend_version), f);
+	fclose(f);
+	software_suspend_version[sizeof(software_suspend_version)-1] = '\0';
+	software_suspend_version[strlen(software_suspend_version)-1] = '\0';
 }
 
 /* A generic signal handler to ensure we don't quit in times of desperation */
@@ -80,8 +115,6 @@ static void setup_signal_handlers() {
 	signal(SIGSEGV, sig_hand);
 	signal(SIGPIPE, sig_hand);
 	signal(SIGALRM, sig_hand);
-	signal(SIGTERM, sig_hand);
-	signal(SIGTERM, sig_hand);
 	signal(SIGUSR1, sig_hand);
 	signal(SIGUSR2, sig_hand);
 }
@@ -114,27 +147,18 @@ static void open_netlink() {
 }
 
 static int send_ready() {
-	struct nlmsghdr nl;
+	int version = SUSPEND_USERUI_INTERFACE_VERSION;
 
-	nl.nlmsg_len = sizeof(nl);
-	nl.nlmsg_type = USERUI_MSG_READY;
-	nl.nlmsg_flags = NLM_F_REQUEST;
-	nl.nlmsg_pid = getpid();
-
-	if (write(nlsock, &nl, sizeof(nl)) == -1) {
-		perror("write");
-		return 0;
-	}
-	return 1;
+	return send_message(USERUI_MSG_READY, &version, sizeof(version));
 }
 
 static void message_loop() {
 	fd_set rfds;
 	int n;
 	struct nlmsghdr *nlh;
-	struct timeval tv = { 0, 1000*1000 }; /* 1 second */
 
 	while (1) {
+		struct timeval tv = { 0, 1000*1000 }; /* 1 second */
 		FD_ZERO(&rfds);
 		FD_SET(nlsock, &rfds);
 
@@ -179,25 +203,54 @@ static void message_loop() {
 				userui_ops->keypress(*(unsigned int*)NLMSG_DATA(nlh));
 				break;
 			case NLMSG_ERROR:
+				{
+					struct nlmsgerr *err;
+					err = NLMSG_DATA(nlh);
+					if (err->error == 0)
+						break; /* just a netlink ack */
+					printf("userui: Received netlink error: %s\n",
+							strerror(-err->error));
+					printf("userui: This was in response to a type %d message.\n",
+							err->msg.nlmsg_type);
+				}
+				break;
 			case NLMSG_DONE:
+				break;
 			default:
-				printf("userui: Got unknown message %d\n", nlh->nlmsg_type);
+				printf("userui: Received unknown message %d\n", nlh->nlmsg_type);
 				break;
 		}
 	}
 }
 
+static void do_test_run() {
+	int i;
+
+	userui_ops->message(0, 0, 1, "Hello World");
+	for (i = 0; i < 20; i++) {
+		userui_ops->update_progress(i, 20, "Suspending to disk...");
+		usleep(100*1000);
+	}
+	usleep(500*1000);
+}
+
 int main(int argc, char **argv) {
 	handle_params(argc, argv);
-	setup_signal_handlers();
-	open_console();
-	open_netlink();
+	if (!test_run) {
+		setup_signal_handlers();
+		open_console();
+		open_netlink();
+	}
 	lock_memory();
+	get_info();
 
 	userui_ops->prepare();
 
-	if (send_ready())
-		message_loop();
+	if (test_run)
+		do_test_run();
+	else
+		if (send_ready())
+			message_loop();
 
 	userui_ops->cleanup();
 
