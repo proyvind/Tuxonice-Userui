@@ -4,7 +4,7 @@
 AddConfigHandler SuspendToRAMConfigEnabler
 AddOptionHandler SuspendToRAMOptionHandler
 
-AddConfigHelp "UseSuspendToRAM <boolean>" "Enable/disable the use of suspend-to-RAM.<"
+AddConfigHelp "UseSuspendToRAM <boolean>" "Enable/disable the use of suspend-to-RAM. This requires a 2.6 kernel."
 
 AddLongOption "no-suspend-to-ram"
 AddOptionHelp "--no-suspend-to-ram" "Disables suspend to RAM. This is useful for testing the suspend script itself."
@@ -14,17 +14,17 @@ SUSPEND_TO_RAM_FILE=/sys/power/state
 SuspendToRAMConfigEnabler() {
     [ "$1" != "usesuspendtoram" ] && return 1
     BoolIsOn "$1" "$2" || return 0
-    [ -n "$USING_SUSPENDTORAM" ] && return 0
+    [ -n "$USING_SUSPEND_TO_RAM" ] && return 0
     AddSuspendHook 10 EnsureSuspendToRAMCapable
     AddSuspendHook 99 DoSuspendToRAM
-    USING_SUSPENDTORAM=1
+    USING_SUSPEND_TO_RAM=1
     return 0
 }
 
 SuspendToRAMOptionHandler() {
     case $1 in
 	--no-suspend-to-ram)
-	    SWSUSP_TO_RAM_NO_SUSPEND=1
+	    SUSPEND_TO_RAM_NO_SUSPEND=1
 	    ;;
 	*)
 	    return 1
@@ -35,9 +35,8 @@ SuspendToRAMOptionHandler() {
 DoSuspendToRAM() {
     local error
     if [ -z "$SUSPEND_TO_RAM_NO_SUSPEND" ] ; then
-	vecho 1 "$EXE: Activating suspend ..."
+	vecho 1 "$EXE: Activating suspend to RAM ..."
 	echo -n mem > $SUSPEND_TO_RAM_FILE
-	PrintErrors $error
     else
 	vecho 1 "$EXE: Not actually suspending (--no-suspend-to-ram given)"
     fi
@@ -47,16 +46,12 @@ DoSuspendToRAM() {
 # EnsureSuspendToRAMCapable: makes sure we have /sys/power/state and that
 # mem is one of the available suspend modes.
 EnsureSuspendToRAMCapable() {
-    if ! test -f $SUSPEND_TO_RAM_FILE; then
-	cat <<EOF
-Your kernel does not have power management built in.
-EOF
+    if ! test -f $SUSPEND_TO_RAM_FILE ; then
+	vecho 0 "Your kernel does not have power management built in."
 	return 2
     fi
-    if ! grep mem $SUSPEND_TO_RAM_FILE; then
-	cat <<EOF
-Your kernel or machine does not have suspend-to-RAM support.
-EOF
+    if ! grep -q mem $SUSPEND_TO_RAM_FILE ; then
+	vecho 0 "Your kernel or machine does not have suspend-to-RAM support."
 	return 2
     fi
 
