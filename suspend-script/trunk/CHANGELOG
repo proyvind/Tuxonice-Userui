@@ -1,4 +1,4 @@
-0.93 (11 July 2004 (later that evening)
+0.93 (11 July 2004 (later that evening))
  - Make Ctrl+C abort cleanly again.
  - chown the right directory in the installer.
  - Licensed under GPLv2.
