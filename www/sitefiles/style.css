@@ -168,3 +168,31 @@ ADDRESS {
 	margin-left: -1.2em;
 	font-size: 90%;
 }
+
+.download_header {
+	BACKGROUND-COLOR: #cccccc;
+	FONT-WEIGHT: bold;
+}
+
+.download_section {
+	BACKGROUND-COLOR: #222266;
+	COLOR: #cccccc;
+	FONT-WEIGHT: bold;
+	PADDING-LEFT: 1em;
+}
+
+.download_release {
+	BACKGROUND-COLOR: #cccccc;
+	COLOR: #222266;
+	FONT-WEIGHT: bold;
+	PADDING-LEFT: 1em;
+}
+
+.download_kernel {
+	FONT-WEIGHT: bold;
+	PADDING-LEFT: 2em;
+}
+
+.download_file {
+	PADDING-LEFT: 3em;
+}

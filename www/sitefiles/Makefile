@@ -73,7 +73,7 @@ fedora: $(patsubst %,$(SITEBASE)/%,$(wildcard fedora/*))
 $(SITEBASE)/fedora/%: fedora/%
 	cp $< $@
 
-downloads/index.html: downloads.xml
+downloads/index.html: downloads.xml parse_downloads
 	./parse_downloads > $@
 
 olddownloads-berl.html:

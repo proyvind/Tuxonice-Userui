@@ -51,9 +51,19 @@ sub get_latest_dev_patches {
 $DATEFILE = "";
 $DATEFILE = " -r ".$ARGV[0] if $#ARGV >= 0;
 $ENV{"TZ"} = "AWST-8";
+$SUBSTS{"BASE"} = "";
 $SUBSTS{"DATE"} = `date -R$DATEFILE`;
 chop $SUBSTS{"DATE"};
 $SUBSTS{"LATEST_DEV_PATCHES"} = get_latest_dev_patches;
+
+if ($#ARGV >= 0) {
+	my $name = $ARGV[0];
+	$name =~ s#[^/]##g;
+	my $count = length($name);
+	for (my $i = 0; $i < $count; $i++) {
+		$SUBSTS{"BASE"} .= "../"
+	}
+}
 
 $_=<>; # first line contains magic directives
 chop $_;

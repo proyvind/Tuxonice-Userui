@@ -20,4 +20,14 @@
 
  </section>
 
+ <section name="Hibernate Script">
+
+  <release name="1.0.5">
+   <kernel name="">
+    <filename>hibernate-script-1.05.tar.gz</filename>
+   </kernel>
+  </release>
+
+ </section>
+
 </downloads>

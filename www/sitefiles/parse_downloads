@@ -39,8 +39,12 @@ def parseKernel(kernel, release_name):
 	(date, size) = getFileInfo(filename)
 
 	return '''
-<tr class="download_kernel"><td colspan="3">%s</td></tr>
-<tr class="download_file"><td>%s</td><td>%s</td><td>%s</td></tr>
+<tr class="download_kernel"><td class="download_kernel" colspan="3">%s</td></tr>
+<tr class="download_file">
+ <td class="download_file">%s</td>
+ <td class="download_file">%s</td>
+ <td class="download_file">%s</td>
+</tr>
 '''%(version, link, date, size)
 
 def parseRelease(release):
@@ -48,7 +52,7 @@ def parseRelease(release):
 	part = release.children
 	release_name = release.prop('name')
 	release_text = '''
-<tr class="download_release"><td colspan="3">%s</td></tr>
+<tr class="download_release"><td class="download_release" colspan="3">%s</td></tr>
 '''%(release_name)
 
 	while part is not None:
@@ -71,7 +75,7 @@ def parseSection(section):
 		release = release.next
 
 	section_text = '''
-<tr class="download_section"><td colspan="3">%s</td></tr>
+<tr class="download_section"><td class="download_section" colspan="3">%s</td></tr>
 '''%(section.prop('name'))
 	if release_text == '':
 		release_text = '''
@@ -92,8 +96,8 @@ def parseDownloads(f):
 
 	section = root.children
 	text = '''
-<table>
-<tr class="download_header"><th>&nbsp;</th><th>Release Date</th><th>File size</th></tr>
+<table width="100%">
+<tr class="download_header"><th>Filename</th><th>Release Date</th><th>File size</th></tr>
 '''
 	while section is not None:
 		if section.name != 'section':
@@ -106,5 +110,9 @@ def parseDownloads(f):
 '''
 	return text
 
+print '''TITLE=Software Suspend - Download
+
+<h1>###TITLE###</h1>
+'''
 print parseDownloads(sys.stdin)
 
