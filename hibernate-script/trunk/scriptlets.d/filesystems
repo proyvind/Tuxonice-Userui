@@ -3,6 +3,7 @@
 
 AddConfigHandler FilesystemsOptions
 AddConfigHelp "Unmount <mount point or device> [...]" "If you have network shares or external devices that should be unmounted before suspending, list them here."
+AddConfigHelp "Mount <mount point or device> [...]" "If you have network shares or external devices that should be mounted after resuming, list them here."
 
 FilesystemsUnmount() {
     local mnt
@@ -40,12 +41,30 @@ FilesystemsUnmount() {
     return $ret
 }
 
+FilesystemsMount() {
+    local mnt
+    local ret
+    [ -z "$FS_MOUNTS" ] && return 0
+
+    ret=0
+    for mnt in $FS_MOUNTS ; do 
+	vecho 1 "Mounting $mnt ..."
+	mount $mnt || ret=1
+    done
+    return $ret
+}
+
 FilesystemsOptions() {
     case $1 in
 	unmount)
 	    [ -z "$FS_UNMOUNTS" ] && AddSuspendHook 70 FilesystemsUnmount
 	    shift
 	    FS_UNMOUNTS="$FS_UNMOUNTS $@"
+	    ;;
+	mount)
+	    [ -z "$FS_MOUNTS" ] && AddResumeHook 70 FilesystemsMount
+	    shift
+	    FS_MOUNTS="$FS_MOUNTS $@"
 	    ;;
 	*)
 	    return 1

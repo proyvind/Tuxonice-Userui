@@ -68,6 +68,7 @@ syntax keyword hibernate_conf disablewritecacheon contained nextgroup=hibernate_
 
 " filesystems
 syntax keyword hibernate_conf unmount contained nextgroup=hibernate_filenames skipwhite
+syntax keyword hibernate_conf mount contained nextgroup=hibernate_filenames skipwhite
 
 " grub
 syntax keyword hibernate_conf changegrubmenu contained nextgroup=hibernate_boolean skipwhite
