@@ -464,7 +464,7 @@ echo "Suspended at "`date` | $LOGPIPE > /dev/null
 # Suspend itself should be the last one in the sequence.
 CHAIN_UP_TO=0
 for bit in `SortSuspendBits` ; do
-    CHAIN_UP_TO="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)\"}`"
+    CHAIN_UP_TO="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)}\"`"
     bit=${bit##$CHAIN_UP_TO}
     vecho 1 "$EXE: Executing $bit ... "
     $bit
@@ -488,7 +488,7 @@ done
 
 # Resume and cleanup and stuff.
 for bit in `SortResumeBits` ; do
-    THIS_POS="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)\"}`"
+    THIS_POS="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)}\"`"
     bit=${bit##$THIS_POS}
     [ "$THIS_POS" -gt "$CHAIN_UP_TO" ] && continue
     vecho 1 "$EXE: Executing $bit ... "
