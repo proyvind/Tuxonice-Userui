@@ -23,26 +23,7 @@ sub dumpfile {
 
 sub get_latest_dev_patches {
 	# Assume olddownloads-berl.html is up to date.
-	open (OLDD, "olddownloads-berl.html") or die "Can't open olddownloads-berl.html";
-	my $topver = 0;
-	my $vertext = "";
-	while (<OLDD>) {
-		chomp;
-		s#^[^>]+> <A HREF="[^"]+">(software-suspend-.*-for-.*\.tar\.bz2)</A>.*#$1# or next;
-		m#^software-suspend-(\d+)\.(\d+)\.(\d+)\.(\d+)-for-(2(\.\d+){2,}.*)\.tar\.bz2$# or next;
-		my $ver = $1 << 24 | $2 << 16 | $3 << 8 | $4;
-		my $kver = $5;
-		my $sver = "$1.$2.$3.$4";
-		if ($ver > $topver) {
-			$topver = $ver;
-			$vertext = "";
-		}
-		if ($ver == $topver) {
-			$vertext .= sprintf '<li><a href="http://download.berlios.de/softwaresuspend/%s">Software Suspend %s for kernel %s</a>'."\n", $_, $sver, $kver;
-		}
-	}
-	close (OLDD);
-	return $vertext;
+	return '';
 }
 
 # other magic words:
@@ -91,7 +72,17 @@ if (exists $SUBSTS{"RAW"}) {
     exit(0);
 }
 
+
 # process the relevant files
-dumpfile "top.html", $dochead;
+
+# the NOHEAD keyword prevents us from dumping the footer.
+if (not exists $SUBSTS{"NOHEAD"}) {
+	dumpfile "top.html", $dochead;
+}
+
 while (<>) { printline $_; }
-dumpfile "bottom.html";
+
+# the NOFEET keyword prevents us from dumping the footer.
+if (not exists $SUBSTS{"NOFEET"}) {
+	dumpfile "bottom.html";
+}

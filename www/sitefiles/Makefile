@@ -26,8 +26,6 @@ FAQ_TARGET = $(FAQ_BASENAME).html  \
 
 PAGES = style.css \
 		index.html \
-		olddownloads-berl.html \
-		olddownloads-epfl.html \
 		oldnews.html \
 		status.html \
 		quickstart.html \
@@ -48,20 +46,23 @@ PAGES = style.css \
 		cyclades.png \
 		linuxfund.gif \
 		downloads/index.html \
+		downloads/older/HEADER.html \
+		downloads/older/README.html \
+		downloads/older/.htaccess \
        		sample-oops.png \
 		contrib/Swsusp2_and_Bootsplash_on_FC2.doc \
 		$(HOWTO_FILES) \
 		$(FAQ_FILES) \
 
-DIRS = contrib fedora downloads
+DIRS = contrib fedora downloads downloads/older
 
 # changing these rebuilds everything html
 PREREQS = Prettify top.html bottom.html
 
 all: directories htmlfiles rawfiles fedora
-	find $(SITEBASE) -type d -exec chmod 2775 {} \;
-	find $(SITEBASE) -type f -exec chmod 664 {} \;
-
+	@find . $(SITEBASE) -type d -exec chmod 2775 {} \; 2>/dev/null
+	@find . $(SITEBASE) -type f -exec chmod 664 {} \; 2>/dev/null
+	@chmod 775 Prettify parse_downloads 2>/dev/null || true
 
 htmlfiles: $(patsubst %,$(SITEBASE)/%,$(filter %.html,$(PAGES)))
 rawfiles: $(patsubst %,$(SITEBASE)/%,$(filter-out %.html,$(PAGES)))
@@ -76,41 +77,8 @@ $(SITEBASE)/fedora/%: fedora/%
 downloads/index.html: downloads.xml parse_downloads
 	./parse_downloads > $@
 
-olddownloads-berl.html:
-	@#cat /tmp/index.html | perl -e 
-	wget -O - http://download.berlios.de/softwaresuspend/ | perl -e \
-		'print "TITLE=Older downloads\n<h1>Software Suspend - Older downloads</h1>\n"; \
-		$$width = 60; \
-		sub max { my ($$a, $$b) = @_; return ($$a>$$b)?$$a:$$b; } \
-		while (<>) { \
-			if (not $$havebody){/^<PRE>/and$$havebody = 1 or next; } \
-			last if m#^</PRE><HR>$$#; \
-			m#">Parent Directory<# and next; \
-			m#">apply<# and next; \
-			s#A HREF="([^\?][^"]*)">[^<]+</A>#sprintf "A HREF=\"http://download.berlios.de/softwaresuspend/$$1\">$$1</A>%".(max(($$width-length($$1)),0))."s", ""#e; \
-			s#IMG SRC="#IMG SRC="http://download.berlios.de/#; \
-			print; \
-		} \
-		print "</PRE>\n"' > $@
-
-olddownloads-epfl.html:
-	@#cat /tmp/index.html | perl -e 
-	wget -O - http://download.berlios.de/softwaresuspend/ | perl -e \
-		'print "TITLE=Older downloads\n<h1>Software Suspend - Older downloads</h1>\n"; \
-		$$width = 60; \
-		sub max { my ($$a, $$b) = @_; return ($$a>$$b)?$$a:$$b; } \
-		while (<>) { \
-			if (not $$havebody){/^<PRE>/and$$havebody = 1 or next; } \
-			last if m#^</PRE><HR>$$#; \
-			m#">Parent Directory<# and next; \
-			m#">apply<# and next; \
-			s#A HREF="([^\?][^"]*)">[^<]+</A>#sprintf "A HREF=\"softwaresuspend/$$1\">$$1</A>%".(max(($$width-length($$1)),0))."s", ""#e; \
-			print; \
-		} \
-		print "</PRE>\n"' > $@
-
 # HTML files need a bit of processing.
-$(SITEBASE)/index.html: index.html olddownloads-berl.html $(PREREQS)
+$(SITEBASE)/index.html: index.html $(PREREQS)
 	./Prettify $< > $@
 
 $(SITEBASE)/%.html: %.html $(PREREQS)
@@ -129,7 +97,7 @@ $(FAQ_TARGET): $(FAQ_BASENAME).sgml
 	linuxdoc -B html $< -H faq-top.txt -F /dev/null
 
 clean:
-	rm -f $(HOWTO_BASENAME)*.html $(FAQ_BASENAME)*.html olddownloads-*.html
+	rm -f $(HOWTO_BASENAME)*.html $(FAQ_BASENAME)*.html
 	# Not touching the site base directory!
 
 backup: clean

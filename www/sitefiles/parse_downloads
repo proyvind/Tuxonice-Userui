@@ -3,7 +3,7 @@
 import libxml2
 import sys, string, time, os
 
-download_dir = '/var/web/www/downloads/'
+download_dir = '/var/web/www/htdocs/downloads/'
 download_url_prefix = '/downloads/'
 download_info_file = 'downloads.xml'
 
@@ -113,6 +113,12 @@ def parseDownloads(f):
 print '''TITLE=Software Suspend - Download
 
 <h1>###TITLE###</h1>
+
+<p>Below is a list of the latest stable and development versions of Software Suspend,
+along with the latest Hibernate Script. For older downloads, you may wish to
+consult the <a href="older/">Older Downloads</a> section.</p>
+
 '''
+
 print parseDownloads(sys.stdin)
 
