@@ -54,9 +54,9 @@ LockXScreensaver() {
 
     for xpid in `pidof xscreensaver` ; do
 	local xuser xdisp xauth xhome
-	xuser=`awk 'BEGIN{RS="\000";FS="="}($1 == "USER"){print $2}' < /proc/$xpid/environ`
-	xdisp=`awk 'BEGIN{RS="\000";FS="="}($1 == "DISPLAY"){print $2}' < /proc/$xpid/environ`
-	xauth=`awk 'BEGIN{RS="\000";FS="="}($1 == "XAUTHORITY"){print $2}' < /proc/$xpid/environ`
+	xuser=`awk 'BEGIN{RS="\\000";FS="="}($1 == "USER"){print $2}' < /proc/$xpid/environ`
+	xdisp=`awk 'BEGIN{RS="\\000";FS="="}($1 == "DISPLAY"){print $2}' < /proc/$xpid/environ`
+	xauth=`awk 'BEGIN{RS="\\000";FS="="}($1 == "XAUTHORITY"){print $2}' < /proc/$xpid/environ`
 	if [ -z "$xauth" ] ; then
 	    xhome=`awk 'BEGIN{RS="\000";FS="="}($1 == "HOME"){print $2}' < /proc/$xpid/environ`
 	    xauth="$xhome/.Xauthority"
