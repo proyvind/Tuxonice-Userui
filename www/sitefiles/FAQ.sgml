@@ -234,7 +234,8 @@ PCMCIA kernel stuff and compile the pcmcia_cs package instead. Use PCIC=i82365
 
 <sect1>ATI Radeon and DRI support - after resuming X becomes really sluggish
 <p>Enabling the <tt>UseDummyXServer</tt> option (formerly known as the
-<tt>nVidiaHack</tt>) has solved this problem for a lot of people.
+<tt>nVidiaHack</tt>) in <tt>hibernate.conf</tt> has solved this problem for
+several people using xorg's X server (version 6.8.0 at time of writing).
 
 <sect1>USB issues
 <p>Some machines have issues with USB and Software Suspend. The safest solution
