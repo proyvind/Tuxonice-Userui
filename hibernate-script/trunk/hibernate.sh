@@ -637,7 +637,7 @@ else
     eval `
 	exec 4>&1 >&3 3>&-
 	{
-	    DoWork 2>&- 4>&-
+	    DoWork 4>&-
 	    echo "EXIT_CODE=$EXIT_CODE" >&4
 	} | $LOGPIPE`
 fi
