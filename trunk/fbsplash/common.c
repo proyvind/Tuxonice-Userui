@@ -2,7 +2,7 @@
  * common.c - miscellaneous functions used by both the kernel helper and
  *            user utilities.
  * 
- * Copyright (C) 2004-2005, Michael Januszewski <spock@gentoo.org>
+ * Copyright (C) 2004-2005, Michal Januszewski <spock@gentoo.org>
  * 
  * This file is subject to the terms and conditions of the GNU General Public
  * License v2.  See the file COPYING in the main directory of this archive for
@@ -135,7 +135,7 @@ int do_getpic(unsigned char origin, unsigned char do_cmds, char mode)
 	if (load_images(mode))
 		return -1;
 
-#ifdef CONFIG_TTF
+#if (defined(CONFIG_TTF) && !defined(TARGET_KERNEL)) || (defined(CONFIG_TTF_KERNEL) && defined(TARGET_KERNEL))
 	load_fonts();
 #endif
 	
@@ -145,15 +145,18 @@ int do_getpic(unsigned char origin, unsigned char do_cmds, char mode)
 		render_objs(mode, (u8*)silent_img.data, origin, 0);
 	}
 
+#ifdef CONFIG_FBSPLASH
 	if (do_cmds) {
 		cmd_setpic(&verbose_img, origin);
 		free((u8*)verbose_img.data);
 		if (verbose_img.cmap.red);
 			free(verbose_img.cmap.red);
 	}	
+#endif
 	return 0;
 }
 
+#ifdef CONFIG_FBSPLASH
 int do_config(unsigned char origin)
 {
 	if (!config_file) {
@@ -178,6 +181,7 @@ int do_config(unsigned char origin)
 	cmd_setcfg(origin);
 	return 0;
 }
+#endif
 
 void vt_cursor_disable(int fd)
 {

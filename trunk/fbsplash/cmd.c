@@ -1,7 +1,7 @@
 /*
  * splash_cmd.c - Functions for handling communication with the kernel
  *
- * Copyright (C) 2004-2005 Michael Januszewski <spock@gentoo.org>
+ * Copyright (C) 2004-2005 Michal Januszewski <spock@gentoo.org>
  * 
  * This file is subject to the terms and conditions of the GNU General Public
  * License v2.  See the file COPYING in the main directory of this archive for
@@ -20,9 +20,10 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 #include <linux/fb.h>
-#include <linux/console_splash.h>
-
 #include "splash.h"
+
+#ifdef CONFIG_FBSPLASH
+#include <linux/console_splash.h>
 
 void cmd_setstate(unsigned int state, unsigned char origin)
 {
@@ -98,4 +99,6 @@ void cmd_getcfg()
 	free(vc_cfg.theme);
 	return;		
 }
+
+#endif /* CONFIG_FBSPLASH */
 

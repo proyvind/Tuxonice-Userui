@@ -1,7 +1,7 @@
 /*
  * image.c - Functions to load & unpack PNGs and JPEGs
  *
- * Copyright (C) 2004-2005, Michael Januszewski <spock@gentoo.org>
+ * Copyright (C) 2004-2005, Michal Januszewski <spock@gentoo.org>
  * 
  * This file is subject to the terms and conditions of the GNU General Public
  * License v2.  See the file COPYING in the main directory of this archive for
@@ -433,6 +433,7 @@ int load_images(char mode)
 	if (mode == 's' || mode == 'a') {
 		load_bg_images('s');
 	
+#ifdef CONFIG_PNG
 		for (i = icons.head; i != NULL; i = i->next) {
 			icon_img *ii = (icon_img*) i->p;
 			ii->w = ii->h = 0;
@@ -449,6 +450,7 @@ int load_images(char mode)
 				continue;
 			}
 		}
+#endif
 	}
 
 	return 0;

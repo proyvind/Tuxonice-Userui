@@ -9,7 +9,6 @@
 #define MAX_ICONS 	512
 #define SPLASH_DEV	"/dev/fbsplash"
 
-#define SPLASH_FIFO	"/var/cache/splash/.splash"
 #define TTY_SILENT 	8
 #define TTY_VERBOSE 	1
 
@@ -31,6 +30,11 @@
 #define max(a,b)		((a) > (b) ? (a) : (b))
 #define CLAMP(x) 		((x) > 255 ? 255 : (x))
 #define DEBUG(x...)
+
+#ifndef CONFIG_FBSPLASH
+#define FB_SPLASH_IO_ORIG_USER 0
+#define FB_SPLASH_IO_ORIG_KERNEL 1
+#endif
 						    
 /* ************************************************************************
  * 				Lists 
@@ -85,30 +89,43 @@ typedef struct color {
 } __attribute__ ((packed)) color;
 
 struct colorf {
-	double r, g, b, a;
+	float r, g, b, a;
 };
 
 typedef struct {
 	int x1, x2, y1, y2;
 } rect;
 
-#define F_TXT_SILENT  	0x01
-#define F_TXT_VERBOSE	0x02
-#define F_TXT_EXEC 		0x04
-#define F_TXT_PROGRESS	0x08
+#define F_TXT_SILENT  	1
+#define F_TXT_VERBOSE	2
+#define F_TXT_EXEC 	4
+#define F_TXT_EVAL	8	
+
+#define F_HS_HORIZ_MASK	7
+#define F_HS_VERT_MASK	56
+
+#define F_HS_TOP	8
+#define F_HS_VMIDDLE	16
+#define F_HS_BOTTOM	32
+
+#define F_HS_LEFT	1
+#define F_HS_HMIDDLE	2
+#define F_HS_RIGHT	4
 
 #include "ttf.h"
 
 typedef struct {
 	char *file;
 	int size;
-	TTF_Font *font;	
+	TTF_Font *font;
 } font_e;
 
 typedef struct {
 	int x, y;
+	u8 hotspot;
 	color col;
 	u8 flags;
+	u8 style;
 	char *val;
 	font_e *font;
 } text;
@@ -124,10 +141,9 @@ typedef struct truecolor {
 	u8 r, g, b, a;
 } __attribute__ ((packed)) truecolor;
 
-#define BOX_NOOVER	0x01
-#define BOX_INTER	0x02
-#define BOX_SILENT	0x04
-#define BOX_ONECOLOR	0x08
+#define BOX_NOOVER 0x01
+#define BOX_INTER 0x02
+#define BOX_SILENT 0x04
 
 struct splash_config {
 	u8 bg_color;
@@ -220,7 +236,6 @@ extern int arg_vc;
 extern char *arg_theme;
 extern char arg_mode;
 extern u16 arg_progress;
-extern char *progress_text;
 
 #ifndef TARGET_KERNEL
 extern char *arg_export;
@@ -243,3 +258,4 @@ extern struct fb_image silent_img;
 extern struct splash_config cf;
 
 extern int fb_fd, fbsplash_fd;
+extern char *progress_text;

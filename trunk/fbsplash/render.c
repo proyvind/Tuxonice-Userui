@@ -1,7 +1,7 @@
 /*
  * render.c - Functions for rendering boxes and icons
  *
- * Copyright (C) 2004-2005, Michael Januszewski <spock@gentoo.org>
+ * Copyright (C) 2004-2005, Michal Januszewski <spock@gentoo.org>
  * 
  * This file is subject to the terms and conditions of the GNU General Public
  * License v2.  See the file COPYING in the main directory of this archive for
@@ -9,12 +9,21 @@
  *
  */
 
+/* HACK WARNING: 
+ * This is necessary to get FD_SET and FD_ZERO on platforms other than x86. */
+#ifdef TARGET_KERNEL
+#define __KERNEL__
+#include <linux/posix_types.h>
+#undef __KERNEL__
+#endif
+
 #include <linux/fb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <string.h>
 #include <fcntl.h>
 #include "splash.h"
 
@@ -32,104 +41,15 @@ void render_icon(icon *ticon, u8 *target)
 	}
 }
 
-void render_box_onecolor(box *box, u8 *target)
-{
-	int rlen, glen, blen;
-	int x, y, a, r, g, b, i;
-	
-	u8 *pic;
-	
-	int bytespp = (fb_var.bits_per_pixel + 7) >> 3;
-	int b_width = box->x2 - box->x1 + 1;
-	int b_height = box->y2 - box->y1 + 1;
-	
-	if (box->x2 > fb_var.xres || box->y2 > fb_var.yres || b_width <= 0 || b_height <= 0) {
-		fprintf(stderr, "Ignoring invalid box (%d, %d, %d, %d).\n", box->x1, box->y1, box->x2, box->y2);
-		return;
-	}	
-
-	if (fb_fix.visual == FB_VISUAL_DIRECTCOLOR) {
-		blen = glen = rlen = min(min(fb_var.red.length,fb_var.green.length),fb_var.blue.length);
-	} else {
-		rlen = fb_var.red.length;
-		glen = fb_var.green.length;
-		blen = fb_var.blue.length;
-	}
-
-	for (y = box->y1; y <= box->y2; y++) {
-
-		pic = target + (box->x1 + y * fb_var.xres) * bytespp;
-
-		for (x = box->x1; x <= box->x2; x++) {
-
-			a = box->c_ul.a;
-			r = box->c_ul.r;
-			g = box->c_ul.g;
-			b = box->c_ul.b;
-
-			if (a != 255) {
-			
-				if (fb_var.bits_per_pixel == 16) { 
-					i = *(u16*)pic;
-				} else if (fb_var.bits_per_pixel == 24) {
-					i = *(u32*)pic & 0xffffff;
-				} else if (fb_var.bits_per_pixel == 32) {
-					i = *(u32*)pic;
-				} else {
-					i = *(u32*)pic & ((2 << fb_var.bits_per_pixel)-1);
-				}
-
-				r = (( (i >> fb_var.red.offset & ((1 << rlen)-1)) 
-				      << (8 - rlen)) * (255 - a) + r * a) / 255;
-				g = (( (i >> fb_var.green.offset & ((1 << glen)-1)) 
-				      << (8 - glen)) * (255 - a) + g * a) / 255;
-				b = (( (i >> fb_var.blue.offset & ((1 << blen)-1)) 
-				      << (8 - blen)) * (255 - a) + b * a) / 255;
-			}
-		
-			r >>= (8 - rlen);
-			g >>= (8 - glen);
-			b >>= (8 - blen);
-
-			i = (r << fb_var.red.offset) |
-		 	    (g << fb_var.green.offset) |
-			    (b << fb_var.blue.offset);
-
-			if (fb_var.bits_per_pixel == 16) {
-				*(u16*)pic = i;
-				pic += 2;
-			} else if (fb_var.bits_per_pixel == 24) {
-				
-				if (endianess == little) { 
-					*(u16*)pic = i & 0xffff;
-					pic[2] = (i >> 16) & 0xff;
-				} else {
-					*(u16*)pic = (i >> 8) & 0xffff;
-					pic[2] = i & 0xff;
-				}
-				pic += 3;
-			} else if (fb_var.bits_per_pixel == 32) {
-				*(u32*)pic = i;
-				pic += 4;
-			}
-		}
-	}
-}
-
 void render_box(box *box, u8 *target)
 {
 	int rlen, glen, blen;
 	int x, y, a, r, g, b, i;
 	int add;
-	
 	u8 *pic;
 	struct colorf h_ap1, h_ap2, h_bp1, h_bp2;
-
-	if (box->attr & BOX_ONECOLOR) {
-		render_box_onecolor(box, target);
-		return;
-	}
 	
+	u8 solid = 0;
 	int bytespp = (fb_var.bits_per_pixel + 7) >> 3;
 	int b_width = box->x2 - box->x1 + 1;
 	int b_height = box->y2 - box->y1 + 1;
@@ -139,26 +59,32 @@ void render_box(box *box, u8 *target)
 		return;
 	}	
 
-	h_ap1.r = (double)box->c_ul.r / b_height;
-	h_ap1.g = (double)box->c_ul.g / b_height;
-	h_ap1.b = (double)box->c_ul.b / b_height;
-	h_ap1.a = (double)box->c_ul.a / b_height;
+	if (!memcmp(&box->c_ul, &box->c_ur, sizeof(color)) &&
+	    !memcmp(&box->c_ul, &box->c_ll, sizeof(color)) &&
+	    !memcmp(&box->c_ul, &box->c_lr, sizeof(color))) {
+		solid = 1;
+	} else {
+		h_ap1.r = (float)box->c_ul.r / b_height;
+		h_ap1.g = (float)box->c_ul.g / b_height;
+		h_ap1.b = (float)box->c_ul.b / b_height;
+		h_ap1.a = (float)box->c_ul.a / b_height;
 
-	h_ap2.r = (double)(box->c_ur.r - box->c_ul.r) / (b_width * b_height);
-	h_ap2.g = (double)(box->c_ur.g - box->c_ul.g) / (b_width * b_height);
-	h_ap2.b = (double)(box->c_ur.b - box->c_ul.b) / (b_width * b_height);
-	h_ap2.a = (double)(box->c_ur.a - box->c_ul.a) / (b_width * b_height);
+		h_ap2.r = (float)(box->c_ur.r - box->c_ul.r) / (b_width * b_height);
+		h_ap2.g = (float)(box->c_ur.g - box->c_ul.g) / (b_width * b_height);
+		h_ap2.b = (float)(box->c_ur.b - box->c_ul.b) / (b_width * b_height);
+		h_ap2.a = (float)(box->c_ur.a - box->c_ul.a) / (b_width * b_height);
 
-	h_bp1.r = (double)box->c_ll.r / b_height;
-	h_bp1.g = (double)box->c_ll.g / b_height;
-	h_bp1.b = (double)box->c_ll.b / b_height;
-	h_bp1.a = (double)box->c_ll.a / b_height;
+		h_bp1.r = (float)box->c_ll.r / b_height;
+		h_bp1.g = (float)box->c_ll.g / b_height;
+		h_bp1.b = (float)box->c_ll.b / b_height;
+		h_bp1.a = (float)box->c_ll.a / b_height;
 
-	h_bp2.r = (double)(box->c_lr.r - box->c_ll.r) / (b_width * b_height);
-	h_bp2.g = (double)(box->c_lr.g - box->c_ll.g) / (b_width * b_height);
-	h_bp2.b = (double)(box->c_lr.b - box->c_ll.b) / (b_width * b_height);
-	h_bp2.a = (double)(box->c_lr.a - box->c_ll.a) / (b_width * b_height);
-	
+		h_bp2.r = (float)(box->c_lr.r - box->c_ll.r) / (b_width * b_height);
+		h_bp2.g = (float)(box->c_lr.g - box->c_ll.g) / (b_width * b_height);
+		h_bp2.b = (float)(box->c_lr.b - box->c_ll.b) / (b_width * b_height);
+		h_bp2.a = (float)(box->c_lr.a - box->c_ll.a) / (b_width * b_height);
+	}
+		
 	if (fb_fix.visual == FB_VISUAL_DIRECTCOLOR) {
 		blen = glen = rlen = min(min(fb_var.red.length,fb_var.green.length),fb_var.blue.length);
 	} else {
@@ -185,14 +111,20 @@ void render_box(box *box, u8 *target)
 			int t1 = b_height - (y-box->y1);
 			int t2 = y - box->y1;	
 			int t3 = x - box->x1;
-						
-			a = t1 * (h_ap1.a + t3*h_ap2.a) + t2 * (h_bp1.a + t3*h_bp2.a);
-			r = t1 * (h_ap1.r + t3*h_ap2.r) + t2 * (h_bp1.r + t3*h_bp2.r);
-			g = t1 * (h_ap1.g + t3*h_ap2.g) + t2 * (h_bp1.g + t3*h_bp2.g);
-			b = t1 * (h_ap1.b + t3*h_ap2.b) + t2 * (h_bp1.b + t3*h_bp2.b);
+
+			if (!solid) {
+				a = t1 * (h_ap1.a + t3*h_ap2.a) + t2 * (h_bp1.a + t3*h_bp2.a);
+				r = t1 * (h_ap1.r + t3*h_ap2.r) + t2 * (h_bp1.r + t3*h_bp2.r);
+				g = t1 * (h_ap1.g + t3*h_ap2.g) + t2 * (h_bp1.g + t3*h_bp2.g);
+				b = t1 * (h_ap1.b + t3*h_ap2.b) + t2 * (h_bp1.b + t3*h_bp2.b);
+			} else {
+				a = box->c_ul.a;
+				r = box->c_ul.r;
+				g = box->c_ul.g;
+				b = box->c_ul.b;
+			}
 	
 			if (a != 255) {
-			
 				if (fb_var.bits_per_pixel == 16) { 
 					i = *(u16*)pic;
 				} else if (fb_var.bits_per_pixel == 24) {
@@ -230,7 +162,6 @@ void render_box(box *box, u8 *target)
 				*(u16*)pic = i;
 				pic += 2;
 			} else if (fb_var.bits_per_pixel == 24) {
-				
 				if (endianess == little) { 
 					*(u16*)pic = i & 0xffff;
 					pic[2] = (i >> 16) & 0xff;
@@ -276,9 +207,6 @@ void interpolate_box(box *a, box *b)
 	inter_color(a->c_ur, b->c_ur);
 	inter_color(a->c_ll, b->c_ll);
 	inter_color(a->c_lr, b->c_lr);
-
-	if (a->attr & BOX_ONECOLOR)
-		a->attr |= b->attr & BOX_ONECOLOR;
 }
 
 char *get_program_output(char *prg, unsigned char origin)
@@ -324,6 +252,55 @@ char *get_program_output(char *prg, unsigned char origin)
 	}
 
 	return buf;
+}
+
+char *eval_text(char *txt)
+{
+	char *p, *t, *ret, *d;
+	int len, i, subst_len, need_subst;
+
+	i = len = strlen(txt);
+	p = txt;
+
+	subst_len = progress_text?strlen(progress_text):0;
+	need_subst = 0;
+	
+	while ((t = strstr(p, "$progress")) != NULL) { 
+		len += subst_len;
+		p = t+1;
+		need_subst = 1;
+	}
+
+	ret = malloc(len+1);
+
+	if (!need_subst) {
+		strcpy(ret, txt);
+		return ret;
+	}
+	
+	p = txt;
+	d = ret;
+	
+	while ((t = strstr(p, "$progress")) != NULL) {
+		strncpy(d, p, t - p);
+		d += (t-p);
+		
+		if (t > txt && *(t-1) == '\\') {
+			*(d-1) = '$';
+			p = t+1;
+			continue;
+		}
+
+		if (progress_text)
+			strcpy(d, progress_text);
+		d += subst_len;
+		p = t;
+		p += 9;
+	}
+
+	strcpy(d, p);	
+	
+	return ret;	
 }
 
 void render_objs(char mode, u8* target, unsigned char origin, int progress_only)
@@ -384,13 +361,13 @@ void render_objs(char mode, u8* target, unsigned char origin, int progress_only)
 
 			render_icon(c, target);
 		} 
-#if (defined(CONFIG_TTY_KERNEL) && defined(TARGET_KERNEL)) || defined(CONFIG_TTF)
+#if (defined(CONFIG_TTY_KERNEL) && defined(TARGET_KERNEL)) || (defined(CONFIG_TTF) && !defined(TARGET_KERNEL))
 		else if (o->type == o_text) {
 
 			text *ct = (text*)o->p;
 			char *txt;
 					
-			if (progress_only && !(ct->flags & F_TXT_PROGRESS))
+			if (progress_only && !(ct->flags & F_TXT_EVAL))
 				continue;
 
 			if (mode == 's' && !(ct->flags & F_TXT_SILENT))
@@ -404,27 +381,31 @@ void render_objs(char mode, u8* target, unsigned char origin, int progress_only)
 
 			if (ct->flags & F_TXT_EXEC) {
 				txt = get_program_output(ct->val, origin);
-			} else if (ct->flags & F_TXT_PROGRESS) {
-				txt = progress_text;
+			} else if (ct->flags & F_TXT_EVAL) {
+				txt = eval_text(ct->val);
 			} else {
 				txt = ct->val;
 			}
 			
 			if (txt) {
-				TTF_Render(target, txt, ct->font->font, TTF_STYLE_NORMAL, ct->x, ct->y, ct->col);
-				if (ct->flags & F_TXT_EXEC)
+				TTF_Render(target, txt, ct->font->font, ct->style, ct->x, ct->y, ct->col, ct->hotspot);
+				if ((ct->flags & F_TXT_EXEC) || (ct->flags & F_TXT_EVAL))
 					free(txt);
 			}
 		}
 #endif
 	}
 
-#if (defined(CONFIG_TTY_KERNEL) && defined(TARGET_KERNEL)) || defined(CONFIG_TTF)
+#if (defined(CONFIG_TTF_KERNEL) && defined(TARGET_KERNEL)) || (!defined(TARGET_KERNEL) && defined(CONFIG_TTF))
 	if (mode == 's' && !progress_only) {
 		if (!boot_message)
-			TTF_Render(target, DEFAULT_MESSAGE, global_font, TTF_STYLE_NORMAL, cf.text_x, cf.text_y, cf.text_color);
-		else
-			TTF_Render(target, boot_message, global_font, TTF_STYLE_NORMAL, cf.text_x, cf.text_y, cf.text_color);
+			TTF_Render(target, DEFAULT_MESSAGE, global_font, TTF_STYLE_NORMAL, cf.text_x, cf.text_y, cf.text_color, F_HS_LEFT | F_HS_TOP);
+		else {
+			char *t;
+			t = eval_text(boot_message);
+			TTF_Render(target, t, global_font, TTF_STYLE_NORMAL, cf.text_x, cf.text_y, cf.text_color, F_HS_LEFT | F_HS_TOP);
+			free(t);
+		}
 	}
 #endif
 }

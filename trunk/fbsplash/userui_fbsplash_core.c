@@ -16,6 +16,7 @@
 #include "../userui.h"
 
 int fb_fd, fbsplash_fd;
+char *progress_text;
 static char lastmessage[512];
 static char rendermessage[512];
 static int lastloglevel;
@@ -101,7 +102,6 @@ static void fbsplash_prepare() {
 		return;
 
 	parse_cfg(config_file);
-	free(config_file);
 
 	/* Prime the font cache with glyphs so we don't need to allocate them later */
 	TTF_PrimeCache("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -.", global_font, TTF_STYLE_NORMAL);
@@ -159,6 +159,8 @@ static void fbsplash_cleanup() {
 
 	free(base_image);
 	base_image = NULL;
+
+	free(config_file);
 
 	if (frame_buffer)
 		munmap(frame_buffer, base_image_size);

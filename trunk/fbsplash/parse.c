@@ -1,7 +1,7 @@
 /*
  * parse.c - Functions for parsing splashutils config files
  * 
- * Copyright (C) 2004-2005, Michael Januszewski <spock@gentoo.org>
+ * Copyright (C) 2004-2005, Michal Januszewski <spock@gentoo.org>
  * 
  * This file is subject to the terms and conditions of the GNU General Public
  * License v2.  See the file COPYING in the main directory of this archive for
@@ -572,7 +572,6 @@ void parse_box(char *t)
 		assign_color(cbox->c_ur, cbox->c_ul);
 		assign_color(cbox->c_lr, cbox->c_ul);
 		assign_color(cbox->c_ll, cbox->c_ul);
-		cbox->attr |= BOX_ONECOLOR;
 		goto pb_end;
 	} else if (ret == -2)
 		goto pb_err;
@@ -605,7 +604,7 @@ pb_err:
 	return;
 }
 
-char *parse_quoted_string(char *t)
+char *parse_quoted_string(char *t, u8 keepvar)
 {
 	char *p, *out;
 	int cnt = 0;
@@ -619,7 +618,7 @@ char *parse_quoted_string(char *t)
 	p = t;
 
 	while ((*p != '"' || *(p-1) == '\\') && *p != 0) {
-		if (*p == '\\')
+		if (*p == '\\' && *(p+1) == '"')
 			cnt++;
 		p++;
 	}
@@ -635,13 +634,14 @@ char *parse_quoted_string(char *t)
 	}
 	
 	for (i = 0; i < len; i++, t++) {
-
-		if (*t == '\\')
-			t++;
-		out[i] = t[0];	
+		if (*t == '\\' && i < len-1) {
+			if (!keepvar || (keepvar && *(t+1) == '"'))
+				t++;
+		}
+		out[i] = *t;
 	}
 
-	out[len-cnt+1] = 0;
+	out[len-cnt] = 0;
 	return out;
 }
 
@@ -660,6 +660,8 @@ void parse_text(char *t)
 	
 	skip_whitespace(&t);
 	ct->flags = 0;
+	ct->hotspot = 0;
+	ct->style = TTF_STYLE_NORMAL;
 	ret = 1;
 	
 	while (!isdigit(*t) && ret) {
@@ -679,8 +681,8 @@ void parse_text(char *t)
 		skip_whitespace(&t);
 	}
 
-	if ((ct->flags & (F_TXT_SILENT|F_TXT_VERBOSE)) == 0)
-		ct->flags |= F_TXT_VERBOSE | F_TXT_SILENT;
+	if (ct->flags == 0)
+		ct->flags = F_TXT_VERBOSE | F_TXT_SILENT;
 
 	if (!isdigit(*t)) {
 		p = t;
@@ -691,20 +693,73 @@ void parse_text(char *t)
 	}
 	skip_whitespace(&t);		
 
+	/* Parse the style selector */
+	while(!isdigit(*t)) {
+		if (*t == 'b') {
+			ct->style |= TTF_STYLE_BOLD;
+		} else if (*t == 'i') {
+			ct->style |= TTF_STYLE_ITALIC;
+		} else if (*t == 'u') {
+			ct->style |= TTF_STYLE_UNDERLINE;
+		} else if (*t != ' ' && *t != '\t') {
+			goto pt_err;
+		}
+		t++;
+	}
+	
+	/* Parse font size */
 	fontsize = strtol(t,&p,0);
 	if (t == p)
 		goto pt_err;
 	
 	t = p; skip_whitespace(&t);
+
+	/* Parse x position */
 	ct->x = strtol(t,&p,0);
 	if (t == p)
 		goto pt_err;
 	t = p; skip_whitespace(&t);
+	
+	if (!isdigit(*t)) {
+		if (!strncmp(t, "left", 4)) {
+			ct->hotspot |= F_HS_LEFT;
+			t += 4;
+		} else if (!strncmp(t, "right", 5)) {
+			ct->hotspot |= F_HS_RIGHT;
+			t += 5;
+		} else if (!strncmp(t, "middle", 6)) { 
+			ct->hotspot |= F_HS_HMIDDLE;
+			t += 6;
+		} else {
+			goto pt_err;
+		}
+
+		skip_whitespace(&t);
+	} else {
+		ct->hotspot |= F_HS_LEFT;
+	}
+
+	/* Parse y position */
 	ct->y = strtol(t,&p,0);
 	if (t == p)
 		goto pt_err;
 	t = p; skip_whitespace(&t);
-	
+
+	if (!strncmp(t, "top", 3)) {
+		ct->hotspot |= F_HS_TOP;
+		t += 3;
+	} else if (!strncmp(t, "bottom", 6)) {
+		ct->hotspot |= F_HS_BOTTOM;
+		t += 6;
+	} else if (!strncmp(t, "middle", 6)) { 
+		ct->hotspot |= F_HS_VMIDDLE;
+		t += 6;
+	} else {
+		ct->hotspot |= F_HS_TOP;
+	}
+
+	skip_whitespace(&t);
+
 	/* Sanity checks */
 	if (ct->x >= fb_var.xres)
 		goto pt_err;
@@ -724,19 +779,18 @@ void parse_text(char *t)
 		goto pt_err;
 
 	skip_whitespace(&t);
-	if (!strncmp(t, "progress", 8)) {
-		ct->flags |= F_TXT_PROGRESS;
-		t += 8;
-	} else if (!strncmp(t, "exec", 4)) {
-		/* Don't honour exec */
-		goto pt_err;
+	if (!strncmp(t, "exec", 4)) {
+		ct->flags |= F_TXT_EXEC;
+		t += 4;
+	} else if (!strncmp(t, "eval", 4)) {
+		ct->flags |= F_TXT_EVAL;
+		t += 4;
 	}
+
 	skip_whitespace(&t);
-	if (!(ct->flags & F_TXT_PROGRESS)) {
-		ct->val = parse_quoted_string(t);	
-		if (!ct->val)
-			goto pt_err;
-	}
+	ct->val = parse_quoted_string(t, (ct->flags & F_TXT_EVAL) ? 1 : 0);	
+	if (!ct->val)
+		goto pt_err;
 
 	if (!fontname)
 		fontname = DEFAULT_FONT;
