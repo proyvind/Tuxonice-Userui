@@ -292,7 +292,7 @@ void render_objs(char mode, u8* target, unsigned char origin)
 			text *ct = (text*)o->p;
 			char *txt;
 					
-			if (mode == 's' && !(ct->flags & F_TXT_SILENT))
+			if (mode == 's' && !(ct->flags & (F_TXT_SILENT | F_TXT_PROGRESS)))
 				continue;
 
 			if (mode == 'v' && !(ct->flags & F_TXT_VERBOSE))
@@ -303,6 +303,8 @@ void render_objs(char mode, u8* target, unsigned char origin)
 
 			if (ct->flags & F_TXT_EXEC) {
 				txt = get_program_output(ct->val, origin);
+			} else if (ct->flags & F_TXT_PROGRESS) {
+				txt = progress_text;
 			} else {
 				txt = ct->val;
 			}

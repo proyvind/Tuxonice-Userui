@@ -95,6 +95,7 @@ typedef struct {
 #define F_TXT_SILENT  	1
 #define F_TXT_VERBOSE	2
 #define F_TXT_EXEC 	4
+#define F_TXT_PROGRESS	8
 
 #include "ttf.h"
 
@@ -218,6 +219,7 @@ extern int arg_vc;
 extern char *arg_theme;
 extern char arg_mode;
 extern u16 arg_progress;
+extern char *progress_text;
 
 #ifndef TARGET_KERNEL
 extern char *arg_export;

@@ -249,9 +249,14 @@ static void fbsplash_update_progress(unsigned long value, unsigned long maximum,
 	last_pos = tmp;
 	arg_progress = tmp;
 
+	if (msg && console_loglevel == 1)
+		progress_text = msg;
+
 render:
 	render_objs('s', (u8*)silent_img.data, FB_SPLASH_IO_ORIG_USER);
 	update_fb_img();
+
+	progress_text = NULL;
 }
 
 static void fbsplash_log_level_change() {

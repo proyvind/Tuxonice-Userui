@@ -35,6 +35,7 @@ int arg_vc = 0;
 char arg_mode = 'v';
 char *arg_theme = NULL;
 u16 arg_progress = 0;
+char *progress_text = NULL;
 
 #ifndef TARGET_KERNEL
 char *arg_export = NULL;

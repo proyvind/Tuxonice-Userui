@@ -671,12 +671,16 @@ void parse_text(char *t)
 			ct->flags |= F_TXT_VERBOSE;
 			t += 7;
 			ret = 1;
+		} else if (!strncmp(t, "progress", 8)) {
+			ct->flags |= F_TXT_PROGRESS;
+			t += 8;
+			ret = 1;
 		} else {
 			ret = 0;
 		}
 
 		skip_whitespace(&t);
-	}	
+	}
 
 	if (ct->flags == 0)
 		ct->flags = F_TXT_VERBOSE | F_TXT_SILENT;
@@ -724,13 +728,15 @@ void parse_text(char *t)
 
 	skip_whitespace(&t);
 	if (!strncmp(t, "exec", 4)) {
-		ct->flags |= F_TXT_EXEC;
+		/* ct->flags |= F_TXT_EXEC; Don't honour exec */
 		t += 4;
 	}
 	skip_whitespace(&t);
-	ct->val = parse_quoted_string(t);	
-	if (!ct->val)
-		goto pt_err;
+	if (!(ct->flags & F_TXT_PROGRESS)) {
+		ct->val = parse_quoted_string(t);	
+		if (!ct->val)
+			goto pt_err;
+	}
 
 	if (!fontname)
 		fontname = DEFAULT_FONT;
