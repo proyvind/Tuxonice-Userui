@@ -22,7 +22,8 @@ AddLongOption "no-suspend"
 AddOptionHelp "-n, --no-suspend (requires UseSwsusp2 on)" "Disables actually suspending the system. This is useful for testing the suspend script itself."
 
 SWSUSP_ROOT="/proc/swsusp"
-SWSUSP_INTERFACE_VERSION=15
+SWSUSP_INTERFACE_VERSION_MIN=15
+SWSUSP_INTERFACE_VERSION_MAX=15
 
 Swsusp2ConfigEnabler() {
     [ "$1" != "useswsusp2" ] && return 1
@@ -208,7 +209,7 @@ EOT
     fi
 
     # Check the interface version matches. Warn if it doesn't.
-    if [ $ver -ne "$SWSUSP_INTERFACE_VERSION" ] ; then
+    if [ $ver -lt "$SWSUSP_INTERFACE_VERSION_MIN" -o $ver -gt "$SWSUSP_INTERFACE_VERSION_MAX" ] ; then
 	cat <<EOT
 WARNING: The swsusp2 scriptlet was written for a different swsusp2 interface
 	 version from the one in your running kernel. This scriptlet was
