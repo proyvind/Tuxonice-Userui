@@ -1,3 +1,10 @@
+0.92
+ - /etc/suspend/ and suspend.conf are now called /etc/hibernate/ and
+   hibernate.conf for consistency.
+ - Redirect stderr to stdout so that both get logged.
+ - Cause abort if module unloading fails. (Cameron Patrick)
+ - Lots of speed improvements!
+
 0.91 (9 July 2004 (later that day))
  - Multiple fixes for grub - restoring the grub menu is now achieved by using
    "hibernate -g" or "hibernate --restore-grub", not by running the scriptlet.
