@@ -219,7 +219,7 @@ ModulesUnloadBlacklist() {
 		IsInVersionRange $kver $vers || continue
 	    else
 		local modver
-		modver=`modinfo $mod | sed -e 's/^version:[ \t]\+\(.*\)$/\1/;t;d' | awk 'BEGIN{FS="[^0-9]"}{print($1*0x10000)+($2*0x100)+$3}'`
+		modver=`modinfo $mod 2>/dev/null | sed -e 's/^version:[ \t]\+\(.*\)$/\1/;t;d' | awk 'BEGIN{FS="[^0-9]"}{print($1*0x10000)+($2*0x100)+$3}'`
 		vecho 3 "Module version for $mod is $modver"
 		if [ -n "$modver" ] ; then
 		    IsInVersionRange $modver $vers || continue
