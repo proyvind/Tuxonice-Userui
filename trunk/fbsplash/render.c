@@ -296,6 +296,9 @@ char *eval_text(char *txt)
 		d += subst_len;
 		p = t;
 		p += 9;
+
+		if (*p == '%')
+			p++;
 	}
 
 	strcpy(d, p);	
