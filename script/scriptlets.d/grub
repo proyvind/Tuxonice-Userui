@@ -97,7 +97,7 @@ else
     AddOptionHandler GrubCmdlineOptions
     AddShortOption 'g'
     AddLongOption 'restore-grub'
-    AddOptionHelp '-g, --restore-grub' 'Restores the grub menu to normal (use if a suspend was not completed sucessfully).'
+    AddOptionHelp '-g, --restore-grub' 'Restores the grub menu to normal (use if a suspend was not completed sucessfully) and exits the script. Does not hibernate.'
 fi
 
 # $Id$
