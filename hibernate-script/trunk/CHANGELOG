@@ -1,7 +1,11 @@
 1.04 (unreleased)
  - Include kernel configs in bug reports.
- - New xstatus scriptlet (merged works of Henrix Brix Andersen and Sebastian
+ - New xstatus scriptlet. (merged works of Henrix Brix Andersen and Sebastian
    Kugler)
+ - Activate bootsplash on the right console. (Sergio Cerlesi)
+ - Make mktemp calls compatible with RHEL3. (Andreas Mohr)
+ - Extra error checking for numerical values. (Cameron Patrick)
+ - Set a sane umask before doing anything else.
 
 1.03 (5 January 2005)
  - Add ndiswrapper to blacklist.
