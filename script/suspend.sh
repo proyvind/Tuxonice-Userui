@@ -321,6 +321,9 @@ LoadScriptlets() {
     prev_pwd="$PWD"
     cd $SCRIPTLET_DIR
     for scriptlet in * ; do
+	# Avoid editor backup files.
+	case "$scriptlet" in *~|*.bak) continue ;; esac
+
 	CURRENT_SOURCED_SCRIPTLET="$scriptlet"
 	. ./$scriptlet
 	vecho 2 "Loaded scriptlet $scriptlet."
