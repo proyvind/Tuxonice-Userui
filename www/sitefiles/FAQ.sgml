@@ -542,7 +542,7 @@ cat /etc/suspend_settings > /proc/software_suspend/all_settings
 
 <sect1>How can I update my initrd on Debian?
 
-<p>See <url url="http://softwaresuspend.berlios.de/wiki/DistroAndHardwareSetup/DebianInitrd" name="DebianInitrd on the wiki">.
+<p>See <url url="###WIKI_URL###DistroAndHardwareSetup/DebianInitrd" name="DebianInitrd on the wiki">.
 
 <sect>Miscellaneous
 
