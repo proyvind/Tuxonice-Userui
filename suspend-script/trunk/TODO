@@ -1,4 +1,7 @@
 - Cmd-line option to write a default config file
 - Consider excess cmdline options as configuration file options?
 
+- Fix bootsplash & xhacks (ordering, and an implication)
+
+
 $Id$
