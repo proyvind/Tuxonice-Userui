@@ -31,6 +31,10 @@ CONFIG_FILE="$SWSUSP_D/hibernate.conf"
 EXE=`basename $0`
 VERSION="0.98"
 
+# Add these to the $PATH just in case.
+PATH="$PATH:/sbin:/usr/sbin"
+export PATH
+
 # vecho N <echo params>: acts like echo but with verbosity control - If it's
 # high enough to go to stdout, then it'll get logged as well.  Else write it to
 # the log file if it needs to. Otherwise, ignore it.
