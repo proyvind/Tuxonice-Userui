@@ -107,6 +107,6 @@ backup: clean
 mirrors: nl-mirror
 
 nl-mirror:
-	cd .. && rsync -azve ssh --exclude=.svn htdocs/* suspend2@vizzzion.org:www/
+	cd .. && rsync -azve ssh --delete --exclude=.svn htdocs/* suspend2@vizzzion.org:www/
 
 .PHONY: directories htmlfiles rawfiles howto clean backup mirrors nl-mirror
