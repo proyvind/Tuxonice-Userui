@@ -255,6 +255,7 @@ DoSwsusp2() {
 	# Dump our debug info now.
 	vecho 0 "System information follows. (Please include with bug reports)."
 	vecho 0 "--- Hibernate script version: $VERSION"
+	[ -f /proc/config.gz ] || vecho 0 "--- kernel config not compiled into kernel. Please attach this separately."
 	vecho 0 "--- Modules loaded: "`lsmod|awk 'BEGIN{getline}{print $1}'`
 	vecho 0 "--- Active swaps: "
 	vcat 0 /proc/swaps
@@ -263,6 +264,10 @@ DoSwsusp2() {
 	vcat 0 /proc/cpuinfo
 	vecho 0 "--- lspci:"
 	lspci | vcat 0
+	if [ -f /proc/config.gz ] ; then
+	    vecho 0 "--- kernel config:"
+	    zcat /proc/config.gz | vcat 0
+	fi
 
 	# Use a freezer test if we can. Otherwise, just don't suspend.
 	if [ -f "$SWSUSP_ROOT/freezer_test" ] ; then
