@@ -265,6 +265,7 @@ int resume_image_from_file(int fd) {
 				fd_entry.data_length -= r;
 			}
 		}
+        fcntl(fd_entry.fd, F_SETFD, fd_entry.fcntl_data.close_on_exec);
 	}
 	//close(stdinfd);
 
@@ -303,7 +304,7 @@ int resume_image_from_file(int fd) {
 
     if (translate_pids) {
         extern int supervise_me(pid_t);
-        munmap(RESUMER_END, 0xffffffff-RESUMER_END);
+        munmap((void*)RESUMER_END, 0xffffffff-RESUMER_END);
         supervise_me(pid);
     }
 
