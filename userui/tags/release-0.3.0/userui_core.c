@@ -64,7 +64,7 @@ int set_progress_granularity(int n) {
 	/* n is how many distinct progress statuses can be displayed */
 	if (n < 1)
 		n = 1;
-	send_message(USERUI_MSG_SET_PROGRESS_GRANULARITY, &n, sizeof(int));
+	return send_message(USERUI_MSG_SET_PROGRESS_GRANULARITY, &n, sizeof(int));
 }
 
 static void handle_params(int argc, char **argv) {
