@@ -21,9 +21,9 @@
 
 #define PAGE_SIZE 0x1000
 
-#define bail(x...) { perror(x); fflush(stderr); _exit(1); }
+#define bail_err(x) do { fprintf(stderr, x": %s\n", strerror(errno)); fflush(stderr); abort(); } while (0)
+#define bail(x...) do { fprintf(stderr, ## x); fflush(stderr); abort(); } while (0)
 
-static char buf[4096];
 static int nlsock = -1;
 static int test_run = 0;
 
@@ -96,7 +96,7 @@ static void handle_params(int argc, char **argv) {
 static void lock_memory() {
 	/* Make sure we don't get swapped out */
 	if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1)
-		bail("mlockall");
+		bail_err("mlockall");
 }
 
 static void get_info() {
@@ -198,12 +198,12 @@ static void open_console() {
 	int fd;
 
 	if ((fd = open("/dev/console", O_RDWR, 0644)) == -1)
-		bail("open(\"/dev/console\")");
+		bail_err("open(\"/dev/console\")");
 
 	if (dup2(fd, STDOUT_FILENO) == -1)
-		bail("dup2(fd, STDOUT_FILENO)");
+		bail_err("dup2(fd, STDOUT_FILENO)");
 	if (dup2(fd, STDERR_FILENO) == -1)
-		bail("dup2(fd, STDERR_FILENO)");
+		bail_err("dup2(fd, STDERR_FILENO)");
 
 	close(fd);
 }
@@ -213,12 +213,12 @@ static void open_netlink() {
 
 	nlsock = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_SUSPEND2_USERUI);
 	if (nlsock < 0)
-		bail("socket");
+		bail_err("socket");
 
 	memset(&sanl, 0, sizeof(sanl));
 	sanl.nl_family = AF_NETLINK;
 	if (bind(nlsock, (struct sockaddr *)&sanl, sizeof(sanl)) == -1)
-		bail("bind");
+		bail_err("bind");
 }
 
 static int send_ready() {
@@ -227,20 +227,64 @@ static int send_ready() {
 	return send_message(USERUI_MSG_READY, &version, sizeof(version));
 }
 
-static void message_loop() {
+static struct nlmsghdr *fetch_message() {
 	int n;
+	static char buf[4096]; /* NOTE: STATIC BUFFER HERE */
+
+	if ((n = recv(nlsock, buf, sizeof(buf), 0)) == -1)
+		bail_err("recv");
+
+	/* Check if the socket was closed on us. */
+	if (n == 0)
+		return NULL;
+
+	return (struct nlmsghdr *)buf;
+}
+
+static void report_nl_error(struct nlmsghdr *nlh) {
+	struct nlmsgerr *err;
+	err = NLMSG_DATA(nlh);
+	if (err->error == 0)
+		return; /* just a netlink ack */
+	fprintf(stderr, "userui: Received netlink error: %s\n",
+			strerror(-err->error));
+	fprintf(stderr, "userui: This was in response to a type %d message.\n",
+			err->msg.nlmsg_type);
+}
+
+static void get_nofreeze() {
+	struct nlmsghdr *nlh;
+	struct userui_msg_params *msg;
+
+	if (!send_message(USERUI_MSG_NOFREEZE_ME, NULL, 0))
+		bail("send_message");
+
+	while (1) {
+		if (!(nlh = fetch_message()))
+			bail("fetch_message() EOF");
+
+		msg = NLMSG_DATA(nlh);
+
+		switch (nlh->nlmsg_type) {
+			case USERUI_MSG_NOFREEZE_ACK:
+				return;
+			case NLMSG_ERROR:
+				report_nl_error(nlh);
+				break;
+		}
+	}
+}
+
+static void message_loop() {
 	struct nlmsghdr *nlh;
 
 	while (1) {
-		if ((n = recv(nlsock, buf, sizeof(buf), 0)) == -1)
-			bail("recv");
+		struct userui_msg_params *msg;
 
-		/* Check if the socket was closed on us. */
-		if (n == 0)
-			return;
+		if (!(nlh = fetch_message()))
+			return; /* EOF */
 
-		nlh = (struct nlmsghdr *)buf;
-		struct userui_msg_params *msg = NLMSG_DATA(nlh);
+		msg = NLMSG_DATA(nlh);
 
 		switch (nlh->nlmsg_type) {
 			case USERUI_MSG_MESSAGE:
@@ -268,16 +312,7 @@ static void message_loop() {
 				userui_ops->keypress(*(unsigned int*)NLMSG_DATA(nlh));
 				break;
 			case NLMSG_ERROR:
-				{
-					struct nlmsgerr *err;
-					err = NLMSG_DATA(nlh);
-					if (err->error == 0)
-						break; /* just a netlink ack */
-					printf("userui: Received netlink error: %s\n",
-							strerror(-err->error));
-					printf("userui: This was in response to a type %d message.\n",
-							err->msg.nlmsg_type);
-				}
+				report_nl_error(nlh);
 				break;
 			case NLMSG_DONE:
 				break;
@@ -299,6 +334,7 @@ static void do_test_run() {
 		usleep(5*1000);
 	}
 	usleep(500*1000);
+	userui_ops->cleanup();
 }
 
 int main(int argc, char **argv) {
@@ -307,6 +343,7 @@ int main(int argc, char **argv) {
 		setup_signal_handlers();
 		open_console();
 		open_netlink();
+		get_nofreeze();
 	}
 	lock_memory();
 	get_info();
