@@ -42,10 +42,10 @@ vecho() {
     local v
     v="$1"
     shift
-    if [ "$v" -le $VERBOSITY ] ; then
+    if expr "$v" '<=' $VERBOSITY >/dev/null; then
 	echo $@
     else
-	if [ "$v" -le $LOG_VERBOSITY -a "$LOGPIPE" != "cat" ] ; then
+	if expr "$v" '<=' $LOG_VERBOSITY >/dev/null && [ "$LOGPIPE" != "cat" ]; then
 	    echo "$@" | $LOGPIPE > /dev/null
 	fi
     fi
@@ -58,10 +58,10 @@ vcat() {
     local v
     v="$1"
     shift
-    if [ "$v" -le $VERBOSITY ] ; then
+    if expr "$V" '<=' $VERBOSITY ; then
 	cat $@
     else
-	if [ "$v" -le $LOG_VERBOSITY -a "$LOGPIPE" != "cat" ] ; then
+	if expr "$v" '<=' $LOG_VERBOSITY >/dev/null && [ "$LOGPIPE" != "cat" ]; then
 	    cat $@ | $LOGPIPE > /dev/null
 	fi
     fi
