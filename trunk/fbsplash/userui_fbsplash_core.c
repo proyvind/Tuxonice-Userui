@@ -27,8 +27,14 @@ static int base_image_size;
 
 static inline void clear_display() { write(1, "\033c", 2); }
 static inline void move_cursor_to(int c, int r) { printf("\033[%d;%dH", r, c); }
-static void hide_cursor() { write(1, "\033[?25l\033[?1c", 11); }
-static void show_cursor() { write(1, "\033[?25h\033[?0c", 11); }
+static void hide_cursor() {
+	ioctl(STDOUT_FILENO, KDSETMODE, KD_GRAPHICS);
+	write(1, "\033[?25l\033[?1c", 11);
+}
+static void show_cursor() {
+	ioctl(STDOUT_FILENO, KDSETMODE, KD_TEXT);
+	write(1, "\033[?25h\033[?0c", 11);
+}
 
 static void reset_silent_img() {
 	if (!base_image || !silent_img.data)
