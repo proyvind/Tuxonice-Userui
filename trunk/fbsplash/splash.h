@@ -92,10 +92,10 @@ typedef struct {
 	int x1, x2, y1, y2;
 } rect;
 
-#define F_TXT_SILENT  	1
-#define F_TXT_VERBOSE	2
-#define F_TXT_EXEC 	4
-#define F_TXT_PROGRESS	8
+#define F_TXT_SILENT  	0x01
+#define F_TXT_VERBOSE	0x02
+#define F_TXT_EXEC 		0x04
+#define F_TXT_PROGRESS	0x08
 
 #include "ttf.h"
 
@@ -124,9 +124,10 @@ typedef struct truecolor {
 	u8 r, g, b, a;
 } __attribute__ ((packed)) truecolor;
 
-#define BOX_NOOVER 0x01
-#define BOX_INTER 0x02
-#define BOX_SILENT 0x04
+#define BOX_NOOVER	0x01
+#define BOX_INTER	0x02
+#define BOX_SILENT	0x04
+#define BOX_ONECOLOR	0x08
 
 struct splash_config {
 	u8 bg_color;

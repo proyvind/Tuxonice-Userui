@@ -572,6 +572,7 @@ void parse_box(char *t)
 		assign_color(cbox->c_ur, cbox->c_ul);
 		assign_color(cbox->c_lr, cbox->c_ul);
 		assign_color(cbox->c_ll, cbox->c_ul);
+		cbox->attr |= BOX_ONECOLOR;
 		goto pb_end;
 	} else if (ret == -2)
 		goto pb_err;
@@ -671,10 +672,6 @@ void parse_text(char *t)
 			ct->flags |= F_TXT_VERBOSE;
 			t += 7;
 			ret = 1;
-		} else if (!strncmp(t, "progress", 8)) {
-			ct->flags |= F_TXT_PROGRESS;
-			t += 8;
-			ret = 1;
 		} else {
 			ret = 0;
 		}
@@ -682,8 +679,8 @@ void parse_text(char *t)
 		skip_whitespace(&t);
 	}
 
-	if (ct->flags == 0)
-		ct->flags = F_TXT_VERBOSE | F_TXT_SILENT;
+	if ((ct->flags & (F_TXT_SILENT|F_TXT_VERBOSE)) == 0)
+		ct->flags |= F_TXT_VERBOSE | F_TXT_SILENT;
 
 	if (!isdigit(*t)) {
 		p = t;
@@ -727,6 +724,10 @@ void parse_text(char *t)
 		goto pt_err;
 
 	skip_whitespace(&t);
+	if (!strncmp(t, "progress", 8)) {
+		ct->flags |= F_TXT_PROGRESS;
+		t += 8;
+	}
 	if (!strncmp(t, "exec", 4)) {
 		/* ct->flags |= F_TXT_EXEC; Don't honour exec */
 		t += 4;

@@ -32,6 +32,90 @@ void render_icon(icon *ticon, u8 *target)
 	}
 }
 
+void render_box_onecolor(box *box, u8 *target)
+{
+	int rlen, glen, blen;
+	int x, y, a, r, g, b, i;
+	
+	u8 *pic;
+	
+	int bytespp = (fb_var.bits_per_pixel + 7) >> 3;
+	int b_width = box->x2 - box->x1 + 1;
+	int b_height = box->y2 - box->y1 + 1;
+	
+	if (box->x2 > fb_var.xres || box->y2 > fb_var.yres || b_width <= 0 || b_height <= 0) {
+		fprintf(stderr, "Ignoring invalid box (%d, %d, %d, %d).\n", box->x1, box->y1, box->x2, box->y2);
+		return;
+	}	
+
+	if (fb_fix.visual == FB_VISUAL_DIRECTCOLOR) {
+		blen = glen = rlen = min(min(fb_var.red.length,fb_var.green.length),fb_var.blue.length);
+	} else {
+		rlen = fb_var.red.length;
+		glen = fb_var.green.length;
+		blen = fb_var.blue.length;
+	}
+
+	for (y = box->y1; y <= box->y2; y++) {
+
+		pic = target + (box->x1 + y * fb_var.xres) * bytespp;
+
+		for (x = box->x1; x <= box->x2; x++) {
+
+			a = box->c_ul.a;
+			r = box->c_ul.r;
+			g = box->c_ul.g;
+			b = box->c_ul.b;
+
+			if (a != 255) {
+			
+				if (fb_var.bits_per_pixel == 16) { 
+					i = *(u16*)pic;
+				} else if (fb_var.bits_per_pixel == 24) {
+					i = *(u32*)pic & 0xffffff;
+				} else if (fb_var.bits_per_pixel == 32) {
+					i = *(u32*)pic;
+				} else {
+					i = *(u32*)pic & ((2 << fb_var.bits_per_pixel)-1);
+				}
+
+				r = (( (i >> fb_var.red.offset & ((1 << rlen)-1)) 
+				      << (8 - rlen)) * (255 - a) + r * a) / 255;
+				g = (( (i >> fb_var.green.offset & ((1 << glen)-1)) 
+				      << (8 - glen)) * (255 - a) + g * a) / 255;
+				b = (( (i >> fb_var.blue.offset & ((1 << blen)-1)) 
+				      << (8 - blen)) * (255 - a) + b * a) / 255;
+			}
+		
+			r >>= (8 - rlen);
+			g >>= (8 - glen);
+			b >>= (8 - blen);
+
+			i = (r << fb_var.red.offset) |
+		 	    (g << fb_var.green.offset) |
+			    (b << fb_var.blue.offset);
+
+			if (fb_var.bits_per_pixel == 16) {
+				*(u16*)pic = i;
+				pic += 2;
+			} else if (fb_var.bits_per_pixel == 24) {
+				
+				if (endianess == little) { 
+					*(u16*)pic = i & 0xffff;
+					pic[2] = (i >> 16) & 0xff;
+				} else {
+					*(u16*)pic = (i >> 8) & 0xffff;
+					pic[2] = i & 0xff;
+				}
+				pic += 3;
+			} else if (fb_var.bits_per_pixel == 32) {
+				*(u32*)pic = i;
+				pic += 4;
+			}
+		}
+	}
+}
+
 void render_box(box *box, u8 *target)
 {
 	int rlen, glen, blen;
@@ -40,6 +124,11 @@ void render_box(box *box, u8 *target)
 	
 	u8 *pic;
 	struct colorf h_ap1, h_ap2, h_bp1, h_bp2;
+
+	if (box->attr & BOX_ONECOLOR) {
+		render_box_onecolor(box, target);
+		return;
+	}
 	
 	int bytespp = (fb_var.bits_per_pixel + 7) >> 3;
 	int b_width = box->x2 - box->x1 + 1;
@@ -187,6 +276,8 @@ void interpolate_box(box *a, box *b)
 	inter_color(a->c_ur, b->c_ur);
 	inter_color(a->c_ll, b->c_ll);
 	inter_color(a->c_lr, b->c_lr);
+
+	a->attr |= b->attr & BOX_ONECOLOR;
 }
 
 char *get_program_output(char *prg, unsigned char origin)
@@ -301,7 +392,7 @@ void render_objs(char mode, u8* target, unsigned char origin, int progress_only)
 			if (progress_only && !(ct->flags & F_TXT_PROGRESS))
 				continue;
 
-			if (mode == 's' && !(ct->flags & (F_TXT_SILENT | F_TXT_PROGRESS)))
+			if (mode == 's' && !(ct->flags & F_TXT_SILENT))
 				continue;
 
 			if (mode == 'v' && !(ct->flags & F_TXT_VERBOSE))
