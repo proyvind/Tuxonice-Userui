@@ -19,7 +19,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <errno.h>
-#include <linux/fb.h>
+#include "linux/fb.h"
 #include "splash.h"
 
 #ifdef CONFIG_FBSPLASH

@@ -11,8 +11,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <linux/fb.h>
 
+#include "linux/fb.h"
 #include "config.h"
 
 #ifdef CONFIG_PNG

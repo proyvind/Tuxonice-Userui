@@ -17,7 +17,7 @@
 #undef __KERNEL__
 #endif
 
-#include <linux/fb.h>
+#include "linux/fb.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
