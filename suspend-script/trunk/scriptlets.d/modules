@@ -13,6 +13,24 @@ CheckModuleSupport() {
     return 1
 }
 
+# SaveKernelModprobe disables module loading while suspending, by setting
+# the kernel's modprobe to /bin/true, and saving the old value.
+SaveKernelModprobe() {
+    [ -n "$KERNEL_MODPROBE" ] && return 0
+    [ -f "/proc/sys/kernel/modprobe" ] || return 0
+    KERNEL_MODPROBE="`cat /proc/sys/kernel/modprobe`"
+    echo "/bin/true" > /proc/sys/kernel/modprobe
+    vecho 3 "Saved /proc/sys/kernel/modprobe is $KERNEL_MODPROBE"
+    return 0
+}
+
+RestoreKernelModprobe() {
+    [ -z "$KERNEL_MODPROBE" ] && return 0
+    echo $KERNEL_MODPROBE > /proc/sys/kernel/modprobe
+    unset KERNEL_MODPROBE
+    return 0
+}
+
 ModulesUnload() {
     [ -z "$MOD_UNLOAD" ] && return 0
     CheckModuleSupport || return 0
@@ -147,6 +165,11 @@ ModulesOptions() {
 	*)
 	    return 1
     esac
+    if [ -z "$MODPROBE_HOOKED" ] ; then
+	AddSuspendHook 89 SaveKernelModprobe
+	AddResumeHook 92 RestoreKernelModprobe
+	MODPROBE_HOOKED=1
+    fi
     return 0
 }
 
