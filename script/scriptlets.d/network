@@ -103,10 +103,10 @@ NetworkDetectDistro() {
 	    ;;
 	slackware)
 	    network_ifup() {
-		/etc/init./ifup $*
+		/etc/init.d/ifup $*
 	    }
 	    network_ifdown() {
-		/etc/init./ifdown $*
+		/etc/init.d/ifdown $*
 	    }
 	    ;;
     	*)
@@ -120,10 +120,10 @@ NetworkDetectDistro() {
 		}
 	    elif [ -x "/etc/init.d/ifup" ] ; then
 		network_ifup() {
-		    /etc/init./ifup $*
+		    /etc/init.d/ifup $*
 		}
 		network_ifdown() {
-		    /etc/init./ifdown $*
+		    /etc/init.d/ifdown $*
 		}
 	    elif [ -x "/etc/sysconfig/network-scripts/ifup" ] ; then
 		network_ifup() {
