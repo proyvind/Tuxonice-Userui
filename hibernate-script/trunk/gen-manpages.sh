@@ -51,9 +51,11 @@ kernel's Software Suspend functionality.
 When you hibernate your machine, the contents of your computer's
 memory will be saved to disc, and your computer will switch off.  When
 you switch it back on again, it will resume exactly as it was when you
-hibernated.  This script currently requires Software Suspend 2, which
+hibernated.  This script is designed for Software Suspend 2, which
 is not yet included in the main kernel tree and must be downloaded
-from the Software Suspend web site at \fIhttp://softwaresuspend.berlios.de/\fR.
+from the Software Suspend web site at \fIhttp://softwaresuspend.berlios.de/\fR,
+but can also utilise the vanilla kernel interfaces for swsusp or pmdisk
+(through /proc/acpi/sleep or /sys/power/state).
 Instructions on setting up the kernel can also be found on that web
 site.
 .PP
@@ -65,6 +67,11 @@ required on some hardware.  By default, all it does is restore the
 system clock after suspending; see
 .BR hibernate.conf (5)
 for information on configuring the rest of its functionality.
+.PP
+If the hibernate script is invoked with a name of the form
+.BR hibernate-foo
+then it will use the configuration file /etc/hibernate/foo.conf instead of the
+default.
 .PP
 The hibernate script accepts the following command-line options:
 .SH OPTIONS
