@@ -34,7 +34,7 @@ ChangeGrubMenu() {
 		fi
 	    else
 		echo  >> "$GRUB_MENU_FILE"
-		echo "title ______________________________________________" >> "$GRUB_MENU_FILE"
+		echo "title ___________________________________________________________" >> "$GRUB_MENU_FILE"
 		echo "configfile dummy" >> "$GRUB_MENU_FILE"
 		echo "title WARNING: "`uname -s -r` "is suspended via swsusp!" >> "$GRUB_MENU_FILE"
 		echo "configfile dummy" >> "$GRUB_MENU_FILE"
