@@ -1,3 +1,2 @@
-- Fix kernel space keyboard grabs (eg, for pause-between-steps)
 - Fix jerkiness of fbanim
-- Get fbsplash reading and using fbsplash themes
+- Fix memory usage - either use it, or get rid of it.

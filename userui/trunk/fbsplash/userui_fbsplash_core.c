@@ -99,6 +99,9 @@ static void fbsplash_prepare() {
 	cmd_setstate(1, FB_SPLASH_IO_ORIG_USER);
 
 	do_getpic(FB_SPLASH_IO_ORIG_USER, 0, 's');
+
+	/* Allow for the widest progress bar we might have */
+	set_progress_granularity(fb_var.xres);
 }
 
 static void fbsplash_cleanup() {

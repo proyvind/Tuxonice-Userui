@@ -257,6 +257,9 @@ static void fbanim_prepare() {
 	if (render_thread == NULL)
 		return;
 
+	/* Allow for the widest progress bar we might have */
+	set_progress_granularity(fb_var.xres);
+
 	can_render = 1;
 
 	status = pthread_create(render_thread, NULL, fbanim_render_thread, NULL);
