@@ -5,10 +5,10 @@
 [ -z "$PREFIX" ]        && PREFIX=/usr/local
 [ -z "$EXEC_PREFIX" ]   && EXEC_PREFIX=$PREFIX
 
-[ -z "$SCRIPT_DEST" ]   && SCRIPT_DEST=$BASE_DIR/$EXEC_PREFIX/sbin/hibernate
-[ -z "$SCRIPTLET_DIR" ] && SCRIPTLET_DIR=$BASE_DIR/$PREFIX/share/hibernate/scriptlets.d
-[ -z "$MAN_DIR" ]       && MAN_DIR=$BASE_DIR/$PREFIX/man
-[ -z "$CONFIG_DIR" ]    && CONFIG_DIR=$BASE_DIR/etc/hibernate
+[ -z "$SCRIPT_DEST" ]   && SCRIPT_DEST=$BASE_DIR$EXEC_PREFIX/sbin/hibernate
+[ -z "$SCRIPTLET_DIR" ] && SCRIPTLET_DIR=$BASE_DIR$PREFIX/share/hibernate/scriptlets.d
+[ -z "$MAN_DIR" ]       && MAN_DIR=$BASE_DIR$PREFIX/man
+[ -z "$CONFIG_DIR" ]    && CONFIG_DIR=${BASE_DIR}etc/hibernate
 [ -z "$CONFIG_FILE" ]   && CONFIG_FILE=$CONFIG_DIR/hibernate.conf
 
 [ -z "$OLD_SCRIPTLET_DIR" ] && OLD_SCRIPTLET_DIR=$CONFIG_DIR/scriptlets.d
