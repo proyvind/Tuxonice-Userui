@@ -372,20 +372,8 @@ corrupt/crash the system on forcing resume with CONTROL and possible cause
 filesystem damage as well.
 
 <sect3>Scenario 2 - a second kernel does not recognise the suspend image
-<p>This is more dangerous as there is no warning. For example, you have two
-kernels, Kernel A and Kernel B. Kernel A has software suspend support, and
-Kernel B does not.
-<p>The danger comes when suspending with Kernel A, you then decide to boot
-Kernel B, that does not recognize the swap image. It ignores the "bad" swap
-partition and runs without it as if nothing happened (except maybe if it runs
-low on memory).
-<p>The problem to the suspended Kernel A is that since Kernel B mounted the
-filesystem r/w, it no longer matches the suspended kernel and will be corrupted
-on resume. Thus, severe damage to the filesystem will result once the disk is
-written to by the resumed kernel. 
-<p>Should this scenario occur, the suspended kernel must be prevented from
-resuming. This can be accomplished by an mkswap of the swap partition from
-Kernel B, or booting Kernel A with noresume2. 
+<p>This is described in detail in the
+<url url="HOWTO-4.html#dataloss1" name="HOWTO (Avoiding data loss)">.
 
 <sect1>Is there any way to convince Software Suspend 2 to free things like disk
 caches and buffers but nothing else?
@@ -554,7 +542,7 @@ cat /etc/suspend_settings > /proc/software_suspend/all_settings
 
 <sect1>How can I update my initrd on Debian?
 
-<p>See <url url="http://softwaresuspend.berlios.de/wiki/DebianInitrd" name="DebianInitrd on the wiki">.
+<p>See <url url="http://softwaresuspend.berlios.de/wiki/DistroAndHardwareSetup/DebianInitrd" name="DebianInitrd on the wiki">.
 
 <sect>Miscellaneous
 

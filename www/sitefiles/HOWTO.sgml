@@ -466,9 +466,13 @@ dealt with gracefully.
 <p>Other more dangerous situations are described below, with ways to workaround
 and avoid them:
 
-<sect2>Booting non-Software Suspend aware kernels
-<p><bf>Problem</bf>: Booting a second kernel that does not recognise the
-suspended image in your swap partition.
+<label id="dataloss1"><sect2>Booting non-Software Suspend aware kernels
+
+<p><bf>Problem</bf>: Booting a second kernel that does
+not recognise the suspended image in your swap partition. Or, attempting to
+resume with the same kernel, but failing to put a <tt>resume2=</tt> parameter
+in your bootloader, then putting one in and resuming without removing the image
+first.
 <p>This is very dangerous as there is no warning. For example, you have two
 kernels, Kernel A and Kernel B. Kernel A has Software Suspend support, and
 Kernel B does not.
@@ -484,16 +488,45 @@ written to by the resumed kernel.
 is released for their distribution and automatically installed, or if you boot
 a live CD (eg, Knoppix) and try to mount filesystems from there.
 
-<p><bf>Solution</bf>: Should this scenario occur, the suspended kernel must be
-prevented from resuming. This can be accomplished by an mkswap of the swap
-partition from Kernel B, or booting Kernel A with noresume2. To make sure this
-always happens, you can putting a line like this in the script that enables your
-swap partitions (or another one called earlier in the boot process):
+<p><bf>Solution</bf>: Should this scenario occur, either the suspended kernel
+must be prevented from resuming. This can be accomplished by an mkswap of the
+swap partition from Kernel B, or booting Kernel A with noresume2.  To make sure
+this always happens, below is a snippet from SuSE's bootscripts (courtesy of
+Stefan Seyfried) that you can put into an init script that is started early on
+boot (before swapspace is enabled). Another alternative is to modify your
+bootloader upon suspending to enforce you to boot the same kernel.  The
+hibernate script has configuration options for doing this in both GRUB and
+LILO. 
 
 <quote><verb>
-for i in `awk '((substr($0,1,1) != "#") && ($3 == "swap")) { print $1 }' /etc/fstab` ; do
-	mkswap $i
-done
+#!/bin/sh
+
+get_swap_id() {
+	local line;
+	fdisk -l | while read line; do
+		case "$line" in
+			/*Linux\ [sS]wap*) echo "${line%% *}"
+		esac
+	done
+}
+
+check_swap_sig () {
+	local part="$(get_swap_id)"
+	local where what type rest p c
+	while read  where what type rest ; do
+		test "$type" = "swap" || continue
+		c=continue
+		for p in $part ; do
+			test "$p" = "$where" && c=true
+		done
+		$c
+		case "$(dd if=$where bs=1 count=6 skip=4086 2>/dev/null)" in
+		S1SUSP|S2SUSP|pmdisk|[zZ]*) mkswap $where
+		esac
+	done < /etc/fstab
+}
+
+check_swap_sig
 </verb></quote>
 
 <sect2>Windows touches your FAT partitions whilst Linux is suspended
@@ -715,7 +748,7 @@ before any filesystems are mounted. This implies that the modules for suspend
 must be put in the initrd and loaded before the initrd does any mounting of
 filesystems (the modules can be inserted, but the mount commands must come
 later). Note: in Debian kernels, a script in /scripts/ is executed too late.
-See <url url="http://softwaresuspend.berlios.de/wiki/DebianInitrd" name="DebianInitrd on the wiki">.
+See <url url="http://softwaresuspend.berlios.de/wiki/DistroAndHardwareSetup/DebianInitrd" name="DebianInitrd on the wiki">.
 
 <sect2>Sample linuxrc
 <p>
@@ -839,7 +872,8 @@ have support for this. Since you're using one anyway, you might like to compile
     <item>install a statically linked version of dmsetup
     <item>install any suspend/dm modules needed for your configuration
     <item>ensure that /dev, /dev/mapper, /proc and /sys exist on that filesystem
-    <item>create a link from /dev/mapper/&lt;partition name&gt; to /dev/dm-0
+    <item>create a link from /dev/mapper/&lt;partition name&gt; to /dev/dm-0:
+    <quote><verb>ln -s /dev/mapper/&lt;partition name&gt; /dev/dm-0</verb></quote>
     <item>use dmsetup table &lt;partition name&gt; to store the configuration for your partition in a file on the initrd|ramfs.
     <item>in your linuxrc/init:
         <itemize>
