@@ -1,6 +1,7 @@
 1.04 (unreleased)
  - Include kernel configs in bug reports.
- - xosd scriptlet. (Henrix Brix Andersen)
+ - New xstatus scriptlet (merged works of Henrix Brix Andersen and Sebastian
+   Kugler)
 
 1.03 (5 January 2005)
  - Add ndiswrapper to blacklist.
