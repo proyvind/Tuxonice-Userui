@@ -427,9 +427,6 @@ ProcessConfigOption() {
 	    [ -z "$DISTRIBUTION" ] &&
 		DISTRIBUTION="$params"
 	    ;;
-	scriptletpath)
-	    SCRIPTLET_PATH="$SCRIPTLET_PATH $params"
-	    ;;
 	*)
 	    if ! PluginConfigOption $option $params ; then
 		echo "$EXE: Unknown configuration option ($option)"
@@ -469,7 +466,6 @@ AddInbuiltHelp() {
     AddOptionHelp "-v<n>, --verbosity=<n>" "Change verbosity level (0 = errors only, 3 = verbose, 4 = debug)"
     AddOptionHelp "-F<file>, --config-file=<file>" "Use the given configuration file instead of the default ($CONFIG_FILE)"
 
-    AddConfigHelp "ScriptletPath <path>" "Specifies extra directories (separated by spaces) to search for scriptlets."
     AddConfigHelp "SwsuspVT N" "If specified, output from the suspend script is rediredirected to the given VT instead of stdout."
     AddConfigHelp "Verbosity N" "Determines how verbose the output from the suspend script should be:
    0: silent except for errors
