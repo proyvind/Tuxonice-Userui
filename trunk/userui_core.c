@@ -238,15 +238,37 @@ static int send_ready() {
 	return send_message(USERUI_MSG_READY, &version, sizeof(version));
 }
 
-static struct nlmsghdr *fetch_message() {
+static struct nlmsghdr *fetch_message(void* buf, int buf_size, int non_block) {
+	static char local_buf[4096];
+	long flags = 0;
 	int n;
-	static char buf[4096]; /* NOTE: STATIC BUFFER HERE */
 
-	if ((n = recv(nlsock, buf, sizeof(buf), 0)) == -1)
-		bail_err("recv");
+	if (!buf) {
+		buf = (void*)local_buf;
+		buf_size = sizeof(local_buf);
+	}
 
-	/* Check if the socket was closed on us. */
-	if (n == 0)
+	if (non_block) {
+		if ((flags = fcntl(nlsock, F_GETFL)) == -1)
+			return NULL;
+		flags |= O_NONBLOCK;
+		if (fcntl(nlsock, F_SETFL, flags) == -1)
+			return NULL;
+	}
+
+	if ((n = recv(nlsock, buf, buf_size, 0)) == -1) {
+		if (!non_block || errno != EAGAIN)
+			bail_err("recv");
+	}
+
+	if (non_block) {
+		flags &= ~O_NONBLOCK;
+		fcntl(nlsock, F_SETFL, flags);
+	}
+
+	/* Check if the socket was closed on us, or no data was read from a
+	 * non-blocking fd. */
+	if (n <= 0)
 		return NULL;
 
 	return (struct nlmsghdr *)buf;
@@ -271,7 +293,7 @@ static void get_nofreeze() {
 		bail_err("send_message");
 
 	while (1) {
-		if (!(nlh = fetch_message()))
+		if (!(nlh = fetch_message(NULL, 0, 0)))
 			bail_err("fetch_message() EOF");
 
 		msg = NLMSG_DATA(nlh);
@@ -287,13 +309,29 @@ static void get_nofreeze() {
 }
 
 static void message_loop() {
-	struct nlmsghdr *nlh;
+	static char buf1[4096], buf2[4096];
+	struct nlmsghdr *nlh, *nlh2;
 
 	while (1) {
 		struct userui_msg_params *msg;
+		int missed_progress_events = 0;
 
-		if (!(nlh = fetch_message()))
+		if (!(nlh = fetch_message(buf1, sizeof(buf1), 0)))
 			return; /* EOF */
+
+		while (nlh->nlmsg_type == USERUI_MSG_PROGRESS) {
+			nlh2 = fetch_message(buf2, sizeof(buf2), 1);
+			if (nlh2 == NULL)
+				break;
+
+			if (nlh2->nlmsg_type == USERUI_MSG_PROGRESS) {
+				/* Ignore the message in nlh and keep on reading */
+				memcpy(buf1, buf2, sizeof(buf2));
+				missed_progress_events++;
+				if (missed_progress_events == 20)
+					break;
+			}
+		}
 
 		msg = NLMSG_DATA(nlh);
 
@@ -336,23 +374,18 @@ static void message_loop() {
 
 static void do_test_run() {
 	int i;
-	int max = 128;
+	int max = 1024;
 
 	console_loglevel = 1;
 	userui_ops->log_level_change();
 	userui_ops->message(0, 0, 1, "Suspending to disk ...");
-	for (i = 0; i <= max; i+=8) {
+	for (i = 0; i <= max; i+=2) {
 		char buf[128];
 		snprintf(buf, 128, "%d/%d MB", i, max);
 		userui_ops->update_progress(i, max, buf);
-		usleep(5*1000);
 
 		if (i == max/2) {
 			userui_ops->message(0, 0, 0, "Halfway");
-			sleep(1);
-		}
-		if (i == (max/2)+1) {
-			sleep(1);
 		}
 	}
 	usleep(500*1000);
