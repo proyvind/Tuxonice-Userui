@@ -451,7 +451,7 @@ ReadConfigFile
 [ -z "$LOGFILE" ] && LOGPIPE="cat" || LOGPIPE="tee -a $LOGFILE"
 
 # Redirect everything to a given VT if we've been given one
-[ -n "$SWSUSPVT" ] && exec >/dev/tty$SWSUSPVT 2>&1
+[ -n "$SWSUSPVT" ] && [ -c /dev/tty$SWSUSPVT ] && exec >/dev/tty$SWSUSPVT 2>&1
 
 # Use -x if we're being really verbose!
 [ $VERBOSITY -ge 4 ] && set -x
