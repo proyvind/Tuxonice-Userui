@@ -57,7 +57,7 @@ syntax keyword hibernate_conf bootsplashconfig contained nextgroup=hibernate_fil
 
 " clock
 syntax keyword hibernate_conf saveclock contained nextgroup=hibernate_boolean,hibernate_clock_restore_only skipwhite
-syntax keyword hibernate_clock_restore_only restore[-only] contained
+syntax match hibernate_clock_restore_only /restore.*/ contained
 highlight link hibernate_clock_restore_only Constant
 
 " devices
