@@ -21,7 +21,7 @@ CheckModuleSupport() {
 SaveKernelModprobe() {
     [ -n "$KERNEL_MODPROBE" ] && return 0
     [ -r "/proc/sys/kernel/modprobe" ] || return 0
-    KERNEL_MODPROBE="`cat /proc/sys/kernel/modprobe`"
+    read KERNEL_MODPROBE < /proc/sys/kernel/modprobe
     echo "/bin/true" > /proc/sys/kernel/modprobe
     vecho 3 "Saved /proc/sys/kernel/modprobe is $KERNEL_MODPROBE"
     return 0
@@ -63,6 +63,8 @@ ModulesUnload() {
 ModulesLoad() {
     [ -z "$MOD_LOAD" ] && return 0
     CheckModuleSupport || return 0
+    RestoreKernelModprobe
+
     local mod
     for mod in $MOD_LOAD ; do 
 	if [ "$mod" = "auto" ] ; then
@@ -236,6 +238,7 @@ ModulesLoadFromFile() {
     [ -n "$MODULES_FROMFILE" ] || return 0
     [ -r "$MODULES_FROMFILE" ] || return 0
     CheckModuleSupport || return 0
+    RestoreKernelModprobe
     
     local MOD
     local args
@@ -290,7 +293,9 @@ ModulesOptions() {
     esac
     if [ -z "$MODPROBE_HOOKED" ] ; then
 	AddSuspendHook 89 SaveKernelModprobe
-	AddResumeHook 92 RestoreKernelModprobe
+	# Restoration is also done by individual loaders. The following is just
+	# to ensure that we do restore it at some point.
+	AddResumeHook 89 RestoreKernelModprobe
 	MODPROBE_HOOKED=1
 	MOD_UNLOADED="" # Clear this early on
     fi
