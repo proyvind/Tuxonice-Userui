@@ -35,6 +35,7 @@ int main(int argc, char** argv) {
     struct proc_image_t* proc_image;
     int c;
     int flags = 0;
+    int get_children = 0;
     int fd;
 
     /* Parse options */
@@ -43,10 +44,11 @@ int main(int argc, char** argv) {
 	static struct option long_options[] = {
 	    {"full-image", 0, 0, 'f'},
 	    {"file-contents", 0, 0, 'c'},
+	    {"sub-processes", 0, 0, 's'},
 	    {0, 0, 0, 0},
 	};
 
-	c = getopt_long(argc, argv, "fc", long_options, &option_index);
+	c = getopt_long(argc, argv, "fcs", long_options, &option_index);
 	if (c == -1)
 	    break;
 	switch(c) {
@@ -56,6 +58,8 @@ int main(int argc, char** argv) {
 	    case 'c':
 		flags |= GET_OPEN_FILE_CONTENTS;
 		break;
+	    case 's':
+		get_children = 1;
 	    case '?':
 		/* invalid option */
 		usage(argv[0]);
