@@ -280,6 +280,9 @@ ChangeFromSwsuspVT() {
 # DoSuspend: activates the suspend and echo's the error code to be processed by
 # PrintErrors. We can't just return it, because error codes may be > 255
 DoSuspend() {
+    # Some versions of Software Suspend didn't clear this in certain cases:
+    echo 0 > /proc/software_suspend/last_result
+
     if [ -f $SWSUSP_ROOT/do_suspend ] ; then
 	echo > $SWSUSP_ROOT/do_suspend
     else
@@ -296,7 +299,7 @@ DoSuspend() {
 # include/linux/suspend-debug.h
 PrintAnErrorString() {
     case "$1" in
-	0) echo "Suspend was aborted."
+	0) echo "Suspend was aborted (see dmesg)."
 	;;
 	1) echo "Suspend was aborted by user (see dmesg if unexpected)."
 	;;
@@ -337,7 +340,7 @@ PrintErrors() {
 
     # A special case for "suspend aborted" and "suspend aborted by user"
     # because it'd look silly to have both.
-    if [ $(($code&3)) -ne 0 ] ; then
+    if [ $(($code&3)) -eq 3 ] ; then
 	echo -n " - " && PrintAnErrorString 1 # aborted by user
 	return 0
     fi
