@@ -84,11 +84,14 @@ static void handle_params(int argc, char **argv) {
 
 		switch (c) {
 			case 't':
-				test_run = 1;
+				test_run++;
 				break;
 			case 'h':
-				fprintf(stderr, "Usage: %s [-t]\n", argv[0]);
-				fprintf(stderr, "\nThis userui program has been compiled with the \"%s\" module.\n", userui_ops->name);
+				fprintf(stderr, "Usage: %s [-t [-t]]\n\n", argv[0]);
+				fprintf(stderr, "  Specifying -t once will give an demo of this module.\n");
+				fprintf(stderr, "  Specifying -t twice will make the demo run as fast as it can.\n");
+				fprintf(stderr, "  (useful for performance testing).\n\n");
+				fprintf(stderr, "This userui program has been compiled with the \"%s\" module.\n", userui_ops->name);
 				exit(1);
 		}
 
@@ -376,19 +379,31 @@ static void do_test_run() {
 	int i;
 	int max = 1024;
 
+	/* If test_run == 1, just give them an example display.
+	 * If test_run >= 2, go as fast as we can (for performance timings).
+	 */
+
 	console_loglevel = 1;
 	userui_ops->log_level_change();
-	userui_ops->message(0, 0, 1, "Suspending to disk ...");
+	userui_ops->message(0, 0, 1, "Writing caches ...");
+
 	for (i = 0; i <= max; i+=2) {
 		char buf[128];
 		snprintf(buf, 128, "%d/%d MB", i, max);
 		userui_ops->update_progress(i, max, buf);
 
-		if (i == max/2) {
-			userui_ops->message(0, 0, 0, "Halfway");
+		if (i == 2*max/3) {
+			userui_ops->message(0, 0, 0, "Doing atomic copy");
+			if (test_run == 1)
+				usleep(800*1000);
 		}
+		if (test_run == 1)
+			usleep(10*1000);
 	}
-	usleep(500*1000);
+
+	if (test_run == 1)
+		usleep(400*1000);
+
 	userui_ops->cleanup();
 }
 
