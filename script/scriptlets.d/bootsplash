@@ -88,7 +88,7 @@ SplashOptions() {
 	AddSuspendHook 70 SplashProgress
 	AddSuspendHook 80 SplashProgress
 	AddSuspendHook 90 SplashProgress
-	AddSuspendHook 98 SplashStop
+	AddSuspendHook 98 SplashProgress
 	AddResumeHook 98 SplashResume
 	AddResumeHook 90 SplashProgress
 	AddResumeHook 80 SplashProgress
