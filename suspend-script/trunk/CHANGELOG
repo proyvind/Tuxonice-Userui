@@ -1,3 +1,6 @@
+0.94 (12 July 2004)
+ - Turn off "AlwaysForce yes" in the default config file.
+
 0.93 (11 July 2004 (later that evening))
  - Make Ctrl+C abort cleanly again.
  - chown the right directory in the installer.
