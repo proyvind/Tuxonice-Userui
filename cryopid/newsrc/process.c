@@ -27,6 +27,7 @@
 #include <linux/kdev_t.h>
 #include <asm/ldt.h>
 #include <asm/unistd.h>
+#include <asm/ptrace.h>
 #include <assert.h>
 #include "process.h"
 
@@ -471,18 +472,43 @@ int get_file_contents(char *filename, struct fd_entry_t *out_buf)
 	return length;
 }
 
-struct user_desc *get_tls_data(int entry_num) {
+struct user_desc *get_tls_info(pid_t pid, int entry_num) {
     struct user_desc *u = malloc(sizeof(struct user_desc));
     memset(u, 0, sizeof(struct user_desc));
     u->entry_number = entry_num;
-#if !get_thread_area
-_syscall1(int,get_thread_area,struct user_desc*,u_info);
-#endif
-    if (get_thread_area(u) == -1) {
+    if (ptrace(PTRACE_GET_THREAD_AREA, pid, entry_num, u) == -1) {
         free(u);
         return NULL;
     }
     return u;
+}
+
+char *get_tls_data(pid_t pid, struct user_desc *entry) {
+    unsigned short ds;
+    long* p;
+    int i;
+
+    fprintf(stderr, "Reading TLS data for entry %d\n", entry->entry_number);
+    /* FIXME only does one page at the moment! */
+    ds = ptrace(PTRACE_PEEKUSER, pid, 4*DS, 0);
+    if (errno) {
+        perror("ptrace(PTRACE_PEEKUSER): ");
+    }
+    if (ptrace(PTRACE_POKEUSER, pid, 4*DS, (entry->entry_number*8)+3) == -1) {
+        perror("ptrace(PTRACE_POKEUSER): ");
+    }
+    p = malloc(0x1000);
+    for(i = 0; i < 0x1000; i+=4) {
+        /* TLS data appears to be contained at the the of the segment */
+        p[i/4] = ptrace(PTRACE_PEEKDATA, pid, (void*)(0xffffe000+i), 0);
+        if (errno) {
+            perror("ptrace(PTRACE_PEEKDATA): ");
+        }
+    }
+    if (ptrace(PTRACE_POKEUSER, pid, 4*DS, ds) == -1) {
+        perror("ptrace(PTRACE_POKEUSER): ");
+    }
+    return (char*)p;
 }
 
 /* FIXME: split this into several functions */
@@ -538,13 +564,22 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 		return NULL;
 	}
 
-    /* Get TLS data */
+    /* Get TLS info */
     int z;
     proc_image->num_tls = 0;
     proc_image->tls = malloc(sizeof(struct user_desc*)*256);
     for (z = 0; z < 256; z++) {
-        proc_image->tls[proc_image->num_tls] = get_tls_data(z);
+        proc_image->tls[proc_image->num_tls] = get_tls_info(target_pid, z);
         if (proc_image->tls[proc_image->num_tls]) proc_image->num_tls++;
+    }
+
+    /* Get TLS data */
+    if (proc_image->num_tls) {
+        proc_image->tlsdata = malloc(sizeof(char*)*proc_image->num_tls);
+        for(z=0; z < proc_image->num_tls; z++) {
+            proc_image->tlsdata[z] = get_tls_data(target_pid,
+                    proc_image->tls[z]);
+        }
     }
 
 	/* Find the current directory of our victim */
