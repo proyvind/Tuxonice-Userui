@@ -19,6 +19,9 @@ userui_fbsplash: $(CORE_OBJECTS) fbsplash/userui_fbsplash.o
 userui_fbanim: $(CORE_OBJECTS) fbanim/userui_fbanim.o
 	$(CC) -ljpeg -lpng -lz -lm -lpthread $(LDFLAGS) $^ -o $@
 
+fbsplash/userui_fbsplash.o:
+	make -C fbsplash
+
 fbanim/userui_fbanim.o:
 	make -C fbanim
 
