@@ -133,9 +133,12 @@ static void reserve_memory(unsigned long bytes) {
 	setrlimit(RLIMIT_AS, &r);
 }
 
-/* A generic signal handler to ensure we don't quit in times of desperation */
+/* A generic signal handler to ensure we don't quit in times of desperation,
+ * risking corrupting the image. */
 static void sig_hand(int sig) {
 	printf("userui: Ack! SIG %d\n", sig);
+	sleep(60*60*1); /* 1 hour */
+	_exit(1);
 }
 
 static void setup_signal_handlers() {
@@ -309,6 +312,6 @@ int main(int argc, char **argv) {
 	 * ensure that we don't corrupt stuff on disk (if we're past the atomic
 	 * copy).
 	 */
-	sleep(60*60*12); /* 12 hours */
+	sleep(60*60*1); /* 1 hours */
 	_exit(1);
 }
