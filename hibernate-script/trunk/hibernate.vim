@@ -29,6 +29,9 @@ highlight link hibernate_boolean Constant
 syntax match hibernate_integer /\d\+/ contained nextgroup=hibernate_error
 highlight link hibernate_integer Constant
 
+syntax match hibernate_text /.*/ contained nextgroup=hibernate_error
+highlight link hibernate_text Constant
+
 syntax match hibernate_decimal /[0-9\.]\+/ contained nextgroup=hibernate_error
 highlight link hibernate_decimal Constant
 
@@ -183,6 +186,12 @@ highlight link hibernate_sysfspowerstate Special
 " xhacks
 syntax keyword hibernate_conf switchtotextmode contained nextgroup=hibernate_boolean skipwhite
 syntax keyword hibernate_conf usedummyxserver contained nextgroup=hibernate_boolean skipwhite
+
+" xosd
+syntax keyword hibernate_conf xosd contained nextgroup=hibernate_boolean skipwhite
+syntax keyword hibernate_conf xosdsettings contained nextgroup=hibernate_text skipwhite
+syntax keyword hibernate_conf xosdsuspendtext contained nextgroup=hibernate_text skipwhite
+syntax keyword hibernate_conf xosdresumetext contained nextgroup=hibernate_text skipwhite
 
 " Full-line comments:
 syntax match hibernate_comment /^#.*/
