@@ -34,6 +34,7 @@ if [ -f $CONFIG_FILE ] ; then
     echo "  ** The new version will be installed to ${CONFIG_FILE}.dist"
     echo "  **"
     cp -a hibernate.conf ${CONFIG_FILE}.dist
+    EXISTING_CONFIG=1
 else
     cp -a hibernate.conf $CONFIG_FILE
 fi
@@ -50,7 +51,9 @@ chown root:root -R $SCRIPT_DEST $CONFIG_DIR
 
 echo "Installed."
 echo
-echo "Edit $CONFIG_FILE to taste, and see `basename $SCRIPT_DEST` -h for help."
+[ -z "$EXISTING_CONFIG" ] && \
+    echo "Edit $CONFIG_FILE to taste, and see `basename $SCRIPT_DEST` -h for help." ||
+    echo -e "You may want to merge $CONFIG_FILE with\n$CONFIG_FILE.dist.\nSee `basename $SCRIPT_DEST` -h for help on any extra options."
 
 )
 
