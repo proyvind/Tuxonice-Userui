@@ -22,7 +22,7 @@ static void skeleton_redraw() {
 static void skeleton_keypress(int key) {
 }
 
-struct userui_ops userui_skeleton_ops = {
+static struct userui_ops userui_skeleton_ops = {
 	.name = "skeleton",
 	.prepare = skeleton_prepare,
 	.cleanup = skeleton_cleanup,
@@ -32,3 +32,5 @@ struct userui_ops userui_skeleton_ops = {
 	.redraw = skeleton_redraw,
 	.keypress = skeleton_keypress,
 };
+
+struct userui_ops *userui_ops = &userui_skeleton_ops;

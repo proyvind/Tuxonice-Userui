@@ -359,7 +359,7 @@ static void text_keypress(int key) {
 	}
 }
 
-struct userui_ops userui_text_ops = {
+static struct userui_ops userui_text_ops = {
 	.name = "text",
 	.prepare = text_prepare,
 	.cleanup = text_cleanup,
@@ -369,3 +369,5 @@ struct userui_ops userui_text_ops = {
 	.redraw = text_redraw,
 	.keypress = text_keypress,
 };
+
+struct userui_ops *userui_ops = &userui_text_ops;

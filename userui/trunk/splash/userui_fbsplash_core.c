@@ -188,7 +188,7 @@ static void fbsplash_redraw() {
 static void fbsplash_keypress(int key) {
 }
 
-struct userui_ops userui_fbsplash_ops = {
+static struct userui_ops userui_fbsplash_ops = {
 	.name = "fbsplash",
 	.prepare = fbsplash_prepare,
 	.cleanup = fbsplash_cleanup,
@@ -198,3 +198,5 @@ struct userui_ops userui_fbsplash_ops = {
 	.redraw = fbsplash_redraw,
 	.keypress = fbsplash_keypress,
 };
+
+struct userui_ops *userui_ops = &userui_fbsplash_ops;

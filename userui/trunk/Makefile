@@ -1,23 +1,31 @@
 CFLAGS = -Wall -O0 -g
-TARGETS = userui_program
-UI_OBJECTS = userui_text.o splash/userui_fbsplash.o
-OBJECTS = userui_core.o $(UI_OBJECTS)
-LDFLAGS = -ljpeg -lpng -lz -lm
+MODULES = dummy text fbsplash
+TARGETS = $(patsubst %,userui_%,$(MODULES))
+CORE_OBJECTS = userui_core.o
+LDFLAGS = 
 
 all: linux $(TARGETS)
 
 linux:
 	@cat README && false
 
-userui_program: $(OBJECTS)
+userui_dummy: $(CORE_OBJECTS) userui_dummy.o
 	gcc $(LDFLAGS) $^ -o $@
+	strip $@
+
+userui_text: $(CORE_OBJECTS) userui_text.o
+	gcc $(LDFLAGS) $^ -o $@
+	strip $@
+
+userui_fbsplash: $(CORE_OBJECTS) splash/userui_fbsplash.o
+	gcc -ljpeg -lpng -lz -lm $(LDFLAGS) $^ -o $@
 	strip $@
 
 splash/userui_fbsplash.o:
 	make -C splash
 
-$(OBJECTS): userui.h
-
 clean:
 	rm -f *.o $(TARGETS)
 	make -C splash clean
+
+.PHONY: all clean

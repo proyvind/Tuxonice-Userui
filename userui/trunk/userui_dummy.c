@@ -22,7 +22,7 @@ static void dummy_redraw() {
 static void dummy_keypress(int key) {
 }
 
-struct userui_ops userui_dummy_ops = {
+static struct userui_ops userui_dummy_ops = {
 	.name = "dummy",
 	.prepare = dummy_prepare,
 	.cleanup = dummy_cleanup,
@@ -32,3 +32,5 @@ struct userui_ops userui_dummy_ops = {
 	.redraw = dummy_redraw,
 	.keypress = dummy_keypress,
 };
+
+struct userui_ops *userui_ops = &userui_dummy_ops;

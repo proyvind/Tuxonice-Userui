@@ -29,9 +29,11 @@ char software_suspend_version[32];
 int console_loglevel = 1;
 int suspend_action = 0;
 
-extern struct userui_ops userui_dummy_ops;
+#ifndef USERUI_MODULE
+#define USERUI_MODULE userui_text_ops;
+#endif
 
-static struct userui_ops *userui_ops = &userui_dummy_ops; /* default */
+extern struct userui_ops *userui_ops;
 
 int send_message(int type, void* buf, int len) {
 	struct nlmsghdr nl;
