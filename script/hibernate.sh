@@ -538,4 +538,4 @@ echo "Resumed at "`date` | $LOGPIPE > /dev/null
 
 exit 0
 
-# $Id: suspend.sh 60 2004-07-08 19:39:03Z bernard $
+# $Id$
