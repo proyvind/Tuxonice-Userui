@@ -206,6 +206,9 @@ static void open_console() {
 		bail_err("dup2(fd, STDERR_FILENO)");
 
 	close(fd);
+
+	setvbuf(stdout, NULL, _IONBF, 0);
+	setvbuf(stderr, NULL, _IONBF, 0);
 }
 
 static void open_netlink() {
@@ -326,8 +329,8 @@ static void message_loop() {
 static void do_test_run() {
 	int i;
 
-	userui_ops->message(0, 0, 1, "Suspending to disk ...");
 	userui_ops->log_level_change(console_loglevel);
+	userui_ops->message(0, 0, 1, "Suspending to disk ...");
 	for (i = 0; i <= 1024; i+=8) {
 		char buf[128];
 		snprintf(buf, 128, "%d/%d MB", i, 1024);
