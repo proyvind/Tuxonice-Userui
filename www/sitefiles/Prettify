@@ -4,6 +4,12 @@
 
 sub printline {
 	my $line = shift;
+	# Special handling for BASE... we don't want multiple slashes for
+	# links to the home page.
+	if (($line =~ m|###BASE###/|) && $SUBSTS{"BASE"}) {
+		$line =~ s|###BASE###/|###BASE###|g;
+	}
+
 	foreach $key (keys %SUBSTS) {
 		$val = $SUBSTS{$key};
 		$line =~ s/###$key###/$val/g;
