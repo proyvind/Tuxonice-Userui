@@ -51,11 +51,13 @@ chown root:root -R $SCRIPT_DEST $CONFIG_DIR
 
 echo "Installed."
 echo
-[ -z "$EXISTING_CONFIG" ] && \
-    echo "Edit $CONFIG_FILE to taste, and see `basename $SCRIPT_DEST` -h for help." ||
+if [ -z "$EXISTING_CONFIG" ] ; then
+    echo "Edit $CONFIG_FILE to taste, and see `basename $SCRIPT_DEST` -h for help."
+else
     echo "You may want to merge $CONFIG_FILE with"
     echo "$CONFIG_FILE.dist"
     echo "See `basename $SCRIPT_DEST` -h for help on any extra options."
+fi
 )
 
 [ $? -ne 0 ] && echo "Install aborted due to errors."
