@@ -1,5 +1,4 @@
 API for Suspend scriptlets
-$Id$
 
 A scriptlet is written in shell code, and is simply sourced into the main
 script.  This means it can potentially do a lot of things to how suspend works.
@@ -173,3 +172,5 @@ SkeletonOptions() {
     fi
     return 0
 }
+
+$Id$
