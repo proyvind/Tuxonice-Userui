@@ -47,12 +47,13 @@ PAGES = style.css \
 		epfl.png \
 		cyclades.png \
 		linuxfund.gif \
-        sample-oops.png \
+		downloads/index.html \
+       		sample-oops.png \
 		contrib/Swsusp2_and_Bootsplash_on_FC2.doc \
 		$(HOWTO_FILES) \
 		$(FAQ_FILES) \
 
-DIRS = contrib fedora
+DIRS = contrib fedora downloads
 
 # changing these rebuilds everything html
 PREREQS = Prettify top.html bottom.html
@@ -71,6 +72,9 @@ directories:
 fedora: $(patsubst %,$(SITEBASE)/%,$(wildcard fedora/*))
 $(SITEBASE)/fedora/%: fedora/%
 	cp $< $@
+
+downloads/index.html: downloads.xml
+	./parse_downloads > $@
 
 olddownloads-berl.html:
 	@#cat /tmp/index.html | perl -e 

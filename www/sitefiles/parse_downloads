@@ -1,0 +1,110 @@
+#!/usr/bin/python
+
+import libxml2
+import sys, string, time, os
+
+download_dir = '/var/web/www/downloads/'
+download_url_prefix = '/downloads/'
+download_info_file = 'downloads.xml'
+
+def getFileInfo(filename):
+	try:
+		sb = os.stat('%s/%s'%(download_dir, filename))
+	except OSError:
+		sys.stderr.write("ERROR: Failed to find %s in %s\n"%(filename, \
+			download_dir))
+		sys.exit(1)
+
+	size = sb[6]
+	epochtime = sb[8] # modification time
+	date = time.strftime('%e %B %Y', time.localtime(epochtime))
+	return (date, size)
+
+def parseKernel(kernel, release_name):
+	version = kernel.prop('name')
+
+	filename = kernel.children
+	while filename is not None and filename.name != 'filename':
+		filename = filename.next
+	if filename is None:
+		filename = 'software-suspend-%s-for-%s.tar.bz2' % \
+			(version, release_name)
+	elif filename.name == 'filename':
+		filename = filename.content.strip()
+	else:
+		raise Exception("Something odd happened here!")
+
+	link = '<a href="%s%s">%s</a>'%(download_url_prefix, filename, filename)
+
+	(date, size) = getFileInfo(filename)
+
+	return '''
+<tr class="download_kernel"><td colspan="3">%s</td></tr>
+<tr class="download_file"><td>%s</td><td>%s</td><td>%s</td></tr>
+'''%(version, link, date, size)
+
+def parseRelease(release):
+	date = None
+	part = release.children
+	release_name = release.prop('name')
+	release_text = '''
+<tr class="download_release"><td colspan="3">%s</td></tr>
+'''%(release_name)
+
+	while part is not None:
+		if part.name == 'date':
+			date = part.content
+		elif part.name == 'kernel':
+			release_text += parseKernel(part, release_name)
+		part = part.next
+
+	return release_text
+
+def parseSection(section):
+	release = section.children
+	release_text = ''
+	while release is not None:
+		if release.name != 'release':
+			release = release.next
+			continue
+		release_text += parseRelease(release)
+		release = release.next
+
+	section_text = '''
+<tr class="download_section"><td colspan="3">%s</td></tr>
+'''%(section.prop('name'))
+	if release_text == '':
+		release_text = '''
+<ul>
+<i>There are currently no downloads in this section.</i>
+</ul>
+'''
+	return section_text+release_text
+
+def parseDownloads(f):
+	xmldoc = libxml2.parseFile(download_info_file)
+
+	root = xmldoc.children
+	if root.name != 'downloads':
+		sys.stderr.write(
+	'''This doesn't seem like a valid XML file to generate a download page from.\n''')
+		sys.exit(1)
+
+	section = root.children
+	text = '''
+<table>
+<tr class="download_header"><th>&nbsp;</th><th>Release Date</th><th>File size</th></tr>
+'''
+	while section is not None:
+		if section.name != 'section':
+			section = section.next
+			continue
+		text += parseSection(section)
+		section = section.next
+	text += '''
+</table>
+'''
+	return text
+
+print parseDownloads(sys.stdin)
+
