@@ -1,4 +1,4 @@
-#!/bin/ash
+#!/bin/sh
 
 # For zsh sanity...
 #   allows splitting strings on whitespace in zsh.
@@ -107,17 +107,18 @@ CONFIGURATION_OPTIONS_HELP=""
 ##############################################################################
 
 # SortSuspendBits: Returns a list of functions registered in the correct order
-# to call for suspending.
+# to call for suspending, prefixed by their position number in the suspend
+# chain.
 SortSuspendBits() {
     # explicit path required to be ash compatible.
-    /bin/echo -ne "$SUSPEND_BITS" | sort -n | awk '{print substr($0,3)}'
+    /bin/echo -ne "$SUSPEND_BITS" | sort -n
 }
 
 # SortResumeBits: Returns a list of functions registered in the correct order
-# to call for resuming.
+# to call for resuming, prefixed by their position number.
 SortResumeBits() {
     # explicit path required to be ash compatible.
-    /bin/echo -ne "$RESUME_BITS" | sort -rn | awk '{print substr($0,3)}'
+    /bin/echo -ne "$RESUME_BITS" | sort -rn
 }
 
 # WrapHelpText: takes text from stdin, wraps it with an indent of 5 and width
@@ -461,7 +462,10 @@ echo "Suspended at "`date` | $LOGPIPE > /dev/null
 
 # Do everything we need to do to suspend. If anything fails, we don't suspend.
 # Suspend itself should be the last one in the sequence.
+CHAIN_UP_TO=0
 for bit in `SortSuspendBits` ; do
+    CHAIN_UP_TO="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)\"}`"
+    bit=${bit##$CHAIN_UP_TO}
     vecho 1 "$EXE: Executing $bit ... "
     $bit
     ret="$?"
@@ -484,6 +488,9 @@ done
 
 # Resume and cleanup and stuff.
 for bit in `SortResumeBits` ; do
+    THIS_POS="`awk \"BEGIN{print substr(\\\"$bit\\\", 1, 2)\"}`"
+    bit=${bit##$THIS_POS}
+    [ "$THIS_POS" -gt "$CHAIN_UP_TO" ] && continue
     vecho 1 "$EXE: Executing $bit ... "
     $bit
 done
