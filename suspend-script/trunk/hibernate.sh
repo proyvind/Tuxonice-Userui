@@ -566,9 +566,6 @@ ReadConfigFile
 # Redirect everything to a given VT if we've been given one
 if [ -n "$SWSUSPVT" ] && [ -c /dev/tty$SWSUSPVT ] ; then
     exec >/dev/tty$SWSUSPVT 2>&1
-else
-    # Just redirect stderr to stdout for simplicity.
-    exec 2>&1
 fi
 
 # Use -x if we're being really verbose!
@@ -579,7 +576,7 @@ echo "Starting suspend at "`date` | $LOGPIPE > /dev/null
 if [ "$LOGPIPE" = "cat" ] ; then
     DoWork
 else
-    DoWork | $LOGPIPE
+    DoWork 2>&1 | $LOGPIPE
 fi
 
 echo "Resumed at "`date` | $LOGPIPE > /dev/null
