@@ -3,7 +3,8 @@
 <article>
 <title>Software Suspend HOWTO
 <author>Florent Chabaud, Nigel Cunningham, Bernard Blackham
-<date>v1.01, 25 April 2004
+<date>$LastChangedDate$
+<!-- $Id$ -->
 <abstract>
 This HOWTO documents how to suspend linux kernels to disk using the software
 suspend (swsusp) kernel patch and various scripts. The source SGML file for
@@ -13,6 +14,7 @@ make sure all corrections are based upon this.
 
 <toc>
 <!-- Change log
+Moved into subversion ...
 v0.95 Changed all occurences of /usr/local/sbin/suspend to /usr/local/sbin/hibernate
 v0.94 Note to read the FAQ as well.
 v0.93 Added a note about enabling experimental kernel options (tuxo at gmx net)
