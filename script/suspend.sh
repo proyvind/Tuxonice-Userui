@@ -261,8 +261,8 @@ DoGetOpt() {
 						optdata=""
 						;;
 					*)
-                        optdata=${1#\'}
-                        optdata=${optdata%\'}
+						optdata=${1#\'}
+						optdata=${optdata%\'}
 						shift
 				esac
 				if ! PluginGetOpt $opt $optdata ; then
@@ -288,10 +288,10 @@ ParseOptions() {
 # LoadScriptlets: sources all scriptlets in $SCRIPTLET_DIR
 LoadScriptlets() {
 	if [ ! -d "$SCRIPTLET_DIR" ] ; then
-        echo "WARNING: No scriptlets directory ($SCRIPTLET_DIR)."
-        echo "This script probably won't do anything."
-        return 0
-    fi
+		echo "WARNING: No scriptlets directory ($SCRIPTLET_DIR)."
+		echo "This script probably won't do anything."
+		return 0
+	fi
 	[ -z "`/bin/ls -1 $SCRIPTLET_DIR`" ] && return 0
 	PREV_PWD="$PWD"
 	cd $SCRIPTLET_DIR
@@ -324,10 +324,10 @@ BoolIsOn() {
 # appropriate variables in the script. Returns 0 on success, exits on errors
 ReadConfigFile() {
 	if [ ! -f "$CONFIG_FILE" ] ; then
-        echo "WARNING: No configuration file found ($CONFIG_FILE)."
-        echo "This script probably won't do anything."
-        return 0
-    fi
+		echo "WARNING: No configuration file found ($CONFIG_FILE)."
+		echo "This script probably won't do anything."
+		return 0
+	fi
 	while read option params ; do
 		option=`echo $option|tr '[A-Z]' '[a-z]'`
 		case $option in
