@@ -14,7 +14,7 @@ int verbosity = 0;
 int do_pause = 0;
 int want_pid = 0;
 int translate_pids = 0;
-int tls_hack = 1;
+int tls_hack = 0;
 long tls_start = 0;
 void (*old_segvhandler)(int, siginfo_t*, void*) = NULL;
 char ignorefds[256];
