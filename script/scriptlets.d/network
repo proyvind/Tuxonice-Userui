@@ -1,3 +1,4 @@
+# XXX still incomplete!
 #AddSuspendHook 80 NetworkStop
 #AddResumeHook 80 NetworkStart
 AddConfigHandler NetworkOptions
