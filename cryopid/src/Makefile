@@ -19,3 +19,5 @@ defrost: process.o defrost.o
 	gcc -static -o $@ -Tmylinking.ld $^ $(LIBC)
 
 freeze: process.o freeze.o
+
+makeelf: makeelf.o process.o
