@@ -70,6 +70,7 @@ This script was written by Bernard Blackham, with contributions from:
  - Cameron Patrick (sysfs_power_state, xscreensaver support for lock, many
    bugfixes and ideas, man pages and Debian packaging)
  - Kevin Fenzi (rpm packaging, ideas)
+ - Fedor Karpelevitch (lilo scriptlet idea)
 
 LICENSE
 -------
