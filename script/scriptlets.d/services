@@ -53,7 +53,7 @@ ServicesOptions() {
     return 0
 }
 
-DetectServices() {
+NetworkDetectDistro() {
     # Use either a given $DISTRIBUTION or autodetect one.
     case "$DISTRIBUTION" in
 	gentoo)

@@ -18,4 +18,57 @@ NetworkOptions() {
     return 0
 }
 
+NetworkDetectDistro() {
+    # Use either a given $DISTRIBUTION or autodetect one.
+    case "$DISTRIBUTION" in
+	gentoo)
+	    network_ifup() {
+	    	/etc/init.d/net.$1 start
+	    }
+	    network_ifdown() {
+	    	/etc/init.d/net.$1 stop
+	    }
+	    ;;
+	suse)
+	    network_ifup() {
+		/etc/init.d/network start
+	    }
+	    network_ifdown() {
+		/etc/init.d/network stop
+	    }
+	    ;;
+	mandrake)
+	    ;;
+	debian)
+	    alias network_ifup=/sbin/ifup
+	    alias network_ifdown=/sbin/ifdown
+	    ;;
+	slackware|redhat|fedora)
+	    ;;
+    	*)
+	    # Auto-detect
+	    if [ -d "/etc/init.d/" ] ; then
+	    	INITDIR=/etc/init.d
+	    elif [ -d "/etc/rc.d/init.d" ] ; then
+	    	INITDIR=/etc/rc.d/init.d
+	    else
+		vecho 1 "Can not determine init.d directory. Services will not be suspended!"
+		SERVICES_HOOKED=""
+	    fi
+
+	    if [ -d "/etc/rc.d/rc0.d/" ] ; then
+	    	RLVLDIR=/etc/rc.d
+	    elif [ -d "/etc/init.d/rc0.d" ] ; then
+	    	RLVLDIR=/etc/init.d
+	    elif [ -d "/etc/rc0.d" ] ; then
+	    	RLVLDIR=/etc
+	    else
+		vecho 1 "Can not determine rc.d directory. Services will not be suspended!"
+		SERVICES_HOOKED=""
+	    fi
+    esac
+    vecho 3 "Using $INITDIR and init.d directory and $RLVLDIR as rc.d directory."
+    return 0
+}
+
 # vim:ft=sh:ts=8:sw=4:noet
