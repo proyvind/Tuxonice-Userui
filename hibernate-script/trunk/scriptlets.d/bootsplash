@@ -43,10 +43,10 @@ SplashStart() {
 
     # Detect current splash state so we know how to restore it
     if grep -q 'off$' /proc/splash ; then
-	SPLASH_RESTORE_CMD="echo 0 > /proc/splash"
+	SPLASH_RESTORE_CMD="0"
     else
 	# We assume that their usual splash screen isn't silent.
-	SPLASH_RESTORE_CMD="splash -s -u 0 -n"
+	SPLASH_RESTORE_CMD="verbose"
     fi
 
     # go
@@ -72,7 +72,7 @@ SplashSuspend() {
 
 SplashStop() {
     if [ x"$USE_BOOTSPLASH" = "x1" ] ; then
-	$SPLASH_RESTORE_CMD
+	echo $SPLASH_RESTORE_CMD > /proc/splash
     fi
     return 0
 }
@@ -102,8 +102,8 @@ SplashOptions() {
 	AddSuspendHook 70 SplashProgress
 	AddSuspendHook 80 SplashProgress
 	AddSuspendHook 90 SplashProgress
-	AddSuspendHook 98 SplashProgress
-	AddResumeHook 98 SplashResume
+	AddSuspendHook 97 SplashProgress
+	AddResumeHook 97 SplashResume
 	AddResumeHook 90 SplashProgress
 	AddResumeHook 80 SplashProgress
 	AddResumeHook 70 SplashProgress
