@@ -56,9 +56,11 @@ LockXScreensaver() {
 	local xuser xdisp xauth xhome
 	xuser=`awk 'BEGIN{RS="\000";FS="="}($1 == "USER"){print $2}' < /proc/$xpid/environ`
 	xdisp=`awk 'BEGIN{RS="\000";FS="="}($1 == "DISPLAY"){print $2}' < /proc/$xpid/environ`
-	xhome=`awk 'BEGIN{RS="\000";FS="="}($1 == "HOME"){print $2}' < /proc/$xpid/environ`
 	xauth=`awk 'BEGIN{RS="\000";FS="="}($1 == "XAUTHORITY"){print $2}' < /proc/$xpid/environ`
-	text -z "$xauth" && xauth="$xhome/.Xauthority"
+	if [ -z "$xauth" ] ; then
+	    xhome=`awk 'BEGIN{RS="\000";FS="="}($1 == "HOME"){print $2}' < /proc/$xpid/environ`
+	    xauth="$xhome/.Xauthority"
+	fi
 
 	vecho 2 "Locking $xuser's xscreensaver on display $xdisp using authority file $xauth"
 	DISPLAY=$xdisp XAUTHORITY=$xauth su $xuser -c "xscreensaver-command -lock"
