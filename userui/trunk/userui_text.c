@@ -1,10 +1,13 @@
 #include <sys/ioctl.h>
-#include <unistd.h>
-#include <termios.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <termios.h>
+#include <unistd.h>
 
 #include "userui.h"
 
@@ -54,7 +57,9 @@ static int lastheader_message_len = 0;
 
 static struct termios termios;
 static int lastloglevel = -1;
-static int video_num_lines, video_num_columns;
+static int video_num_lines, video_num_columns, cur_x = -1, cur_y = -1;
+
+static int vcsa_fd = -1;
 
 static inline void clear_display() { write(1, "\2332J", 3); }
 static inline void clear_to_eol() { write(1, "\233K", 2); }
@@ -62,6 +67,22 @@ static inline void hide_cursor() { write(1, "\233?1c", 4); }
 static inline void restore_cursor() { write(1, "\233?0c", 4); }
 static inline void move_cursor_to(int c, int r) { printf("\233%d;%dH", r, c); }
 static inline void unblank_screen_via_file() { write(1, "\23313]", 4); }
+
+static int update_cursor_pos(void) {
+	struct {
+		unsigned char lines, cols, x, y;
+	} screen;
+
+	if (vcsa_fd < 0)
+		return 0;
+	if (lseek(vcsa_fd, 0, SEEK_SET) == -1)
+		return 0;
+	if (read(vcsa_fd, &screen, sizeof(screen)) == -1)
+		return 0;
+	cur_x = screen.x+1;
+	cur_y = screen.y+1;
+	return 1;
+}
 
 /* text_prepare
  * Description:	Prepare the 'nice display', drawing the header and version,
@@ -87,6 +108,10 @@ static void text_prepare_status_real(int printalways, int clearbar, const char *
 			printf("\n** %s\n", lastheader);
 		return;
 	}
+
+	/* Remember where the cursor was */
+	if (cur_x != -1)
+		update_cursor_pos();
 
 	barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
 
@@ -130,6 +155,12 @@ static void text_prepare_status_real(int printalways, int clearbar, const char *
 			move_cursor_to(video_num_columns / 4 + 1, y);
 		}
 	}
+
+	if (cur_x == -1) {
+		cur_x = 1;
+		cur_y = y+2;
+	}
+	move_cursor_to(cur_x, cur_y);
 	
 	hide_cursor();
 
@@ -138,12 +169,15 @@ static void text_prepare_status_real(int printalways, int clearbar, const char *
 
 static void text_prepare_status(int printalways, int clearbar, const char *fmt, ...)
 {
-	char buf[1024];
 	va_list va;
-	va_start(va, fmt);
-	vsnprintf(buf, 1024, fmt, va);
-	text_prepare_status_real(printalways, clearbar, buf);
-	va_end(va);
+	char buf[1024];
+	if (fmt) {
+		va_start(va, fmt);
+		vsnprintf(buf, 1024, fmt, va);
+		text_prepare_status_real(printalways, clearbar, buf);
+		va_end(va);
+	} else
+		text_prepare_status_real(printalways, clearbar, NULL);
 }
 
 /* text_loglevel_change
@@ -234,6 +268,10 @@ void text_update_progress(unsigned long value, unsigned long maximum,
 	if ((console_loglevel >= SUSPEND_ERROR) || (!draw_progress_bar))
 		return /* next_update */;
 
+	/* Remember where the cursor was */
+	if (cur_x != -1)
+		update_cursor_pos();
+
 	/* Update bar */
 	if (draw_progress_bar) {
 		/* Clear bar if at start */
@@ -257,6 +295,9 @@ void text_update_progress(unsigned long value, unsigned long maximum,
 		printf(" %s ", msg);
 	}
 
+	if (cur_x != -1)
+		move_cursor_to(cur_x, cur_y);
+	
 	barposn = newbarposn;
 	hide_cursor();
 	
@@ -300,10 +341,17 @@ static void text_prepare() {
 	video_num_lines = winsz.ws_row;
 	video_num_columns = winsz.ws_col;
 
+	/* Open /dev/vcsa0 so we can find out the cursor position when we need to */
+	vcsa_fd = open("/dev/vcsa0", O_RDONLY);
+	/* if it errors, don't worry. we'll check later */
+
 	clear_display();
 }
 
 static void text_cleanup() {
+	if (vcsa_fd >= 0)
+		close(vcsa_fd);
+
 	ioctl(STDOUT_FILENO, TCSETSF, (long)&termios);
 
 	restore_cursor();
@@ -313,6 +361,7 @@ static void text_cleanup() {
 }
 
 static void text_redraw() {
+	clear_display();
 }
 
 static void text_keypress(int key) {
@@ -337,18 +386,21 @@ static void text_keypress(int key) {
 			send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
 			break;
 		case 19:
-			/* Toggle reboot */
+			/* Toggle reboot with R */
 			suspend_action ^= (1 << SUSPEND_REBOOT);
 			text_prepare_status(1, 0, "Rebooting %sabled.",
 					(suspend_action&(1<<SUSPEND_REBOOT))?"en":"dis");
 			send_message(USERUI_MSG_SET_STATE, &suspend_action, sizeof(suspend_action));
 			send_message(USERUI_MSG_GET_STATE, NULL, 0);
 			break;
-//		case 112:
-//			/* During suspend, toggle pausing with P */
-//			suspend_action ^= (1 << SUSPEND_PAUSE);
-//			suspend2_core_ops->schedule_message(1);
-//			break;
+		case 25:
+			/* During suspend, toggle pausing with P */
+			suspend_action ^= (1 << SUSPEND_PAUSE);
+			text_prepare_status(1, 0, "Pause between steps %sabled.",
+					(suspend_action&(1<<SUSPEND_PAUSE))?"en":"dis");
+			send_message(USERUI_MSG_SET_STATE, &suspend_action, sizeof(suspend_action));
+			send_message(USERUI_MSG_GET_STATE, NULL, 0);
+			break;
 //		case 115:
 //			/* Otherwise, if S pressed, toggle single step */
 //			suspend_action ^= (1 << SUSPEND_SINGLESTEP);
