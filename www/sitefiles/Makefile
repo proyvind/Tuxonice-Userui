@@ -45,15 +45,15 @@ PAGES = style.css \
 		cyclades.png \
 		linuxfund.gif \
 		downloads/index.html \
-		downloads/older/HEADER.html \
-		downloads/older/README.html \
-		downloads/older/.htaccess \
+		downloads/all/HEADER.html \
+		downloads/all/README.html \
+		downloads/all/.htaccess \
        		sample-oops.png \
 		contrib/Swsusp2_and_Bootsplash_on_FC2.doc \
 		$(HOWTO_FILES) \
 		$(FAQ_FILES) \
 
-DIRS = contrib fedora downloads downloads/older
+DIRS = contrib fedora downloads downloads/all
 
 # changing these rebuilds everything html
 PREREQS = Prettify top.html bottom.html

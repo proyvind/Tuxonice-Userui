@@ -3,8 +3,8 @@
 import libxml2
 import sys, string, time, os
 
-download_dir = '/var/web/www/htdocs/downloads/'
-download_url_prefix = '/downloads/'
+download_dir = '/var/web/www/htdocs/downloads/all/'
+download_url_prefix = '/downloads/all/'
 download_info_file = 'downloads.xml'
 
 # For our external HTML snippets
@@ -121,7 +121,7 @@ print '''TITLE=Software Suspend - Download
 
 <p>Below is a list of the latest stable and development versions of Software Suspend,
 along with the latest Hibernate Script. For older downloads, you may wish to
-consult the <a href="older/">Older Downloads</a> section.</p>
+consult the <a href="all/">Older Downloads</a> section.</p>
 
 '''
 
