@@ -98,9 +98,8 @@ typedef struct {
 } rect;
 
 typedef struct {
-	char *filename;
 	int x, y;
-	mng_anim *mng;
+	mng_handle mng;
 	char *svc;
 	enum ESVC type;
 	u8 status;

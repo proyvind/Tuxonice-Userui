@@ -509,6 +509,7 @@ pr_err:
 void parse_anim(char *t)
 {
 	char *p;	
+	char *filename;
 	anim *canim = malloc(sizeof(anim));
 	
 	if (!canim)
@@ -550,7 +551,7 @@ void parse_anim(char *t)
 
 	skip_whitespace(&t);
 
-	canim->filename = t;
+	filename = t;
 	skip_nonwhitespace(&t);
 	*t = '\0';
 	t++;
@@ -573,7 +574,16 @@ void parse_anim(char *t)
 	if (canim->y >= fb_var.yres)
 		canim->y = fb_var.yres-1;
 
-	list_add(&anims, canim);
+	filename = get_filepath(filename);
+
+	canim->mng = mng_load(filename);
+	if (!canim->mng)
+		free(canim);
+	else
+		list_add(&anims, canim);
+
+	free(filename);
+
 	return;
 pa_err:
 	fprintf(stderr, "parse error @ line %d\n", line);
