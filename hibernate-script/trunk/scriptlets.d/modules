@@ -185,7 +185,8 @@ ModulesUnloadBlacklist() {
     done < $MODULES_BLACKLIST_FILE
 
     [ -z "$failedmods" ] && return 0
-    echo "The following modules failed to unload: $failedmods"
+    vecho 0 "Some modules failed to unload: $failedmods"
+    # Blacklisted modules failing to suspend is noteworthy, and should fail.
     return 1
 }
 
@@ -217,7 +218,9 @@ ModulesUnloadAll() {
 	mod_retry_count=$(($mod_retry_count+1))
     done
 
-    vecho 1 "Some modules failed to unload: "`awk '{print $1}' /proc/modules`
+    vecho 0 "Some modules failed to unload: "`awk '{print $1}' /proc/modules`
+    # If they're trying to unload everything, some things are bound to fail.
+    # So don't complain about it.
     return 0
 }
 

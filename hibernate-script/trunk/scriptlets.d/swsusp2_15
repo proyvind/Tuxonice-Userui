@@ -23,7 +23,9 @@ AddOptionHelp "-r[0|1], --reboot[=<0|1>] (requires UseSwsusp2 on)" "If 0 is spec
 
 AddConfigHelp "EnableEscape <boolean> (requires UseSwsusp2 on)" "If specified, allows (or disallows) the use of the escape key to abort a suspend. If this line is not specified, the Escape key's behaviour is unchanged."
 
-AddConfigHelp "DefaultConsoleLevel N (requires UseSwsusp2 on)" "If specified, sets the default console level. 0 gives a progress bar. 1 gives a progress bar with numbers. 2 or higher give increasing amounts of debugging. If this line is not specified, the default console level is unchanged."
+AddConfigHelp "DefaultConsoleLevel <N> (requires UseSwsusp2 on)" "If specified, sets the default console level. 0 gives a progress bar. 1 gives a progress bar with numbers. 2 or higher give increasing amounts of debugging. If this line is not specified, the default console level is unchanged."
+
+AddConfigHelp "ImageSizeLimit nocache|<NN> (requires UseSwsusp2 on)" "If specified, sets an upper limit on the size of the suspend image written (in megabytes). If set to \"nocache\", caches and buffers will not be saved - resulting in a faster suspend and resume at the possible expense of system responsiveness immediately after resuming. If set to 0, no limit in imposed. If this line is not specified, the existing image size limit is unchanged."
 
 AddConfigHelp "Swsusp2AllSettings <params> (requires UseSwsusp2 on)" "If specified, sets all of the settings for Software Suspend 2 at once. The parameter should be the contents of $SWSUSP_ROOT/all_settings after you have set your desired settings manually."
 
@@ -81,10 +83,11 @@ Swsusp2ConfigOptions() {
 		BoolIsOn "$1" "$2" && OPT_CONSOLELEVEL=1 || OPT_CONSOLELEVEL=0
 	    fi
 	    ;;
+	imagesizelimit)
+	    SWSUSP_IMAGE_SIZE_LIMIT=$2
+	    ;;
 	swsusp2allsettings)
-	    if [ -z "$OPT_ALLSETTINGS" ] ; then
-		BoolIsOn "$1" "$2" && OPT_ALLSETTINGS=1 || OPT_ALLSETTINGS=0
-	    fi
+	    SWSUSP_ALL_SETTINGS=$2
 	    ;;
 	*)
 	    return 1
@@ -103,9 +106,26 @@ Swsusp2ConfigSet() {
     [ -n "$OPT_REBOOT" ] && [ -f "$SWSUSP_ROOT/reboot" ] && \
 	echo $OPT_REBOOT > $SWSUSP_ROOT/reboot
 
+    if [ "x$SWSUSP_IMAGE_SIZE_LIMIT" = "xnocache" ] ; then
+	local field val units result
+	local total=0 cached=0 buffers=0 shared=0 free=0
+	while read field val units ; do
+	    [ "x$field" = "xMemTotal:" ] && total=$val
+	    [ "x$field" = "xMemFree:" ] && free=$val
+	    [ "x$field" = "xBuffers:" ] && buffers=$val
+	    [ "x$field" = "xCached:" ] && cached=$val
+	    [ "x$field" = "xMemShared:" ] && shared=$val
+	done < /proc/meminfo
+	result=$((($total-$cached-$buffers-$shared-$free+10240)/1024))
+	vecho 2 "Setting image size limit to $result."
+	echo $result > $SWSUSP_ROOT/image_size_limit
+    else
+	[ -n "$SWSUSP_IMAGE_SIZE_LIMIT" ] && echo $SWSUSP_IMAGE_SIZE_LIMIT > $SWSUSP_ROOT/image_size_limit
+    fi
+
     [ -n "$OPT_ESCAPE" ] && echo $OPT_ESCAPE > $SWSUSP_ROOT/enable_escape
     [ -n "$OPT_CONSOLELEVEL" ] && echo $OPT_CONSOLELEVEL > $SWSUSP_ROOT/default_console_level
-    [ -n "$OPT_ALLSETTINGS" ] && echo $OPT_ALLSETTINGS > $SWSUSP_ROOT/all_settings
+    [ -n "$SWSUSP_ALL_SETTINGS" ] && echo $SWSUSP_ALL_SETTINGS > $SWSUSP_ROOT/all_settings
     return 0
 }
 
@@ -162,8 +182,7 @@ PrintAnErrorString() {
 # PrintErrors <last_result value>: prints the list of errors associated with a
 # given result code
 PrintErrors() {
-    local code
-    local bit_num
+    local code bit_num
 
     code="$1"
     [ "$code" -eq 0 ] && return 0

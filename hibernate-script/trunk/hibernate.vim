@@ -100,6 +100,8 @@ highlight link hibernate_modules_auto Constant
 syntax keyword hibernate_conf unloadmodules contained nextgroup=hibernate_modules skipwhite
 syntax keyword hibernate_conf loadmodules contained nextgroup=hibernate_modules_auto,hibernate_modules skipwhite
 
+syntax keyword hibernate_conf unloadblacklistedmodules contained nextgroup=hibernate_boolean skipwhite
+
 syntax keyword hibernate_conf unloadallmodules contained nextgroup=hibernate_boolean skipwhite
 syntax keyword hibernate_conf loadmodulesfromfile contained nextgroup=hibernate_filenames skipwhite
 
@@ -134,10 +136,14 @@ syntax keyword hibernate_conf restartservices contained nextgroup=hibernate_serv
 syntax match hibernate_swsusp2allsettings /\d\+\(\s\+\d\+\)\+/ contained skipwhite
 highlight link hibernate_swsusp2allsettings Constant
 
+syntax match hibernate_imagesizelimit /\(\d\+\|nocache\)/ contained skipwhite
+highlight link hibernate_imagesizelimit Constant
+
 syntax keyword hibernate_conf useswsusp2 contained nextgroup=hibernate_boolean skipwhite
 syntax keyword hibernate_conf reboot contained nextgroup=hibernate_boolean skipwhite
 syntax keyword hibernate_conf enableescape contained nextgroup=hibernate_boolean skipwhite
 syntax keyword hibernate_conf defaultconsolelevel contained nextgroup=hibernate_integer skipwhite
+syntax keyword hibernate_conf imagesizelimit contained nextgroup=hibernate_imagesizelimit skipwhite
 syntax keyword hibernate_conf swsusp2allsettings contained nextgroup=hibernate_swsusp2allsettings skipwhite
 
 " sysfspowerstate
