@@ -44,7 +44,7 @@ XHacksOptions() {
 	    return 1
     esac
     if [ -z "$XHACKS_HOOKED" ] ; then
-	AddSuspendHook 11 XHacksSuspend
+	AddSuspendHook 85 XHacksSuspend
 	AddResumeHook 85 XHacksResume
 	XHACKS_HOOKED=1
     fi
