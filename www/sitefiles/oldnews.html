@@ -2,6 +2,68 @@ TITLE=Software Suspend - Older News
 
 <h1>###TITLE###</h1>
 
+<a name="moving"></a><b>15 July 2004: We're on the move!</b>
+<p>We're making the switch to
+<a href="http://softwaresuspend.berlios.de/">http://softwaresuspend.berlios.de/</a>.
+The <a href="lists.html">mailing lists</a> have also changed; please see the
+link for new details. The SourceForge lists won't be used for much longer.
+</p>
+
+<a name="wiki"></a><b>4 July 2004: Wiki created</b>
+<p>A <a href="wiki/">wiki</a> has been created for sharing information relevant
+to Software Suspend 2. Such items include hardware compatibility, known issues
+with compilers, known issues with certain patch versions, etc. It is not a
+place to ask questions - they belong on the <a href="lists.html">mailing
+list</a>. Please keep it tidy :)
+</p>
+
+<a name="2.0_2.4.26"></a><b>12 June 2004: Version specific patch for 2.4.26</b>
+<p>While the development of Software Suspend 2 has been very active, until now
+the only patches available for 2.4.26 were test patches. A patch for the 2.0
+release has been created for 2.4.26, and is available
+<a href="http://prdownloads.sourceforge.net/swsusp/software-suspend-linux-2.4.26-rev1-whole.bz2?download">here</a>.
+</p>
+
+<a name="announcelist"></a><b>23 March 2004: New <tt>swsusp-announce</tt> mailing list created</b>
+<p>For those not-quite-bleeding-edge junkies that want to hear about the latest,
+but not be flooded by a mass of bug reports and discussion, a new mailing list
+has been created. The <tt>swsusp-announce</tt> list will be very low volume,
+with only announcements of new versions of Software Suspend, patches, and
+suspend scripts. <a href="http://lists.sourceforge.net/mailman/listinfo/swsusp-announce">Click here to subscribe.</a>
+</p>
+
+<a name="2.0"></a><b>30 January 2004: Software Suspend hits 2.0!</b>
+<p>Software Suspend 2.0 for Linux 2.4 and 2.6 kernels is now available. The
+2.0 release is a major advance over previous versions and includes the following
+features:
+<ul>
+<li>Support for Highmem (up to 4GB), SMP (on 2.4, 2.6 soon) and preemptive kernels.</li>
+<li>Support for any number of swap partitions and/or files.</li>
+<li>Full asynchronous I/O and readahead for synchronous I/O for maximum throughput.</li>
+<li>Image compression (LZF and GZIP - the former is very fast and highly recommended).</li>
+<li>Support for saving a full image of your memory, resulting in a fast, responsive system after resuming.</li>
+<li>Support for plugins: data transformers (compression, encryption) and new storage backends (NFS support is planned).</li>
+<li>Nice user interface (<a href="http://www.bootsplash.org">Bootsplash</a> compatible).</li>
+<li>The ability to specify a maximum image size.</li>
+<li>The ability to cancel a suspend by pressing Escape (for security, this can be disabled).</li>
+<li>Speed and reliability - Software Suspend 2.0 has been extensively tested in a variety of configurations over many months. It is not guaranteed to be perfect, but bugs found will be hunted and fixed quickly.</li>
+</ul>
+This website includes extensive documentation, including 
+<a href="status.html">known issues</a> (primarily DRI and USB support) and
+FAQs. A well-used <a href="lists.html">mailing list</a> is also available.</p>
+<p>Note that two patches are required to use suspend: one for the particular 
+kernel version you are using and a second (applied afterwards) contains the core
+files.</p>
+
+<p>Special thanks go to Michael Frank for many months of extensive testing of the
+code, to Marc Lehmann for the work on the LZF compressor, and to Bernard Blackham
+for maintaining the website and especially to <a href="http://www.linuxfund.org">LinuxFund.org</a> for their sponsorship of the project, which has allowed me to 
+work full time on Software Suspend over the last four months.<br>
+<a href="http://developer.berlios.de/">Announcement</a>.
+<a href="http://download.berlios.de/softwaresuspend/software-suspend-2.1.1-for-2.6.9.tar.bz2">Download (for 2.6.9)</a>.
+</p>
+<div align="right">-- Nigel Cunningham</div>
+
 <b>27 January 2003: swsusp 2.0-rc5 core patch</b>
 <p>Nigel writes:
 <i>Core patch 2.0rc5 is now available on Sourceforge. I'm really truly

@@ -156,7 +156,20 @@ CONFIG_SOFTWARE_SUSPEND_LZF_COMPRESSION=y
 CONFIG_SOFTWARE_SUSPEND_TEXT_MODE=y
 </verb>
 
-<p>You can now recompile your kernel with software suspend...
+You can also enable CONFIG_SOFTWARE_SUSPEND_DEFAULT_RESUME2 to point to your
+default swap partition to avoid the need for a <tt>resume2=</tt> option on your
+kernel command line.
+
+<sect2> Initrd/initramfs's with Software Suspend 2
+<p>Using an initrd with Software Suspend 2 is possible. You can either compile
+Software Suspend 2 as modules or into the kernel, but you <bf>MUST</bf> edit
+your linuxrc (or init) script to contain the line
+<quote>
+echo > /proc/software_suspend/do_resume
+</quote>
+<bf>BEFORE</bf> the script mounts your filesystem. If you do not, you will most likely suffer from filesystem corruption. You have been warned.
+
+<p>You can now recompile your kernel with Software Suspend...
 
 <sect1> Installing the new kernel
 <p> You must have a swap partition on your disk. This swap partition should
@@ -256,13 +269,13 @@ to work correctly on your specific hardware. Most of them are fairly
 self-explanatory. Some often used ones are mentioned below. Running
 <tt>hibernate -h</tt> will give you the full list of options and help.
 
-<sect2> LeaveXBeforeSuspend
+<sect2> SwitchToTextMode
 <p> On some hardware, the graphic chipset isn't properly restored by BIOS upon
 resume and the state memorized by the resumed kernel becomes inconsistent with
 that of the hardware. In this case, it may help to switch to a text console
 before suspending and switch back to X only after resume.
 
-<sect2> nVidiaHack
+<sect2> UseDummyXServer
 <p>This option may also help if you experience strange things such as 3D not
 working upon resume. It launches a fake xserver that should cause proper
 initialization of the chipset.
@@ -333,7 +346,6 @@ cat /etc/swsusp.conf > /proc/sys/kernel/swsusp
 <p>The entries within /proc/software_suspend/ are:
 
 <descrip>
-<tag><tt>activate</tt></tag> Echo anything into this to start a suspend.
 <tag><tt>acpi_s4_support</tt></tag> Use your machine's ACPI implementation to
 put the machine to sleep (may result in a faster resume, as many of the usual
 BIOS checks may be skipped).
@@ -350,6 +362,8 @@ level. (see <ref id="debugging-info" name="Obtaining debugging information"> bel
 compiled into the kernel (LZF compression is on by default when compiled in).
 <tag><tt>disable_gzip_compression</tt></tag> Disables GZIP compression if it was
 compiled into the kernel (GZIP compression is on by default when compiled in).
+<tag><tt>do_suspend</tt></tag> Echo anything into this to start a suspend.
+<tag><tt>do_resume</tt></tag> Echo anything into this to start resuming.
 <tag><tt>enable_escape</tt></tag> Enables the possibility of aborting a suspend
 by pressing the Escape key during suspend. (Note: some people consider this a
 security breach if, for example, you activate a suspend, walk away and a

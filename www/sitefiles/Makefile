@@ -25,7 +25,8 @@ FAQ_TARGET = $(FAQ_BASENAME).html  \
 
 PAGES = style.css \
 		index.html \
-		olddownloads.html \
+		olddownloads-berl.html \
+		olddownloads-epfl.html \
 		oldnews.html \
 		status.html \
 		quickstart.html \
@@ -42,6 +43,7 @@ PAGES = style.css \
 		swsusp-logo.jpg \
 		LAC.png \
 		osdl_logo.png \
+		epfl.png \
 		linuxfund.gif \
 		contrib/Swsusp2_and_Bootsplash_on_FC2.doc \
 		$(HOWTO_FILES) \
@@ -67,7 +69,7 @@ fedora: $(patsubst %,$(SITEBASE)/%,$(wildcard fedora/*))
 $(SITEBASE)/fedora/%: fedora/%
 	cp $< $@
 
-olddownloads.html:
+olddownloads-berl.html:
 	@#cat /tmp/index.html | perl -e 
 	wget -O - http://download.berlios.de/softwaresuspend/ | perl -e \
 		'print "TITLE=Older downloads\n<h1>Software Suspend - Older downloads</h1>\n"; \
@@ -80,6 +82,22 @@ olddownloads.html:
 			m#">apply<# and next; \
 			s#A HREF="([^\?][^"]*)">[^<]+</A>#sprintf "A HREF=\"http://download.berlios.de/softwaresuspend/$$1\">$$1</A>%".(max(($$width-length($$1)),0))."s", ""#e; \
 			s#IMG SRC="#IMG SRC="http://download.berlios.de/#; \
+			print; \
+		} \
+		print "</PRE>\n"' > $@
+
+olddownloads-epfl.html:
+	@#cat /tmp/index.html | perl -e 
+	wget -O - http://download.berlios.de/softwaresuspend/ | perl -e \
+		'print "TITLE=Older downloads\n<h1>Software Suspend - Older downloads</h1>\n"; \
+		$$width = 60; \
+		sub max { my ($$a, $$b) = @_; return ($$a>$$b)?$$a:$$b; } \
+		while (<>) { \
+			if (not $$havebody){/^<PRE>/and$$havebody = 1 or next; } \
+			last if m#^</PRE><HR>$$#; \
+			m#">Parent Directory<# and next; \
+			m#">apply<# and next; \
+			s#A HREF="([^\?][^"]*)">[^<]+</A>#sprintf "A HREF=\"softwaresuspend/$$1\">$$1</A>%".(max(($$width-length($$1)),0))."s", ""#e; \
 			print; \
 		} \
 		print "</PRE>\n"' > $@
@@ -101,13 +119,15 @@ $(FAQ_TARGET): $(FAQ_BASENAME).sgml
 	linuxdoc -B html $< -H faq-top.txt -F /dev/null
 
 clean:
-	rm -f $(HOWTO_BASENAME)*.html $(FAQ_BASENAME)*.html
+	rm -f $(HOWTO_BASENAME)*.html $(FAQ_BASENAME)*.html olddownloads-*.html
 	# Not touching the site base directory!
 
 backup: clean
 	cd .. && tar czf sitefiles-`date +"%Y%m%d"`.tar.gz sitefiles/
 
-push: 
+live: berlios demo
+
+sf: 
 	#cd .. && tar cz sitefiles/ | ssh bernardb@shell.sf.net 'cd swsusp && tar xzv && make -C sitefiles'
 	cd .. && rsync -azve ssh --exclude=.svn sitefiles bernardb@shell.sf.net:swsusp/ && ssh sf make -C swsusp/sitefiles
 
@@ -116,6 +136,7 @@ demo:
 
 berlios: all
 	cd .. && rsync -azve ssh --exclude=.svn htdocs/* berlios:softwaresuspend/htdocs/
+	ssh berlios 'set -x ; cd softwaresuspend/htdocs ; ln -sf olddownloads-epfl.html olddownloads.html ; tar --exclude-from=$$HOME/softwaresuspend/exclusions -vvzcf website-epfl.tgz * ; ln -sf olddownloads-berl.html olddownloads.html'
 	#cd .. && rsync -azve ssh --exclude=.svn sitefiles berlios:softwaresuspend/ && ssh berlios make -C softwaresuspend/sitefiles
 
 .PHONY: directories htmlfiles rawfiles howto clean backup push demo
