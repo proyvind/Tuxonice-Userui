@@ -14,7 +14,7 @@
 #include "splash.h"
 #include "../userui.h"
 
-#define PROGRESS_BAR_GRANULARITY (PROGRESS_MAX/40)
+#define PROGRESS_BAR_GRANULARITY (PROGRESS_MAX/800)
 
 int fb_fd, fbsplash_fd;
 static char lastheader[512];
