@@ -98,57 +98,63 @@ int memcpy_from_target(pid_t pid, void* dest, const void* src, size_t n) {
 	return 1;
 }
 
+void print_status(FILE* f, int status) {
+    if (WIFEXITED(status)) {
+        fprintf(f, "WIFEXITED && WEXITSTATUS == %d\n", WEXITSTATUS(status));
+    } else if (WIFSIGNALED(status)) {
+        fprintf(f, "WIFSIGNALED && WTERMSIG == %d\n", WTERMSIG(status));
+    } else if (WIFSTOPPED(status)) {
+        fprintf(f, "WIFSTOPPED && WSTOPSIG == %d\n", WSTOPSIG(status));
+    } else {
+        fprintf(f, "Unknown status value: 0x%x\n", status);
+    }
+}
+
 int do_syscall(pid_t pid, struct user_regs_struct *regs) {
-    /* Execute a given syscall. We don't care about the page we're overwriting.
-     * It is the caller's responsibility to make sure it was backed up!
-	 */
+    long loc;
 	struct user_regs_struct orig_regs;
     long old_insn, new_insn;
+    int status, ret;
 	off_t result;
-
-    return 10;
-    if (ptrace(PTRACE_CONT, pid, NULL, NULL) < 0) {
-		perror("ptrace syscall-cleanup");
-		return 0;
-	}
 
 	if (ptrace(PTRACE_GETREGS, pid, NULL, &orig_regs) < 0) {
 		perror("ptrace getregs");
 		return 0;
 	}
 
-	old_insn = ptrace(PTRACE_PEEKTEXT, pid, orig_regs.eip-2, 0);
+    loc = orig_regs.eip; /* FIXME get somewhere guaranteed writable */
+
+	old_insn = ptrace(PTRACE_PEEKTEXT, pid, loc, 0);
     if (errno) {
 		perror("ptrace peektext");
 		return 0;
 	}
-    printf("original instruction was 0x%lx\n", old_insn);
+    printf("original instruction at 0x%lx was 0x%lx\n", loc, old_insn);
 
-	if (ptrace(PTRACE_POKETEXT, pid, orig_regs.eip-2, 0x80cd) < 0) {
+	if (ptrace(PTRACE_POKETEXT, pid, loc, 0x80cd) < 0) {
 		perror("ptrace poketext");
 		return 0;
 	}
 
-    regs->eip = orig_regs.eip-2;
-
 	/* Set up registers for ptrace syscall */
-	if (ptrace(PTRACE_SETREGS, pid, NULL, &regs) < 0) {
+	if (ptrace(PTRACE_SETREGS, pid, NULL, regs) < 0) {
 		perror("ptrace setregs");
 		return 0;
 	}
 
 	/* Execute call */
-	if (ptrace(PTRACE_SYSCALL, pid, NULL, NULL) < 0) {
+	if (ptrace(PTRACE_SINGLESTEP, pid, NULL, NULL) < 0) {
 		perror("ptrace syscall-entry");
 		return 0;
 	}
-	if (ptrace(PTRACE_SYSCALL, pid, NULL, NULL) < 0) {
-		perror("ptrace syscall-exit");
-		return 0;
+	ret = waitpid(pid, &status, 0);
+	if (ret == -1) {
+		perror("Failed to wait for child");
+		exit(1);
 	}
 
 	/* Get our new registers */
-	if (ptrace(PTRACE_GETREGS, pid, NULL, &regs) < 0) {
+	if (ptrace(PTRACE_GETREGS, pid, NULL, regs) < 0) {
 		perror("ptrace getregs");
 		return 0;
 	}
@@ -159,7 +165,7 @@ int do_syscall(pid_t pid, struct user_regs_struct *regs) {
 		return 0;
 	}
 
-	if (ptrace(PTRACE_POKETEXT, pid, orig_regs.eip-2, old_insn) < 0) {
+	if (ptrace(PTRACE_POKETEXT, pid, loc, old_insn) < 0) {
 		perror("ptrace poketext");
 		return 0;
 	}
@@ -389,7 +395,7 @@ int get_user_data(pid_t target_pid, struct user *user_data) {
 
 int get_i387_data(pid_t target_pid, struct user_i387_struct* i387_data) {
 	/* We have a memory segment. We should retrieve its data */
-	fprintf(stderr, "Retrieving FP registers... ");
+	fprintf(stderr, "[+] Retrieving FP registers... ");
 
 	if (ptrace(PTRACE_GETFPREGS, target_pid, 0, i387_data) == -1) {
 		perror("ptrace(PTRACE_PEEKDATA): ");
@@ -516,18 +522,18 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 		else
 			if (proc_image->maps[map_count].start >= 0x10000 &&
 					proc_image->maps[map_count].start <= 0x11000)
-				fprintf(stderr, "Ignoring map - looks like resumer.\n");
+				fprintf(stderr, "     Ignoring map - looks like resumer.\n");
 			else if (proc_image->maps[map_count].start >= RESUMER_START &&
 					proc_image->maps[map_count].start <= RESUMER_END)
-				fprintf(stderr, "Ignoring map - looks like resumer.\n");
+				fprintf(stderr, "     Ignoring map - looks like resumer.\n");
 			else if (proc_image->maps[map_count].start > 0xC0000000)
-				fprintf(stderr, "Ignoring map - in kernel space.\n");
+				fprintf(stderr, "     Ignoring map - in kernel space.\n");
             else
 				map_count++;
 	}
 	fclose(f);
 	proc_image->num_maps = map_count;
-	fprintf(stderr, "Read %d maps\n", map_count);
+	fprintf(stderr, "[+] Read %d maps\n", map_count);
 
 	/* Get process's user data (includes gen regs) */
 	if (!get_user_data(target_pid, &(proc_image->user_data))) {
@@ -535,7 +541,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 		return NULL;
 	}
 	if (is_in_syscall(target_pid, (void*)proc_image->user_data.regs.eip)) {
-		fprintf(stderr, "Process is probably in syscall, reexecuting.\n");
+		fprintf(stderr, "[+] Process is probably in syscall. Noting this fact.\n");
 		proc_image->user_data.regs.eip-=2;
 		proc_image->user_data.regs.eax = proc_image->user_data.regs.orig_eax;
 	}
@@ -559,7 +565,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 	snprintf(tmp_fn, 1024, "/proc/%d/cwd", target_pid);
 	memset(proc_image->cwd, 0, sizeof(proc_image->cwd));
 	readlink(tmp_fn, proc_image->cwd, sizeof(proc_image->cwd)-1);
-	printf("Process's working directory: %s\n", proc_image->cwd);
+	printf("[+] Process's working directory: %s\n", proc_image->cwd);
 
 	/* Get the process's terminal device */
 	/* This involves parsing /proc/stat :( */
@@ -577,7 +583,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 		sscanf(stat_ptr, "%c %d %d %d %d", &tmp, &tmp, &tmp, &tmp, &tty);
 		if (tty > 0) {
 			term_dev = (dev_t)tty;
-			printf("Terminal device appears to be %d:%d\n", tty >> 8, tty & 0xFF);
+			printf("[+] Terminal device appears to be %d:%d\n", tty >> 8, tty & 0xFF);
 		}
 	}
 
