@@ -92,7 +92,6 @@ int resume_image_from_file(int fd) {
 	int cmdline_length;
 	char cmdline[1024];
 	long* ptr;
-    long *tlsdata;
 	int i, j;
 
 	sigemptyset(&zeromask);
@@ -140,7 +139,7 @@ int resume_image_from_file(int fd) {
 	safe_read(fd, &num_tls, sizeof(int), "num_tls");
 	if (verbosity > 0)
 		fprintf(stderr, "Reading %d TLS entries...\n", num_tls);
-    tlsdata = malloc(0x1000);
+    if (do_pause) sleep(1);
 	for(i = 0; i < num_tls; i++) {
         short savegs;
 		safe_read(fd, &tls, sizeof(struct user_desc), "tls info");
@@ -150,23 +149,7 @@ int resume_image_from_file(int fd) {
 					tls.entry_number, tls.base_addr, tls.limit);
 
 		syscall_check(set_thread_area(&tls), 0, "set_thread_area");
-
-		safe_read(fd, tlsdata, 0x1000, "tls data");
-        if (!tls.base_addr) continue;
-
-        asm("mov %%gs, %w0" : "=q"(savegs));
-        asm("mov %w0, %%gs" : : "q"((tls.entry_number*8)+3));
-        for(j = 0, ptr = (void*)0xffffe000; j < 0x1000; ptr+=4, j+=4) {
-            asm(
-                    "movl %0,%%eax\n"
-                    "movl %1,%%ecx\n"
-                    "movl %%eax,%%gs:0x0(%%ecx)\n"
-                    : : "m"(tlsdata[j/4]), "m"(ptr)
-                    );
-        }
-        asm("mov %w0, %%gs" : : "q"(savegs));
 	}
-    free(tlsdata);
 
 	stdinfd = 0; /* we'll use stdin for stdout/stderr later if needed */
 	if (verbosity == 0) {

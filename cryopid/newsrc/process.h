@@ -53,7 +53,6 @@ struct proc_image_t {
 	struct map_entry_t *maps;
 	int num_tls;
     struct user_desc **tls;
-    char **tlsdata;
 
 	char cwd[1024];
 

@@ -480,34 +480,6 @@ struct user_desc *get_tls_info(pid_t pid, int entry_num) {
     return u;
 }
 
-char *get_tls_data(pid_t pid, struct user_desc *entry) {
-    unsigned short ds;
-    long* p;
-    int i;
-
-    fprintf(stderr, "Reading TLS data for entry %d\n", entry->entry_number);
-    /* FIXME only does one page at the moment! */
-    ds = ptrace(PTRACE_PEEKUSER, pid, 4*DS, 0);
-    if (errno) {
-        perror("ptrace(PTRACE_PEEKUSER): ");
-    }
-    if (ptrace(PTRACE_POKEUSER, pid, 4*DS, (entry->entry_number*8)+3) == -1) {
-        perror("ptrace(PTRACE_POKEUSER): ");
-    }
-    p = malloc(0x1000);
-    for(i = 0; i < 0x1000; i+=4) {
-        /* TLS data appears to be contained at the the of the segment */
-        p[i/4] = ptrace(PTRACE_PEEKDATA, pid, (void*)(0xffffe000+i), 0);
-        if (errno) {
-            perror("ptrace(PTRACE_PEEKDATA): ");
-        }
-    }
-    if (ptrace(PTRACE_POKEUSER, pid, 4*DS, ds) == -1) {
-        perror("ptrace(PTRACE_POKEUSER): ");
-    }
-    return (char*)p;
-}
-
 /* FIXME: split this into several functions */
 struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 	FILE *f;
@@ -571,15 +543,6 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
     for (z = 0; z < 256; z++) {
         proc_image->tls[proc_image->num_tls] = get_tls_info(target_pid, z);
         if (proc_image->tls[proc_image->num_tls]) proc_image->num_tls++;
-    }
-
-    /* Get TLS data */
-    if (proc_image->num_tls) {
-        proc_image->tlsdata = malloc(sizeof(char*)*proc_image->num_tls);
-        for(z=0; z < proc_image->num_tls; z++) {
-            proc_image->tlsdata[z] = get_tls_data(target_pid,
-                    proc_image->tls[z]);
-        }
     }
 
 	/* Find the current directory of our victim */

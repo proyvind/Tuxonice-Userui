@@ -40,7 +40,6 @@ int write_proc_image_to_file(struct proc_image_t* p, int fd) {
     fwrite(&p->num_tls, sizeof(p->num_tls), 1, f);
     for (i = 0; i < p->num_tls; i++) {
         fwrite(p->tls[i], sizeof(struct user_desc), 1, f);
-        fwrite(p->tlsdata[i], 0x1000, 1, f);
     }
 
 	fwrite(&p->num_fds, sizeof(p->num_fds), 1, f);
