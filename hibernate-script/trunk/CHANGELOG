@@ -1,3 +1,6 @@
+1.00 (unreleased)
+ - Fix a long standing bug when printing error result codes.
+
 0.99 (10 October 2004)
  - Make SCRIPTLET_PATH work again so that user-defined scriptlets can
    be placed in /etc/hibernate /usr/local/share/hibernate will actually

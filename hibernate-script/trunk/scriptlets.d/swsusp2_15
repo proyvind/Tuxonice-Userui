@@ -250,7 +250,7 @@ PrintErrors() {
 
     bit_num=0
     while [ "$code" -ne 0 ] ; do
-	[ "$((code&1))" -eq 1 ] && echo -n " - " && PrintAnErrorString "$bit_num"
+	[ "$(($code&1))" -eq 1 ] && echo -n " - " && PrintAnErrorString "$bit_num"
 
 	bit_num=$(($bit_num+1))
 	code=$(($code>>1))
