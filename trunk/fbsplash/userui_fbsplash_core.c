@@ -208,6 +208,7 @@ static void fbsplash_redraw() {
 		return;
 	}
 
+	reset_silent_img();
 	update_fb_img();
 }
 
