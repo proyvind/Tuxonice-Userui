@@ -213,18 +213,14 @@ The compile & install this nvidia driver.
 
 <sect1>3D: Suspension occurs correctly, but when I resume my Xserver has lost 3D acceleration.
 <p>This seems to happen for some hardware configurations, for instance Nvidia
-GEforce cards. Launching a fake xserver just after resume may solve the
-problem. This can be done by adding
+GEforce and ATI radeon cards. Launching a fake xserver just after resume may
+solve the problem. This can be done by adding
 <verb>
 xinit /bin/false -- :1
 </verb>
 at the end of resume script. If you use suspend script, try the
-<bf>nVidiaHack</bf> option in the hibernate script configuration. Also have a
-look at the previous FAQ, above.
-
-<sect1>pre-emption: Using a 2.5.X kernel, I get an endless loop of errors saying "bad: scheduling while atomic" when suspending.
-<p>This issue has been resolved since around version 2.0 - if you are
-experiencing these, make sure you have updated to the latest version.
+<tt>UseDummyXServer</tt> option (formerly known as <tt>nVidiaHack</tt>) in the
+hibernate script configuration. Also have a look at the previous FAQ, above.
 
 <sect1>PCMCIA: It hangs upon resume when restarting pcmcia!
 <p>This has been reported on some hardware when using the kernel pcmcia support

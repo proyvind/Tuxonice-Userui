@@ -61,13 +61,13 @@ Software suspend has a long story, but for a long time it was considered
 as alpha. This is mainly due to the fact that suspension has to deal
 with a lot of aspects in kernel. It is therefore difficult to follow the
 kernel development (for instance transition from 2.2 to 2.4 was not
-straightforward). The 2.4 patch is now considered stable. If you have a
-single-processor machine with Pentium like CPU and ide disks, it is very
-likely that swsusp will perform correctly. However, installing,
-configuring and using software suspension is not straightforward, since
-it involves recompiling the kernel and setting some boot parameters.
-Software Suspend's website is hosted by Sourceforge. You can visit the mailing
-list, download scripts and updated patches at
+straightforward). The 2.4 and 2.6 patches are now considered stable. If you
+have a single-processor machine with Pentium like CPU and ide disks, it is very
+likely that swsusp will perform correctly. However, installing, configuring and
+using software suspension is not straightforward, since it involves recompiling
+the kernel and setting some boot parameters.  Software Suspend's website is
+hosted by Sourceforge. You can visit the mailing list, download scripts and
+updated patches at
 <url url="http://developer.berlios.de/project/showfiles.php?group_id=1412">.
 
 <p>You may want to peruse the <url url="http://softwaresuspend.berlios.de/FAQ.html" name="FAQ"> also.
@@ -85,16 +85,9 @@ version.
 <sect2> Kernel 2.4.X
 <p> Unfortunately, software suspension isn't part of kernel 2.4.X and should
 therefore be added using one of the patches provided on the Berlios pages
-mentioned above.  The swsusp patch is named with a few conventions that
-includes: 
-
-<itemize>
-<item>A version that is increased from one release of swsusp to the other.
-<item>The kernel version on which the swsusp patch applies. This is currently a
-vanilla kernel 2.4.21, 2.4.22, or 2.4.23.
-<item>Additional 'option' patches provide support for other patches you might
-have.
-</itemize>
+mentioned above.  The latest patches are distributed as a tarball of patches,
+which must be applied togther. This is most easily done with the <tt>apply</tt>
+script inside the tarball.
 
 <sect2> Kernel 2.6.X
 <p>An implementation of Software Suspend is directly included since 2.5.18 in
