@@ -29,7 +29,7 @@ SWSUSP_D="/etc/hibernate"
 SCRIPTLET_PATH="$SWSUSP_D/scriptlets.d /usr/local/share/hibernate/scriptlets.d /usr/share/hibernate/scriptlets.d"
 CONFIG_FILE="$SWSUSP_D/hibernate.conf"
 EXE=`basename $0`
-VERSION="1.00-rc2"
+VERSION="1.00"
 
 # Add these to the $PATH just in case.
 PATH="$PATH:/sbin:/usr/sbin"
