@@ -96,11 +96,11 @@ Swsusp2ConfigSet() {
 DoSwsusp2() {
     local error
     if [ -z "$SWSUSP2_NO_SUSPEND" ] ; then
-	vecho 1 "$EXE: Activating suspend ..."
-	error=`DoSuspend` && SUSPEND_SUCCESS=1 || SUSPEND_SUCCESS=0
-	PrintErrors $error
+	vecho 1 "$EXE: Activating suspend ..." | $LOGPIPE
+	error=`DoSuspend` && SUSPEND_SUCCESS=1 || SUSPEND_SUCCESS=0 | $LOGPIPE
+	PrintErrors $error | $LOGPIPE
     else
-	vecho 1 "$EXE: Not actually suspending (--no-suspend given)"
+	vecho 1 "$EXE: Not actually suspending (--no-suspend given)" | $LOGPIPE
     fi
 }
 
