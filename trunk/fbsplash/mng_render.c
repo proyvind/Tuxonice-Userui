@@ -105,6 +105,8 @@ mng_handle mng_load(char* filename)
 		goto cleanup_fail;
 	}
 
+	mng->num_frames = mng_get_totalframes(mngh);
+
 	return mngh;
 
 cleanup_fail:
@@ -130,6 +132,52 @@ mng_retcode mng_render_next(mng_handle mngh)
 			mng->displayed_first = 1;
 	} else
 		ret = mng_display_resume(mngh);
+
+	if (ret == MNG_NEEDTIMERWAIT || ret == MNG_NOERROR)
+		return ret;
+
+	print_mng_error(mngh, "mng_display failed");
+
+	return ret;
+}
+
+mng_retcode mng_render_proportional(mng_handle mngh, int progress)
+{
+	mng_anim *mng = mng_get_userdata(mngh);
+	mng_retcode ret = MNG_NOERROR;
+	int frame_num, current_frame;
+	
+	frame_num = ((progress * mng->num_frames) / PROGRESS_MAX) + 1;
+	if (frame_num > mng->num_frames)
+		frame_num = mng->num_frames;
+
+	if (!mng->displayed_first) {
+		ret = mng_display(mngh);
+		mng->displayed_first = 1;
+	}
+
+	current_frame = mng_get_currentframe(mngh);
+	if (current_frame == frame_num)
+		return ret;
+
+	/* Don't bother freezing if the next frame is just n+1. mng_display_resume
+	 * will do this case by default, and it saves us from the horrid hack
+	 * below.
+	 */
+	if (frame_num != current_frame + 1) {
+		mng_display_freeze(mngh);
+
+		/* XXX: hack! workaround what seems to be a bug in libmng - it won't
+		 * actually repaint the canvas if you wind an animation "forwards"
+		 * using goframe, only backwards, so go to the end of the animation first.
+		 */
+
+		mng_display_goframe(mngh, mng->num_frames);
+		if (frame_num != mng->num_frames)
+			mng_display_goframe(mngh, frame_num);
+	}
+
+	ret = mng_display_resume(mngh);
 
 	if (ret == MNG_NEEDTIMERWAIT || ret == MNG_NOERROR)
 		return ret;

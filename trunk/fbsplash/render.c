@@ -651,12 +651,12 @@ void render_objs(u8 *target, u8 *bgnd, char mode, unsigned char origin, int prog
 				}
 				render_it = 1;
 			} else { /* we're F_ANIM_PROPORTIONAL */
-				/* FIXME: fill me in */
+				if (mng_render_proportional(a->mng, arg_progress) == MNG_NEEDTIMERWAIT)
+					render_it = 1;
 			}
 
-			if (render_it) {
+			if (!progress_only || render_it)
 				mng_display_next(a->mng, target, a->x, a->y);
-			}
 		}
 #if (defined(CONFIG_TTY_KERNEL) && defined(TARGET_KERNEL)) || (defined(CONFIG_TTF) && !defined(TARGET_KERNEL))
 		else if (o->type == o_text) {
