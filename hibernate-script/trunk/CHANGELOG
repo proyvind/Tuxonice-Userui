@@ -8,7 +8,7 @@
  - Added UnmountGraceTime to alter time between sending SIGTERM and SIGKILL to
    processes using a filesystem.
  - Support for implicit configuration files (calling script as hibernate-foo
-   cause it to use /etc/hibernate/foo.conf).
+   causes it to use /etc/hibernate/foo.conf).
  - Really fix RPM configuration file overwriting issue (Stefan Becker).
 
 1.01 (18 November 2004)

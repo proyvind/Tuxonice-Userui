@@ -1,6 +1,4 @@
 - Option to write a default config file
 - gahhh! something. check emails.
-- Document NN numbers in man page
-- Hack to support different config file names deduced by argv0
 
 $Id$
