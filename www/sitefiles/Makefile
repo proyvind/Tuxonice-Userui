@@ -53,8 +53,7 @@ PAGES = style.css \
        		sample-oops.png \
 		contrib/Swsusp2_and_Bootsplash_on_FC2.doc \
 		$(HOWTO_FILES) \
-		$(FAQ_FILES) \
-		mirror.tgz
+		$(FAQ_FILES)
 
 DIRS = contrib fedora downloads downloads/all
 
@@ -99,13 +98,15 @@ $(FAQ_TARGET): $(FAQ_BASENAME).sgml
 	linuxdoc -B html $< -H faq-top.txt -F /dev/null
 
 clean:
-	rm -f $(HOWTO_BASENAME)*.html $(FAQ_BASENAME)*.html index-download-snippet.html $(SITEBASE)/mirror.tgz
+	rm -f $(HOWTO_BASENAME)*.html $(FAQ_BASENAME)*.html index-download-snippet.html
 	# Not touching the site base directory!
 
 backup: clean
 	cd .. && tar czf sitefiles-`date +"%Y%m%d"`.tar.gz sitefiles/
 
-$(SITEBASE)/mirror.tgz:
-	cd $(SITEBASE) ; tar -czf $@ --exclude=mirror.tgz .
+mirrors: nl-mirror
 
-.PHONY: directories htmlfiles rawfiles howto clean backup
+nl-mirror:
+	cd .. && rsync -azve ssh --exclude=.svn htdocs/* suspend2@vizzzion.org:www/
+
+.PHONY: directories htmlfiles rawfiles howto clean backup mirrors nl-mirror
