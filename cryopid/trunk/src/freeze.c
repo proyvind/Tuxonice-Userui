@@ -25,11 +25,10 @@ int main(int argc, char** argv) {
 		static struct option long_options[] = {
 			{"full-image", 0, 0, 'f'},
 			{"file-contents", 0, 0, 'c'},
-			{"stopped", 0, 0, 's'},
 			{0, 0, 0, 0},
 		};
 		
-		c = getopt_long(argc, argv, "fs",
+		c = getopt_long(argc, argv, "fc",
 				long_options, &option_index);
 		if (c == -1)
 			break;
@@ -37,11 +36,8 @@ int main(int argc, char** argv) {
 			case 'f':
 				flags |= GET_PROC_FULL_IMAGE;
 				break;
-			case 's':
-				flags |= GET_PROC_IS_STOPPED;
-				break;
-		        case 'c':
-			        flags |= GET_OPEN_FILE_CONTENTS;
+			case 'c':
+				flags |= GET_OPEN_FILE_CONTENTS;
 				break;
 			case '?':
 				/* invalid option */

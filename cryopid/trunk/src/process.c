@@ -167,9 +167,24 @@ int do_syscall(pid_t pid, struct user_regs_struct *regs) {
 	return 1;
 }
 
-void start_ptrace(pid_t target_pid, int is_stopped) {
+int process_is_stopped(pid_t pid) {
+    char buf[128];
+    char mode;
+    FILE *f;
+    snprintf(buf, 128, "/proc/%d/stat", pid);
+    f = fopen(buf, "r");
+    if (f == NULL) return -1;
+    fscanf(f, "%*s %*s %c", &mode);
+    fclose(f);
+    return mode == 'T';
+}
+
+void start_ptrace(pid_t target_pid) {
 	long ret;
 	int status;
+    int stopped;
+
+    stopped = process_is_stopped(target_pid);
 
 	ret = ptrace(PTRACE_ATTACH, target_pid, 0, 0);
 	if (ret == -1) {
@@ -177,7 +192,7 @@ void start_ptrace(pid_t target_pid, int is_stopped) {
 		exit(1);
 	}
 
-	if (is_stopped) return; /* don't bother waiting for it, we'll just hang */
+	if (stopped) return; /* don't bother waiting for it, we'll just hang */
 
 	ret = waitpid(target_pid, &status, 0);
 	if (ret == -1) {
@@ -492,7 +507,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 	proc_image->maps = malloc(sizeof(struct map_entry_t)*1000);
 
 	//if (kill(target_pid, SIGSTOP) == -1) perror("kill");
-	start_ptrace(target_pid, flags & GET_PROC_IS_STOPPED);
+	start_ptrace(target_pid);
 	snprintf(tmp_fn, 1024, "/proc/%d/maps", target_pid);
 	f = fopen(tmp_fn, "r");
 	while (fgets(map_line, 1024, f)) {

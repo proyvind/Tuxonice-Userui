@@ -69,8 +69,7 @@ int write_proc_image(int fd, struct proc_image_t* p);
 
 /* flags passed to get_proc_image */
 #define GET_PROC_FULL_IMAGE        0x01
-#define GET_PROC_IS_STOPPED        0x02
-#define GET_OPEN_FILE_CONTENTS     0x04
+#define GET_OPEN_FILE_CONTENTS     0x02
 
 #define RESUMER_START 0x00100000 /* Lowest location resume will be at */
 #define RESUMER_END   0x00200000 /* Highest location resume will be at */
