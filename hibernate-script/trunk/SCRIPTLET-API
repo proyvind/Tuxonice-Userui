@@ -125,10 +125,14 @@ The following general recommendations apply:
  11 definitely going to suspend by this point
  20 user programs stopped
  30 services started/stopped
- 70 filesystems mounted/unmounted
- 80 networking start/stopped
+ 50 filesystems mounted/unmounted
+ 60 networking start/stopped
  90-91 kernel modules loaded/unloaded
+ 95-98 all sorts of voodoo to get VT switching happy in all cases
  99 reserved
+
+Running "bash list-hooks.sh scriptlets.d/" will produce a list of all the
+hook functions in order of execution if you need to look closely.
 
 POSIX COMPLIANCE
 ----------------
