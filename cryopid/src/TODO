@@ -6,6 +6,7 @@ Sooner:
 - file offsets
 - termcaps
 - signal handlers
+- check all thread entry_nums ?
 
 Later:
 - compressor support
