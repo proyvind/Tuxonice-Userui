@@ -21,7 +21,7 @@ ChangeGrubMenu() {
 	    vecho 2 "Changing grub menu..."
 
 	    # Make a backup, and abort if we fail to.
-	    if ! cp "$GRUB_MENU_FILE" "$GRUB_MENU_FILE.suspend.sh_bak" ; then
+	    if ! cp "$GRUB_MENU_FILE" "$GRUB_MENU_FILE.hibernate.bak" ; then
 		vecho 0 "Could not make backup of grub menu. Not changing!"
 		return 1 # abort if not forced
 	    fi
@@ -34,7 +34,7 @@ ChangeGrubMenu() {
 		fi
 	    else
 		echo  >> "$GRUB_MENU_FILE"
-		echo "title ___________________________________________________________" >> "$GRUB_MENU_FILE"
+		echo "title ________________________________________________________________________" >> "$GRUB_MENU_FILE"
 		echo "configfile dummy" >> "$GRUB_MENU_FILE"
 		echo "title WARNING: "`uname -s -r` "is suspended via swsusp!" >> "$GRUB_MENU_FILE"
 		echo "configfile dummy" >> "$GRUB_MENU_FILE"
@@ -51,9 +51,9 @@ ChangeGrubMenu() {
 
 RestoreGrubMenu() {
     if [ x"$CHANGE_GRUB_MENU" = "x1" ] ; then
-	if [ -f $GRUB_MENU_FILE.suspend.sh_bak ] ; then
+	if [ -f $GRUB_MENU_FILE.hibernate.bak ] ; then
 	    vecho 2 "Restoring grub menu..."
-	    mv -f "$GRUB_MENU_FILE.suspend.sh_bak" "$GRUB_MENU_FILE"
+	    mv -f "$GRUB_MENU_FILE.hibernate.bak" "$GRUB_MENU_FILE"
 	fi
     fi
 }
