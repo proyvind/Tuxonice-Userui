@@ -3,7 +3,7 @@
 CONFIG_DIR=/etc/suspend
 CONFIG_FILE=$CONFIG_DIR/suspend.conf
 SCRIPTLET_DIR=$CONFIG_DIR/scriptlets.d
-SCRIPT_DEST=/usr/local/sbin/suspend.sh
+SCRIPT_DEST=/usr/local/sbin/suspend
 
 # Test if the script is already installed.
 if [ -d $CONFIG_DIR -o -f $SCRIPT_DEST ] ; then
@@ -33,6 +33,7 @@ done
 echo "Setting permissions on installed files ..."
 chmod 700 $SCRIPT_DEST $SCRIPTLET_DIR $SCRIPTLET_DIR/grub
 chmod 600 $CONFIG_FILE
+chown root.root -R $SCRIPT_DEST $CONFIG_DIR
 
 echo "Installed."
 echo "Edit $CONFIG_FILE to taste, and see `basename $SCRIPT_DEST` -h for help."
