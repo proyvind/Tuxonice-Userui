@@ -74,7 +74,9 @@ int main(int argc, char** argv) {
 	return 1;
     }
 
-    proc_image = get_proc_image(target_pid, flags);
+    if ((proc_image = get_proc_image(target_pid, flags)) == NULL) {
+	return 1;
+    }
     fd = open(argv[optind], O_CREAT|O_WRONLY|O_TRUNC, 0700);
     if (fd == -1) {
 	fprintf(stderr, "Couldn't open %s for writing: %s\n", argv[optind],

@@ -632,12 +632,18 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
     proc_image->num_maps = map_count;
     fprintf(stderr, "[+] Read %d maps\n", map_count);
 
+    if (!scribble_zone) {
+	fprintf(stderr, "[-] No suitable scribble zone could be found. Aborting.\n");
+	proc_image = NULL;
+	goto out_ptrace;
+    }
     pagebackup = backup_page(target_pid, (void*)scribble_zone);
 
     /* Get process's user data (includes gen regs) */
     if (!get_user_data(target_pid, &(proc_image->user_data))) {
 	fprintf(stderr, "Error getting user data.\n");
-	return NULL;
+	proc_image = NULL;
+	goto out_ptrace;
     }
     if (is_in_syscall(target_pid, (void*)proc_image->user_data.regs.eip)) {
 	fprintf(stderr, "[+] Process is probably in syscall. Noting this fact.\n");
@@ -648,7 +654,8 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
     /* Get FP regs */
     if (!get_i387_data(target_pid, &(proc_image->i387_data))) {
 	fprintf(stderr, "Error getting user data.\n");
-	return NULL;
+	proc_image = NULL;
+	goto out_ptrace;
     }
 
     /* Get TLS info */
@@ -807,6 +814,7 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
     printf("\n");
 
     restore_page(target_pid, (void*)scribble_zone, pagebackup);
+out_ptrace:
     end_ptrace(target_pid);
     return proc_image;
 }
