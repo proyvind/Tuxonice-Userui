@@ -29,6 +29,12 @@ int write_proc_image_to_file(struct proc_image_t* p, int fd) {
 
 	fwrite(&p->pid, sizeof(p->pid), 1, f);
 
+	fwrite(&p->cmdline_length, sizeof(p->cmdline_length), 1, f);
+	fwrite(p->cmdline, p->cmdline_length, 1, f);
+
+	fwrite(&p->environ_length, sizeof(p->environ_length), 1, f);
+	fwrite(p->environ, p->environ_length, 1, f);
+
 	fwrite(&p->user_data, sizeof(p->user_data), 1, f);
 	fwrite(&p->i387_data, sizeof(p->i387_data), 1, f);
 
@@ -52,9 +58,6 @@ int write_proc_image_to_file(struct proc_image_t* p, int fd) {
 			fwrite(p->fds[i].data, p->fds[i].data_length, 1, f);
 	}
 	
-	fwrite(&p->cmdline_length, sizeof(p->cmdline_length), 1, f);
-	fwrite(p->cmdline, sizeof(p->cmdline), 1, f);
-
 	fwrite(p->cwd, sizeof(p->cwd), 1, f);
 
 	fwrite(p->sigs, sizeof(p->sigs), 1, f);

@@ -84,8 +84,10 @@ struct proc_image_t {
 	int num_fds;
 	struct fd_entry_t *fds;
 
-	char cmdline[1024]; /* FIXME arbitrary */
+	char *cmdline;
 	int cmdline_length;
+    char *environ;
+    int environ_length;
 
     struct k_sigaction sigs[MAX_SIGS];
 };

@@ -796,10 +796,21 @@ struct proc_image_t* get_proc_image(pid_t target_pid, int flags) {
 	printf("process has %d FD's open\n", fd_count);
 	
 	/* Save the process's command line */
+    proc_image->cmdline = (char*)malloc(65536);
 	sprintf(tmp_fn, "/proc/%d/cmdline", target_pid);
 	f = fopen(tmp_fn, "r");
-	memset(proc_image->cmdline, 0, sizeof(proc_image->cmdline));
-	proc_image->cmdline_length = fread(proc_image->cmdline, sizeof(char), 1024, f);
+	memset(proc_image->cmdline, 0, 65536);
+	proc_image->cmdline_length = fread(proc_image->cmdline, sizeof(char), 65536, f);
+    proc_image->cmdline[proc_image->cmdline_length++] = '\0';
+	fclose(f);
+
+	/* Save the process's environment */
+    proc_image->environ = (char*)malloc(65536);
+	sprintf(tmp_fn, "/proc/%d/environ", target_pid);
+	f = fopen(tmp_fn, "r");
+	memset(proc_image->environ, 0, 65536);
+	proc_image->environ_length = fread(proc_image->environ, sizeof(char), 65536, f);
+    proc_image->environ[proc_image->environ_length++] = '\0';
 	fclose(f);
 
     /* Get process's signal handlers */

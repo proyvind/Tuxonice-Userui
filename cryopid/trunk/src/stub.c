@@ -18,6 +18,12 @@ int tls_hack = 0;
 long tls_start = 0;
 void (*old_segvhandler)(int, siginfo_t*, void*) = NULL;
 char ignorefds[256];
+int reforked = 0;
+
+int real_argc;
+char** real_argv;
+char** real_environ;
+extern char** environ;
 
 int syscall_check(int retval, int can_be_fake, char* desc, ...) {
 	va_list va_args;
@@ -207,8 +213,8 @@ int resume_image_from_file(int fd) {
 	struct user_i387_struct i387_data;
     struct k_sigaction sa;
 	char dir[1024];
-	int cmdline_length;
-	char cmdline[1024];
+	int cmdline_length, environ_length;
+	char *new_cmdline, *new_environ;
 	long* ptr;
 	int i, j;
     int extra_prot = 0;
@@ -258,6 +264,54 @@ int resume_image_from_file(int fd) {
         }
         //printf("getppid() = %d\n", getppid());
         kill(getppid(),SIGUSR1);
+    }
+
+    new_cmdline = (char*)malloc(65536);
+    new_environ = (char*)malloc(65536);
+	safe_read(fd, &cmdline_length, sizeof(cmdline_length), "cmdline_length");
+	safe_read(fd, new_cmdline, cmdline_length, "cmdline");
+    new_cmdline[cmdline_length]='\0';
+
+	safe_read(fd, &environ_length, sizeof(environ_length), "environ_length");
+	safe_read(fd, new_environ, environ_length, "environ");
+    new_environ[environ_length]='\0';
+    
+    if (!reforked) {
+        char fn[128];
+        char *p;
+        char **new_argv, **new_envp;
+        new_argv = (char**)malloc(sizeof(char*)*4096);
+        new_envp = (char**)malloc(sizeof(char*)*4096);
+
+        p = new_cmdline;
+        i = 0;
+        while (*p) {
+            new_argv[i++] = p;
+            while(*p++);
+        }
+        new_argv[i] = NULL;
+
+        p = new_environ;
+        i = 0;
+        while (*p) {
+            new_envp[i++] = p;
+            while(*p++);
+        }
+        new_envp[i] = NULL;
+
+        snprintf(fn, 128, "/tmp/cryopid.state.%d", getpid());
+        int f = syscall_check(open(fn, O_WRONLY|O_TRUNC|O_CREAT, 0600), 0, "open");
+        int i;
+        syscall_check(write(f, &real_argc, sizeof(real_argc)), 0, "write");
+        for(i=0; i < real_argc; i++) {
+            int l = strlen(real_argv[i])+1;
+            syscall_check(write(f, &l, sizeof(l)), 0, "write");
+            syscall_check(write(f, real_argv[i], l), 0, "write");
+        }
+        close(f);
+        execve(real_argv[0], new_argv, new_envp);
+        printf("execve(%s,0x%lx,0x%lx) failed. Not restoring cmdline. (error: %s)\n",
+                real_argv[0], new_cmdline, new_environ, strerror(errno));
     }
 
 	safe_read(fd, &user_data, sizeof(struct user), "user data");
@@ -395,9 +449,6 @@ int resume_image_from_file(int fd) {
         fcntl(fd_entry.fd, F_SETFD, fd_entry.fcntl_data.close_on_exec);
 	}
 	//close(stdinfd);
-
-	safe_read(fd, &cmdline_length, sizeof(cmdline_length), "cmdline_length");
-	safe_read(fd, cmdline, sizeof(cmdline), "cmdline");
 
 	safe_read(fd, dir, sizeof(dir), "working directory");
 	if (verbosity > 0)
@@ -554,6 +605,27 @@ void usage(char* argv0) {
 
 void real_main(int argc, char** argv) {
 	int fd;
+    /* See if we're being executed for the second time. If so, read arguments
+     * from the file.
+     */
+    char fn[128];
+    snprintf(fn, 128, "/tmp/cryopid.state.%d", getpid());
+    if ((fd = open(fn, O_RDONLY)) != -1) {
+        unlink(fn);
+
+        safe_read(fd, &argc, sizeof(argc), "argc from cryopid.state");
+        argv = (char**)malloc(sizeof(char*)*argc+1);
+        argv[argc] = NULL;
+        int i, len;
+        for (i=0; i < argc; i++) {
+            safe_read(fd, &len, sizeof(len), "argv len from cryopid.state");
+            argv[i] = (char*)malloc(len);
+            safe_read(fd, argv[i], len, "new argv from cryopid.state");
+        }
+        close(fd);
+        reforked = 1;
+    }
+
 	/* Parse options */
     memset(ignorefds, 0, sizeof(ignorefds));
 	while (1) {
@@ -608,11 +680,6 @@ void real_main(int argc, char** argv) {
 	exit(1);
 }
 
-int real_argc;
-char** real_argv;
-char** new_environ;
-extern char** environ;
-
 int main(int argc, char**argv) {
 	long amount_used;
 	void *stack_ptr;
@@ -624,17 +691,17 @@ int main(int argc, char**argv) {
 
 	/* Take a copy of our argc/argv and environment below we blow them away */
 	real_argc = argc;
-	real_argv = malloc(sizeof(char*)*argc);
+	real_argv = (char**)malloc((sizeof(char*)*argc)+1);
 	for(i=0; i < argc; i++)
 		real_argv[i] = strdup(argv[i]);
 	real_argv[i] = NULL;
 
 	for(i = 0; environ[i]; i++); /* count environment variables */
-	new_environ = malloc(sizeof(char*)*i);
+	real_environ = malloc((sizeof(char*)*i)+1);
 	for(i = 0; environ[i]; i++)
-		*new_environ++ = strdup(environ[i]);
-	*new_environ = NULL;
-	environ = new_environ;
+		*real_environ++ = strdup(environ[i]);
+	*real_environ = NULL;
+	environ = real_environ;
 
 	/* Reposition the stack at top_of_old_stack */
 	top_of_old_stack = get_task_size();
