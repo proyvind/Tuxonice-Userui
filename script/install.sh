@@ -28,6 +28,15 @@ cp -a hibernate.sh $SCRIPT_DEST
 echo "Installing configuration file to $CONFIG_DIR ..."
 mkdir -p $CONFIG_DIR
 cp -a hibernate.conf $CONFIG_FILE
+if [ -f $CONFIG_FILE ] ; then
+    echo "  **"
+    echo "  ** You already have a configuration file at $CONFIG_FILE"
+    echo "  ** The new version will be installed to ${CONFIG_FILE}.dist"
+    echo "  **"
+    cp -a hibernate.conf ${CONFIG_FILE}.dist
+else
+    cp -a hibernate.conf $CONFIG_FILE
+fi
 
 echo "Installing scriptlets to $SCRIPTLET_DIR ..."
 mkdir -p $SCRIPTLET_DIR
