@@ -51,7 +51,8 @@ SplashBegin() {
     fi
 
     # go
-    splash -s -u 0 "$SPLASH_CONFIG_FILE"
+    fgcons=`fgconsole 2>/dev/null` || fgcons=1
+    splash -s -u $(($fgcons-1)) "$SPLASH_CONFIG_FILE"
     echo "silent" > /proc/splash
 
     # increments the bar to 10 and kicks it all off.
@@ -78,7 +79,8 @@ SplashOff() {
 
 EnableSwsuspBootsplash() {
     [ -n "$SWSUSP_FORCE_CHVT" ] || return 0
-    splash -s "$SPLASH_CONFIG_FILE"
+    fgcons=`fgconsole 2>/dev/null` || fgcons=1
+    splash -s -u $(($fgcons-1)) "$SPLASH_CONFIG_FILE"
     echo "silent" > /proc/splash
     return 0
 }
