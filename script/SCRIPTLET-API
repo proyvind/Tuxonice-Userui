@@ -132,7 +132,7 @@ points to note are:
  - = not == for string comparisons.
 
 For the script to work under zsh, certain options need to be changed in order
-to make zsh act less sensibly (see setopts at the start of suspend.sh).
+to make zsh act less sensibly (see setopts at the start of hibernate.sh).
 
 WHITESPACE NAZI
 ---------------
