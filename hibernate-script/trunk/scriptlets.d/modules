@@ -101,8 +101,8 @@ ModulesUnloadAllOnce() {
 }
 
 Get26ModulesFile() {
-    if grep '^2\.4' /proc/sys/kernel/osrelease >/dev/null; then
-	cat /proc/modules | sed -n -e '/\[\(.*\)\]/ { s/^\([^ ]\+\).*\[\(.*\)\].*$/\1:0:0:\2 /g; y/ :/, /; p; d }; { s/^\([^ ]\+\).*$/\1 0 0 -/g; p }'
+    if grep -q '^2\.4\.' /proc/sys/kernel/osrelease ; then
+	sed -n -e '/\[\(.*\)\]/ { s/^\([^ ]\+\).*\[\(.*\)\].*$/\1:0:0:\2 /g; y/ :/, /; p; d }; { s/^\([^ ]\+\).*$/\1 0 0 -/g; p }' < /proc/modules
     else
 	cat /proc/modules
     fi
