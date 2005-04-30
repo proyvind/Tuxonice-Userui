@@ -217,6 +217,7 @@ int remove_dev(char *fn, int flag);
 
 /* render.c */
 void render_objs(u8 *target, u8 *bgnd, char mode, unsigned char origin, int progress_only);
+inline void put_pixel (u8 a, u8 r, u8 g, u8 b, u8 *src, u8 *dst, u8 add);
 
 /* image.c */
 int load_images(char mode);
@@ -276,6 +277,11 @@ extern struct fb_image verbose_img;
 extern struct fb_image silent_img;
 
 extern struct splash_config cf;
+
+/* common.c */
+extern u8 fb_opt;
+extern u8 fb_ro, fb_go, fb_bo;
+extern u8 fb_rlen, fb_glen, fb_blen;
 
 extern int fb_fd, fbsplash_fd;
 extern char *progress_text;

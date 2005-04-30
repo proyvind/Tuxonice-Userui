@@ -166,7 +166,7 @@ void parse_int(char *t, struct config_opt opt)
 	}
 
 	t++; skip_whitespace(&t);
-	*(unsigned int*)opt.val = strtol(t,NULL,0);
+	*(u16*)opt.val = strtol(t,NULL,0);
 }
 
 void parse_path(char *t, struct config_opt opt)
@@ -579,16 +579,17 @@ void parse_anim(char *t)
 	filename = get_filepath(filename);
 
 	canim->mng = mng_load(filename);
-	if (!canim->mng)
-		free(canim);
-	else
-		list_add(&objs, canim);
+	if (!canim->mng) {
+		free(filename);
+		printerr("Cannot allocate memory for mng (parse_anim)!\n");
+		goto pa_out;
+	}
 
 	free(filename);
 
 	cobj = malloc(sizeof(obj));
 	if (!cobj) {
-		printerr("Cannot allocate memory (parse_anim)!");
+		printerr("Cannot allocate memory (parse_anim)!\n");
 		goto pa_out;
 	}
 	cobj->type = o_anim;
@@ -736,7 +737,7 @@ char *parse_quoted_string(char *t, u8 keepvar)
 	len = p-t;
 	out = malloc(len - cnt + 1);
 	if (!out) {
-		printerr("Failed to allocate memory for a quoted string.");
+		printerr("Failed to allocate memory for a quoted string.\n");
 		return NULL;
 	}
 	
@@ -926,7 +927,7 @@ void parse_text(char *t)
 
 pt_end:	cobj = malloc(sizeof(obj));
 	if (!cobj) {
-pt_outm:	printerr("Cannot allocate memory (parse_text)!");
+pt_outm:	printerr("Cannot allocate memory (parse_text)!\n");
 		goto pt_out;
 	}
 	cobj->type = o_text;

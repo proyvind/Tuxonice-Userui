@@ -125,13 +125,18 @@ mng_retcode mng_render_next(mng_handle mngh)
 {
 	mng_anim *mng = mng_get_userdata(mngh);
 	mng_retcode ret;
+	int last_frame = 0;
 
+	/* last_frame = mng_get_currentframe(mngh) == mng->num_frames; FIXME */
 	if (!mng->displayed_first) {
 		ret = mng_display(mngh);
 		if (ret == MNG_NOERROR || ret == MNG_NEEDTIMERWAIT)
 			mng->displayed_first = 1;
 	} else
 		ret = mng_display_resume(mngh);
+
+	if (last_frame)
+		return MNG_NOERROR;
 
 	if (ret == MNG_NEEDTIMERWAIT || ret == MNG_NOERROR)
 		return ret;
