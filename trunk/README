@@ -34,7 +34,7 @@ Steps:
    suspend2ui_text and suspend2ui_fbsplash and install them into
    /usr/local/sbin by default. The fbsplash module will only succeed in
    compiling if you have all the relevant libraries and dev files (libpng,
-   libz, libjpeg, libfreetype2, lcms and libmng-1.0.5 or later).
+   libz, libjpeg, freetype2, lcms and libmng-1.0.5 or later).
 
 3. In your hibernate script, put the path to the suspend2ui_text or
    suspend2ui_fbsplash binary into /proc/software_suspend/userui_program.
