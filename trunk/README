@@ -7,7 +7,7 @@ To get things going, you'll need the following:
 
  - A Software Suspend 2 enabled kernel with suspend_userui enabled either as a
    kernel module or compiled into the kernel.
-   
+
    If you have fbsplash compiled into your kernel, you will be able to get the
    verbose splash screens for higher console levels for added eyecandy, but
    this is not required.
@@ -34,7 +34,7 @@ Steps:
    suspend2ui_text and suspend2ui_fbsplash and install them into
    /usr/local/sbin by default. The fbsplash module will only succeed in
    compiling if you have all the relevant libraries and dev files (libpng,
-   libz, libjpeg, libtruetype2).
+   libz, libjpeg, libfreetype2, lcms and libmng-1.0.5 or later).
 
 3. In your hibernate script, put the path to the suspend2ui_text or
    suspend2ui_fbsplash binary into /proc/software_suspend/userui_program.
