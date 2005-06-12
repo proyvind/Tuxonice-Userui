@@ -444,7 +444,7 @@ int main(int argc, char **argv) {
 	else
 		reserve_memory(4*1024*1024); /* say 4MB */
 
-	enforce_lifesavers();
+	//enforce_lifesavers();
 
 	if (test_run) {
 		do_test_run();
