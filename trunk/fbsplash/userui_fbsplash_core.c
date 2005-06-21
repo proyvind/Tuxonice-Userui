@@ -296,21 +296,10 @@ static void fbsplash_log_level_change() {
 }
 
 static void fbsplash_keypress(int key) {
+	if (common_keypress_handler(key))
+		return;
 	switch (key) {
-		case 48:
-		case 49:
-		case 50:
-		case 51:
-		case 52:
-		case 53:
-		case 54:
-		case 55:
-		case 56:
-		case 57:
-			console_loglevel = key - 48;
-			send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
-			break;
-		case 2:
+		case 2: /* F12 */
 			if (console_loglevel < SUSPEND_ERROR) {
 				console_loglevel = 5;
 				send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));

@@ -15,8 +15,11 @@
 #include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/mman.h>
+#include <sys/ioctl.h>
 #include <sys/types.h>
+#include <linux/kd.h>
 #include <linux/netlink.h>
+#include <linux/vt.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
@@ -24,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h>
 #include <unistd.h>
 
 #include "userui.h"
@@ -35,9 +39,11 @@
 #define bail_err(x) do { fprintf(stderr, x": %s\n", strerror(errno)); fflush(stderr); abort(); } while (0)
 #define bail(x...) do { fprintf(stderr, ## x); fflush(stderr); abort(); } while (0)
 
+static struct termios termios_backup;
 static int nlsock = -1;
 static int test_run = 0;
 static int need_cleanup = 0;
+static int safe_to_exit = 1;
 
 char software_suspend_version[32];
 
@@ -68,6 +74,47 @@ int send_message(int type, void* buf, int len) {
 	if (writev(nlsock, iovec, (buf && len > 0)?2:1) == -1)
 		return 0;
 
+	return 1;
+}
+
+static void request_abort_suspend() {
+	send_message(USERUI_MSG_ABORT, NULL, 0);
+}
+
+static void toggle_reboot() {
+	suspend_action ^= (1 << SUSPEND_REBOOT);
+	send_message(USERUI_MSG_SET_STATE, &suspend_action, sizeof(suspend_action));
+	userui_ops->message(1, SUSPEND_STATUS, 1, 
+			(suspend_action & (1 << SUSPEND_REBOOT) ?
+				 "Rebooting enabled." :
+				 "Rebooting disabled."));
+}
+
+int common_keypress_handler(int key) {
+	switch (key) {
+		case 0x01: /* Escape */
+			request_abort_suspend();
+			break;
+		case 0x02: /* 1 */
+		case 0x03: /* 2 */
+		case 0x04: /* 3 */
+		case 0x05: /* 4 */
+		case 0x06: /* 5 */
+		case 0x07: /* 6 */
+		case 0x08: /* 7 */
+		case 0x09: /* 8 */
+		case 0x0a: /* 9 */
+		case 0x0b: /* 0 */
+			console_loglevel = (key - 1)%10;
+			send_message(USERUI_MSG_SET_LOGLEVEL,
+					&console_loglevel, sizeof(console_loglevel));
+			break;
+		case 0x13: /* R */
+			toggle_reboot();
+			break;
+		default:
+			return 0;
+	}
 	return 1;
 }
 
@@ -192,16 +239,46 @@ static void enforce_lifesavers() {
 	setrlimit(RLIMIT_CORE, &r);
 }
 
+static void restore_console() {
+	if (ioctl(STDIN_FILENO, KDSKBMODE, K_XLATE) == -1)
+		bail_err("fcntl(STDIN_FILENO, KDSKBMODE, K_XLATE)");
+	ioctl(STDOUT_FILENO, KDSETMODE, KD_TEXT);
+	write(1, "\033[?25h\033[?0c", 11);
+	tcsetattr(STDIN_FILENO, TCSANOW, &termios_backup);
+}
+
 /* A generic signal handler to ensure we don't quit in times of desperation,
  * risking corrupting the image. */
 static void sig_hand(int sig) {
 	printf("userui: Ack! SIG %d\n", sig);
-	if (test_run && need_cleanup) {
+
+	if (need_cleanup)
 		userui_ops->cleanup();
+
+	if (test_run)
 		exit(1);
-	}
+
+	restore_console();
+	if (safe_to_exit)
+		_exit(1);
 	sleep(60*60*1); /* 1 hour */
 	_exit(1);
+}
+
+static void keypress_signal_handler(int sig) {
+	int a, b;
+
+	if (!need_cleanup) /* We're not running yet */
+		return;
+
+	while (read(STDIN_FILENO, &a, 1) == -1) {
+		b = 0;
+
+		if (a == 0xe0) /* escaped scancode */
+			read(STDIN_FILENO, &b, 1);
+
+		userui_ops->keypress((b << 8)|a);
+	}
 }
 
 static void setup_signal_handlers() {
@@ -222,18 +299,56 @@ static void setup_signal_handlers() {
 }
 
 static void open_console() {
-	int fd;
+	int fd_r, fd_w;
 
-	if ((fd = open("/dev/console", O_RDWR)) == -1)
-		bail_err("open(\"/dev/console\")");
+	if ((fd_r = open("/dev/console", O_RDONLY)) == -1)
+		bail_err("open(\"/dev/console\", O_RDONLY)");
 
-	if (dup2(fd, STDOUT_FILENO) == -1)
-		bail_err("dup2(fd, STDOUT_FILENO)");
-	if (dup2(fd, STDERR_FILENO) == -1)
-		bail_err("dup2(fd, STDERR_FILENO)");
+	if ((fd_w = open("/dev/console", O_WRONLY)) == -1)
+		bail_err("open(\"/dev/console\", O_WRONLY)");
 
-	close(fd);
+	if (dup2(fd_r, STDIN_FILENO) == -1)
+		bail_err("dup2(fd_r, STDIN_FILENO)");
+	if (dup2(fd_w, STDOUT_FILENO) == -1)
+		bail_err("dup2(fd_w, STDOUT_FILENO)");
+	if (dup2(fd_w, STDERR_FILENO) == -1)
+		bail_err("dup2(fd_w, STDERR_FILENO)");
 
+	close(fd_r);
+	close(fd_w);
+
+}
+
+static void prepare_console() {
+	int flags;
+	struct termios t;
+	
+	/* Backup and set our favourite termios settings */
+	if (tcgetattr(STDIN_FILENO, &t) == -1) {
+		perror("tcgetattr");
+	} else {
+		memcpy(&termios_backup, &t, sizeof(t));
+		cfmakeraw(&t);
+		tcsetattr(STDIN_FILENO, TCSANOW, &t);
+	}
+
+	/* Make sure we clean up properly */
+	atexit(restore_console);
+
+	/* Receive raw keypresses */
+	if (ioctl(STDIN_FILENO, KDSKBMODE, K_MEDIUMRAW) == -1)
+		bail_err("fcntl(STDIN_FILENO, KDSKBMODE, K_MEDIUMRAW)");
+	
+	/* And be notified about them asynchronously */
+	signal(SIGIO, keypress_signal_handler);
+
+	if ((flags = fcntl(STDIN_FILENO, F_GETFL)) == -1)
+		bail_err("fcntl(STDIN_FILENO, F_GETFL)");
+	flags |= O_ASYNC;
+	if (fcntl(STDIN_FILENO, F_SETFL, flags) == -1)
+		bail_err("fcntl(STDIN_FILENO, F_SETFL)");
+
+	/* Set outputs to non-buffered */
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 }
@@ -253,6 +368,8 @@ static void open_netlink() {
 
 static int send_ready() {
 	int version = SUSPEND_USERUI_INTERFACE_VERSION;
+
+	safe_to_exit = 0;
 
 	return send_message(USERUI_MSG_READY, &version, sizeof(version));
 }
@@ -376,9 +493,6 @@ static void message_loop() {
 			case USERUI_MSG_REDRAW:
 				userui_ops->redraw();
 				break;
-			case USERUI_MSG_KEYPRESS:
-				userui_ops->keypress(*(unsigned int*)NLMSG_DATA(nlh));
-				break;
 			case NLMSG_ERROR:
 				report_nl_error(nlh);
 				break;
@@ -425,13 +539,17 @@ static void do_test_run() {
 
 int main(int argc, char **argv) {
 	handle_params(argc, argv);
+	setup_signal_handlers();
+	open_console();
 	if (!test_run) {
-		open_console();
 		open_netlink();
 		get_nofreeze();
 		get_info();
 	}
+
 	lock_memory();
+
+	prepare_console();
 
 	userui_ops->prepare();
 
@@ -444,14 +562,12 @@ int main(int argc, char **argv) {
 	else
 		reserve_memory(4*1024*1024); /* say 4MB */
 
-	//enforce_lifesavers();
+	enforce_lifesavers();
 
 	if (test_run) {
 		do_test_run();
 		return 0;
 	}
-
-	setup_signal_handlers();
 
 	if (send_ready())
 		message_loop();

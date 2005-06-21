@@ -3,3 +3,4 @@
 - Fix memory usage - either use it, or get rid of it.
 - Explicitly unblank screen
 - Release!
+- Support non-qwerty keymaps.

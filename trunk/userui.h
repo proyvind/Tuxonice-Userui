@@ -18,6 +18,7 @@ struct userui_ops {
 
 int send_message(int type, void* buf, int len);
 int set_progress_granularity(int n);
+int common_keypress_handler(int key);
 
 extern char software_suspend_version[32];
 extern int console_loglevel;

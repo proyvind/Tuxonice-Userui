@@ -1,3 +1,10 @@
+0.3.2 (unreleased)
+ core:
+  - Read keyboard input directly from /dev/console.
+  - Common keyboard handler.
+ fbsplash:
+  - Sync with splashutils svn.
+
 0.3.1 (31 March 2005)
  core:
   - Try not to lag behind when flooded with progress updates.
