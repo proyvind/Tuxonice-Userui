@@ -78,6 +78,9 @@ int send_message(int type, void* buf, int len) {
 }
 
 static void request_abort_suspend() {
+	if (test_run) {
+		exit(0);
+	}
 	send_message(USERUI_MSG_ABORT, NULL, 0);
 }
 
@@ -88,6 +91,24 @@ static void toggle_reboot() {
 			(suspend_action & (1 << SUSPEND_REBOOT) ?
 				 "Rebooting enabled." :
 				 "Rebooting disabled."));
+}
+
+static void toggle_pause() {
+	suspend_action ^= (1 << SUSPEND_PAUSE);
+	send_message(USERUI_MSG_SET_STATE, &suspend_action, sizeof(suspend_action));
+	userui_ops->message(1, SUSPEND_STATUS, 1, 
+			(suspend_action & (1 << SUSPEND_PAUSE) ?
+				 "Pause between steps enabled." :
+				 "Pause between steps disabled."));
+}
+
+static void toggle_singlestep() {
+	suspend_action ^= (1 << SUSPEND_SINGLESTEP);
+	send_message(USERUI_MSG_SET_STATE, &suspend_action, sizeof(suspend_action));
+	userui_ops->message(1, SUSPEND_STATUS, 1, 
+			(suspend_action & (1 << SUSPEND_SINGLESTEP) ?
+				 "Single stepping enabled." :
+				 "Single stepping disabled."));
 }
 
 int common_keypress_handler(int key) {
@@ -111,6 +132,12 @@ int common_keypress_handler(int key) {
 			break;
 		case 0x13: /* R */
 			toggle_reboot();
+			break;
+		case 0x19: /* P */
+			toggle_pause();
+			break;
+		case 0x1F: /* S */
+			toggle_singlestep();
 			break;
 		default:
 			return 0;
@@ -185,13 +212,11 @@ static void get_info() {
 
 static long my_vm_size() {
 	FILE *f;
-	char s[128];
 	long ret;
 	
 	ret = -1;
 
-	snprintf(s, 128, "/proc/%d/statm", getpid());
-	if (!(f = fopen(s, "r")))
+	if (!(f = fopen("/proc/self/statm", "r")))
 		goto out;
 
 	if (fscanf(f, "%ld", &ret) == 1)
@@ -241,7 +266,7 @@ static void enforce_lifesavers() {
 
 static void restore_console() {
 	if (ioctl(STDIN_FILENO, KDSKBMODE, K_XLATE) == -1)
-		bail_err("fcntl(STDIN_FILENO, KDSKBMODE, K_XLATE)");
+		perror("fcntl(STDIN_FILENO, KDSKBMODE, K_XLATE)");
 	ioctl(STDOUT_FILENO, KDSETMODE, KD_TEXT);
 	write(1, "\033[?25h\033[?0c", 11);
 	tcsetattr(STDIN_FILENO, TCSANOW, &termios_backup);
@@ -271,11 +296,11 @@ static void keypress_signal_handler(int sig) {
 	if (!need_cleanup) /* We're not running yet */
 		return;
 
-	while (read(STDIN_FILENO, &a, 1) == -1) {
+	while (read(STDIN_FILENO, &a, 1) != -1) {
 		b = 0;
 
 		if (a == 0xe0) /* escaped scancode */
-			read(STDIN_FILENO, &b, 1);
+			read(STDIN_FILENO, &b, 1); /* FIXME - handle error */
 
 		userui_ops->keypress((b << 8)|a);
 	}
@@ -299,22 +324,22 @@ static void setup_signal_handlers() {
 }
 
 static void open_console() {
-	int fd_r, fd_w;
+	int fd_w;
 
-	if ((fd_r = open("/dev/console", O_RDONLY)) == -1)
-		bail_err("open(\"/dev/console\", O_RDONLY)");
+	if ((fd_w = open("/dev/console", O_RDWR)) == -1)
+		bail_err("open(\"/dev/console\", O_RDWR)");
 
-	if ((fd_w = open("/dev/console", O_WRONLY)) == -1)
-		bail_err("open(\"/dev/console\", O_WRONLY)");
+	/* We're about to replace FDs 0-2, so make sure this isn't one of them. */
+	if (fd_w <= 2)
+		fd_w = dup2(fd_w, 42);
 
-	if (dup2(fd_r, STDIN_FILENO) == -1)
+	if (dup2(fd_w, STDIN_FILENO) == -1)
 		bail_err("dup2(fd_r, STDIN_FILENO)");
 	if (dup2(fd_w, STDOUT_FILENO) == -1)
 		bail_err("dup2(fd_w, STDOUT_FILENO)");
 	if (dup2(fd_w, STDERR_FILENO) == -1)
 		bail_err("dup2(fd_w, STDERR_FILENO)");
 
-	close(fd_r);
 	close(fd_w);
 
 }
@@ -328,7 +353,8 @@ static void prepare_console() {
 		perror("tcgetattr");
 	} else {
 		memcpy(&termios_backup, &t, sizeof(t));
-		cfmakeraw(&t);
+		/* cfmakeraw(&t); */
+		t.c_lflag &= ~(ICANON|ECHO);
 		tcsetattr(STDIN_FILENO, TCSANOW, &t);
 	}
 
@@ -342,9 +368,10 @@ static void prepare_console() {
 	/* And be notified about them asynchronously */
 	signal(SIGIO, keypress_signal_handler);
 
-	if ((flags = fcntl(STDIN_FILENO, F_GETFL)) == -1)
-		bail_err("fcntl(STDIN_FILENO, F_GETFL)");
-	flags |= O_ASYNC;
+	if (fcntl(STDIN_FILENO, F_SETOWN, getpid()) == -1)
+		bail_err("fcntl(STDIN_FILENO, F_SETOWN)");
+
+	flags = O_RDONLY | O_ASYNC | O_NONBLOCK;
 	if (fcntl(STDIN_FILENO, F_SETFL, flags) == -1)
 		bail_err("fcntl(STDIN_FILENO, F_SETFL)");
 
