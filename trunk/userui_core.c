@@ -284,9 +284,8 @@ static void sig_hand(int sig) {
 		exit(1);
 
 	restore_console();
-	if (safe_to_exit)
-		_exit(1);
-	sleep(60*60*1); /* 1 hour */
+	if (!safe_to_exit)
+		sleep(60*60*1); /* 1 hour */
 	_exit(1);
 }
 
