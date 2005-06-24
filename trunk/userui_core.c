@@ -382,7 +382,7 @@ static void prepare_console() {
 		memcpy(&termios_backup, &t, sizeof(t));
 		/* t.c_lflag &= ~(ICANON|ECHO|IXOFF|IGNBRK|BRKINT|); */
 		t.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
-		t.c_lflag &= ~(ISIG| ICANON|ECHO);
+		t.c_lflag &= ~(ISIG|ICANON|ECHO);
 		tcsetattr(STDIN_FILENO, TCSANOW, &t);
 	}
 
