@@ -154,6 +154,8 @@ static void fbsplash_prepare() {
 
 	move_cursor_to(0,0);
 	clear_display();
+
+	lastloglevel = console_loglevel;
 }
 
 static void fbsplash_cleanup() {
@@ -299,10 +301,11 @@ static void fbsplash_keypress(int key) {
 	if (common_keypress_handler(key))
 		return;
 	switch (key) {
-		case 2: /* F12 */
+		case 0x3c: /* F12 */
 			if (console_loglevel < SUSPEND_ERROR) {
 				console_loglevel = 5;
-				send_message(USERUI_MSG_SET_LOGLEVEL, &console_loglevel, sizeof(console_loglevel));
+				set_console_loglevel();
+				fbsplash_log_level_change();
 			}
 			break;
 	}

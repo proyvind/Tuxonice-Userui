@@ -323,7 +323,7 @@ static void keypress_signal_handler(int sig) {
 	if (!need_cleanup) /* We're not running yet */
 		return;
 
-	while (read(STDIN_FILENO, &a, 1) != -1) {
+	while (read(STDIN_FILENO, &a, 1) > 0) {
 		b = 0;
 
 		if (a == 0xe0) /* escaped scancode */
@@ -383,6 +383,8 @@ static void prepare_console() {
 		/* t.c_lflag &= ~(ICANON|ECHO|IXOFF|IGNBRK|BRKINT|); */
 		t.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
 		t.c_lflag &= ~(ISIG|ICANON|ECHO);
+		t.c_cc[VTIME] = 0;
+		t.c_cc[VMIN] = 0;
 		tcsetattr(STDIN_FILENO, TCSANOW, &t);
 	}
 
