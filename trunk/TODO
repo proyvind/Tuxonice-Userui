@@ -4,3 +4,4 @@
 - Explicitly unblank screen
 - Release!
 - Support non-qwerty keymaps.
+- Set console loglevel ourselves.

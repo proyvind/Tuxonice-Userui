@@ -47,6 +47,8 @@ static int safe_to_exit = 1;
 
 char software_suspend_version[32];
 
+static FILE *printk_f = NULL;
+static int saved_console_loglevel = 1;
 int console_loglevel = 1;
 int suspend_action = 0;
 
@@ -55,6 +57,27 @@ int suspend_action = 0;
 #endif
 
 extern struct userui_ops *userui_ops;
+
+static void open_misc() {
+	if ((printk_f = fopen("/proc/sys/kernel/printk", "r+")) == NULL)
+		perror("open(/proc/sys/kernel/printk)");
+	else
+		setvbuf(printk_f, (char*)NULL, _IONBF, 0);
+}
+
+void set_console_loglevel() {
+	if (!printk_f)
+		return;
+	fseek(printk_f, 0, SEEK_SET);
+	fprintf(printk_f, "%d\n", console_loglevel);
+}
+
+void get_console_loglevel() {
+	if (!printk_f)
+		return;
+	fseek(printk_f, 0, SEEK_SET);
+	fscanf(printk_f, "%d", &console_loglevel);
+}
 
 int send_message(int type, void* buf, int len) {
 	struct nlmsghdr nl;
@@ -127,8 +150,8 @@ int common_keypress_handler(int key) {
 		case 0x0a: /* 9 */
 		case 0x0b: /* 0 */
 			console_loglevel = (key - 1)%10;
-			send_message(USERUI_MSG_SET_LOGLEVEL,
-					&console_loglevel, sizeof(console_loglevel));
+			set_console_loglevel();
+			userui_ops->log_level_change();
 			break;
 		case 0x13: /* R */
 			toggle_reboot();
@@ -203,11 +226,13 @@ static void get_info() {
 	    software_suspend_version[strlen(software_suspend_version)-1] = '\0';
 	}
 
-	if (!send_message(USERUI_MSG_GET_LOGLEVEL, NULL, 0) ||
-		!send_message(USERUI_MSG_GET_STATE, NULL, 0)) {
+	if (!send_message(USERUI_MSG_GET_STATE, NULL, 0)) {
 		bail_err("send_message");
 	}
 	/* We'll get the reply in our message loop */
+
+	get_console_loglevel();
+	saved_console_loglevel = console_loglevel;
 }
 
 static long my_vm_size() {
@@ -270,6 +295,9 @@ static void restore_console() {
 	ioctl(STDOUT_FILENO, KDSETMODE, KD_TEXT);
 	write(1, "\033[?25h\033[?0c", 11);
 	tcsetattr(STDIN_FILENO, TCSANOW, &termios_backup);
+
+	console_loglevel = saved_console_loglevel;
+	set_console_loglevel();
 }
 
 /* A generic signal handler to ensure we don't quit in times of desperation,
@@ -323,23 +351,23 @@ static void setup_signal_handlers() {
 }
 
 static void open_console() {
-	int fd_w;
+	int fd;
 
-	if ((fd_w = open("/dev/console", O_RDWR)) == -1)
+	if ((fd = open("/dev/console", O_RDWR)) == -1)
 		bail_err("open(\"/dev/console\", O_RDWR)");
 
 	/* We're about to replace FDs 0-2, so make sure this isn't one of them. */
-	if (fd_w <= 2)
-		fd_w = dup2(fd_w, 42);
+	if (fd <= 2)
+		fd = dup2(fd, 42);
 
-	if (dup2(fd_w, STDIN_FILENO) == -1)
+	if (dup2(fd, STDIN_FILENO) == -1)
 		bail_err("dup2(fd_r, STDIN_FILENO)");
-	if (dup2(fd_w, STDOUT_FILENO) == -1)
-		bail_err("dup2(fd_w, STDOUT_FILENO)");
-	if (dup2(fd_w, STDERR_FILENO) == -1)
-		bail_err("dup2(fd_w, STDERR_FILENO)");
+	if (dup2(fd, STDOUT_FILENO) == -1)
+		bail_err("dup2(fd, STDOUT_FILENO)");
+	if (dup2(fd, STDERR_FILENO) == -1)
+		bail_err("dup2(fd, STDERR_FILENO)");
 
-	close(fd_w);
+	close(fd);
 
 }
 
@@ -352,8 +380,9 @@ static void prepare_console() {
 		perror("tcgetattr");
 	} else {
 		memcpy(&termios_backup, &t, sizeof(t));
-		/* cfmakeraw(&t); */
-		t.c_lflag &= ~(ICANON|ECHO);
+		/* t.c_lflag &= ~(ICANON|ECHO|IXOFF|IGNBRK|BRKINT|); */
+		t.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
+		t.c_lflag &= ~(ISIG| ICANON|ECHO);
 		tcsetattr(STDIN_FILENO, TCSANOW, &t);
 	}
 
@@ -504,11 +533,6 @@ static void message_loop() {
 			case USERUI_MSG_PROGRESS:
 				userui_ops->update_progress(msg->a, msg->b, msg->text);
 				break;
-			case USERUI_MSG_GET_LOGLEVEL:
-			case USERUI_MSG_LOGLEVEL_CHANGE:
-				console_loglevel = *(int*)NLMSG_DATA(nlh);
-				userui_ops->log_level_change();
-				break;
 			case USERUI_MSG_GET_STATE:
 				suspend_action = *(int*)NLMSG_DATA(nlh);
 				break;
@@ -539,7 +563,6 @@ static void do_test_run() {
 	 * If test_run >= 2, go as fast as we can (for performance timings).
 	 */
 
-	console_loglevel = 1;
 	userui_ops->log_level_change();
 	userui_ops->message(0, 0, 1, "Writing caches ...");
 
@@ -567,6 +590,7 @@ int main(int argc, char **argv) {
 	handle_params(argc, argv);
 	setup_signal_handlers();
 	open_console();
+	open_misc();
 	if (!test_run) {
 		open_netlink();
 		get_nofreeze();

@@ -327,6 +327,8 @@ static void text_prepare() {
 	/* if it errors, don't worry. we'll check later */
 
 	clear_display();
+
+	lastloglevel = console_loglevel;
 }
 
 static void text_cleanup() {
