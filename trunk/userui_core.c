@@ -44,17 +44,14 @@ static int nlsock = -1;
 static int test_run = 0;
 static int need_cleanup = 0;
 static int safe_to_exit = 1;
+static volatile int need_loglevel_change = 0;
 
 char software_suspend_version[32];
 
 static FILE *printk_f = NULL;
 static int saved_console_loglevel = 1;
-int console_loglevel = 1;
-int suspend_action = 0;
-
-#ifndef USERUI_MODULE
-#define USERUI_MODULE userui_text_ops;
-#endif
+volatile int console_loglevel = 1;
+volatile int suspend_action = 0;
 
 extern struct userui_ops *userui_ops;
 
@@ -66,6 +63,8 @@ static void open_misc() {
 }
 
 void set_console_loglevel() {
+	need_loglevel_change = 1;
+
 	if (!printk_f)
 		return;
 	fseek(printk_f, 0, SEEK_SET);
@@ -109,7 +108,7 @@ static void request_abort_suspend() {
 
 static void toggle_reboot() {
 	suspend_action ^= (1 << SUSPEND_REBOOT);
-	send_message(USERUI_MSG_SET_STATE, &suspend_action, sizeof(suspend_action));
+	send_message(USERUI_MSG_SET_STATE, (int*)&suspend_action, sizeof(suspend_action));
 	userui_ops->message(1, SUSPEND_STATUS, 1, 
 			(suspend_action & (1 << SUSPEND_REBOOT) ?
 				 "Rebooting enabled." :
@@ -118,7 +117,7 @@ static void toggle_reboot() {
 
 static void toggle_pause() {
 	suspend_action ^= (1 << SUSPEND_PAUSE);
-	send_message(USERUI_MSG_SET_STATE, &suspend_action, sizeof(suspend_action));
+	send_message(USERUI_MSG_SET_STATE, (int*)&suspend_action, sizeof(suspend_action));
 	userui_ops->message(1, SUSPEND_STATUS, 1, 
 			(suspend_action & (1 << SUSPEND_PAUSE) ?
 				 "Pause between steps enabled." :
@@ -127,7 +126,7 @@ static void toggle_pause() {
 
 static void toggle_singlestep() {
 	suspend_action ^= (1 << SUSPEND_SINGLESTEP);
-	send_message(USERUI_MSG_SET_STATE, &suspend_action, sizeof(suspend_action));
+	send_message(USERUI_MSG_SET_STATE, (int*)&suspend_action, sizeof(suspend_action));
 	userui_ops->message(1, SUSPEND_STATUS, 1, 
 			(suspend_action & (1 << SUSPEND_SINGLESTEP) ?
 				 "Single stepping enabled." :
@@ -151,7 +150,6 @@ int common_keypress_handler(int key) {
 		case 0x0b: /* 0 */
 			console_loglevel = (key - 1)%10;
 			set_console_loglevel();
-			userui_ops->log_level_change();
 			break;
 		case 0x13: /* R */
 			toggle_reboot();
@@ -298,6 +296,10 @@ static void restore_console() {
 
 	console_loglevel = saved_console_loglevel;
 	set_console_loglevel();
+
+	if (need_cleanup)
+		userui_ops->cleanup();
+	need_cleanup = 0;
 }
 
 /* A generic signal handler to ensure we don't quit in times of desperation,
@@ -305,31 +307,42 @@ static void restore_console() {
 static void sig_hand(int sig) {
 	printf("userui: Ack! SIG %d\n", sig);
 
-	if (need_cleanup)
-		userui_ops->cleanup();
+	restore_console();
 
 	if (test_run)
 		exit(1);
 
-	restore_console();
 	if (!safe_to_exit)
 		sleep(60*60*1); /* 1 hour */
 	_exit(1);
 }
 
 static void keypress_signal_handler(int sig) {
-	int a, b;
+	static char next_is_escaped = 0;
+	unsigned char a, b;
 
 	if (!need_cleanup) /* We're not running yet */
 		return;
 
-	while (read(STDIN_FILENO, &a, 1) > 0) {
-		b = 0;
-
-		if (a == 0xe0) /* escaped scancode */
-			read(STDIN_FILENO, &b, 1); /* FIXME - handle error */
-
-		userui_ops->keypress((b << 8)|a);
+	while (1) {
+		if (next_is_escaped) {
+			if (read(STDIN_FILENO, &b, 1) <= 0)
+				break;
+			else {
+				next_is_escaped = 0;
+				userui_ops->keypress((a << 8)|b);
+			}
+		} else {
+			if (read(STDIN_FILENO, &a, 1) <= 0)
+				break;
+			else {
+				if (a == 0xe0) {
+					next_is_escaped = 1;
+					continue;
+				}
+				userui_ops->keypress(a);
+			}
+		}
 	}
 }
 
@@ -554,6 +567,11 @@ static void message_loop() {
 				printf("userui: Received unknown message %d\n", nlh->nlmsg_type);
 				break;
 		}
+
+		if (need_loglevel_change) {
+			need_loglevel_change = 0;
+			userui_ops->log_level_change();
+		}
 	}
 }
 
@@ -580,6 +598,11 @@ static void do_test_run() {
 		}
 		if (test_run == 1)
 			usleep(10*1000);
+
+		if (need_loglevel_change) {
+			need_loglevel_change = 0;
+			userui_ops->log_level_change();
+		}
 	}
 
 	if (test_run == 1)

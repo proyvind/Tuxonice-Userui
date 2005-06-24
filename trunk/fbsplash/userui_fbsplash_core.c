@@ -58,6 +58,10 @@ static void reset_silent_img() {
 }
 
 static void silent_off() {
+	/* Do we really need this? 
+	if (frame_buffer)
+		msync(frame_buffer, base_image_size, MS_SYNC);
+	fdatasync(fb_fd); */
 	show_cursor();
 }
 
@@ -278,6 +282,8 @@ render:
 static void fbsplash_log_level_change() {
 	/* Only reset the display if we're switching between nice display
 	 * and displaying debugging output */
+
+	printf("Going from %d to %d\n", lastloglevel, console_loglevel);
 	
 	if (console_loglevel >= SUSPEND_ERROR) {
 		if (lastloglevel < SUSPEND_ERROR)

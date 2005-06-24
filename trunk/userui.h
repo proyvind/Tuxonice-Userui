@@ -22,8 +22,8 @@ int common_keypress_handler(int key);
 void set_console_loglevel(void);
 
 extern char software_suspend_version[32];
-extern int console_loglevel;
-extern int suspend_action;
+extern volatile int console_loglevel;
+extern volatile int suspend_action;
 
 /* excerpts from include/linux/suspend.h : */
 
@@ -35,7 +35,7 @@ extern int suspend_action;
 #define SUSPEND_HIGH	  	5
 #define SUSPEND_VERBOSE		6
 /* second status register */
-#define SUSPEND_REBOOT			0
+#define SUSPEND_REBOOT			1
 #define SUSPEND_PAUSE			2
 #define SUSPEND_SLOW			3
 #define SUSPEND_NOPAGESET2		7
