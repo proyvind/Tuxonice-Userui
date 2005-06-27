@@ -45,6 +45,7 @@ static int test_run = 0;
 static int need_cleanup = 0;
 static int safe_to_exit = 1;
 static volatile int need_loglevel_change = 0;
+static int debugging_enabled = 0;
 
 char software_suspend_version[32];
 
@@ -116,6 +117,9 @@ static void toggle_reboot() {
 }
 
 static void toggle_pause() {
+	if (!debugging_enabled)
+		return;
+
 	suspend_action ^= (1 << SUSPEND_PAUSE);
 	send_message(USERUI_MSG_SET_STATE, (int*)&suspend_action, sizeof(suspend_action));
 	userui_ops->message(1, SUSPEND_STATUS, 1, 
@@ -125,12 +129,19 @@ static void toggle_pause() {
 }
 
 static void toggle_singlestep() {
+	if (!debugging_enabled)
+		return;
+
 	suspend_action ^= (1 << SUSPEND_SINGLESTEP);
 	send_message(USERUI_MSG_SET_STATE, (int*)&suspend_action, sizeof(suspend_action));
 	userui_ops->message(1, SUSPEND_STATUS, 1, 
 			(suspend_action & (1 << SUSPEND_SINGLESTEP) ?
 				 "Single stepping enabled." :
 				 "Single stepping disabled."));
+}
+
+static void notify_space_pressed() {
+	send_message(USERUI_MSG_SPACE, NULL, 0);
 }
 
 int common_keypress_handler(int key) {
@@ -159,6 +170,9 @@ int common_keypress_handler(int key) {
 			break;
 		case 0x1F: /* S */
 			toggle_singlestep();
+			break;
+		case 0x39: /* Spacebar */
+			notify_space_pressed();
 			break;
 		default:
 			return 0;
@@ -227,7 +241,12 @@ static void get_info() {
 	if (!send_message(USERUI_MSG_GET_STATE, NULL, 0)) {
 		bail_err("send_message");
 	}
-	/* We'll get the reply in our message loop */
+	
+	if (!send_message(USERUI_MSG_GET_DEBUGGING, NULL, 0)) {
+		bail_err("send_message");
+	}
+
+	/* We'll get the replies in our message loop */
 
 	get_console_loglevel();
 	saved_console_loglevel = console_loglevel;
@@ -550,6 +569,9 @@ static void message_loop() {
 				break;
 			case USERUI_MSG_GET_STATE:
 				suspend_action = *(int*)NLMSG_DATA(nlh);
+				break;
+			case USERUI_MSG_IS_DEBUGGING:
+				debugging_enabled = *(int *)NLMSG_DATA(nlh);
 				break;
 			case USERUI_MSG_CLEANUP:
 				userui_ops->cleanup();
