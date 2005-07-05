@@ -1,3 +1,6 @@
+0.5.1 (5 July 2005)
+  - Fix double free bug.
+
 0.5.0 (28 June 2005)
   - Support for debugging keys in new kernel interface (needed for 2.1.9.8 or
     newer).

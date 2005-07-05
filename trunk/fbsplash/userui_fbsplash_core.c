@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "linux/fb.h"
+#include <linux/fb.h>
 #include <linux/kd.h>
 #include <linux/vt.h>
 

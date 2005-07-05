@@ -27,6 +27,7 @@ clean:
 	make -C fbsplash clean
 
 $(INSTDIR)/%: %
+	strip $<
 	install -m 755 -o root -g root $< $@
 
 install: all $(patsubst %,$(INSTDIR)/%,$(TARGETS))
