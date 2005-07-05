@@ -316,9 +316,10 @@ static void restore_console() {
 	console_loglevel = saved_console_loglevel;
 	set_console_loglevel();
 
-	if (need_cleanup)
+	if (need_cleanup) {
 		userui_ops->cleanup();
-	need_cleanup = 0;
+		need_cleanup = 0;
+	}
 }
 
 /* A generic signal handler to ensure we don't quit in times of desperation,
