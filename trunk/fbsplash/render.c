@@ -21,7 +21,7 @@
 #undef __KERNEL__
 #endif
 
-#include "linux/fb.h"
+#include <linux/fb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -30,7 +30,6 @@
 #include <string.h>
 #include <fcntl.h>
 #include "splash.h"
-#include "fbsplash_mng.h"
 
 void render_icon(icon *ticon, u8 *target)
 {
@@ -141,6 +140,15 @@ void render_box2(box *box, u8 *target)
 
 		pic = target + (box->x1 + y * fb_var.xres) * bytespp;
 
+		/* Do a nice 2x2 ordered dithering, like it was done in bootsplash;
+		 * this makes the pics in 15/16bpp modes look much nicer;
+		 * the produced pattern is:
+		 * 303030303..
+		 * 121212121..
+		 */
+		add = (box->x1 & 1);
+		add ^= (add ^ y) & 1 ? 1 : 3;
+		
 		if (solid) {
 			r = box->c_ul.r;
 			g = box->c_ul.g;
@@ -148,15 +156,6 @@ void render_box2(box *box, u8 *target)
 			a = box->c_ul.a;
 			opt = 1;
 		} else {
-			/* Do a nice 2x2 ordered dithering, like it was done in bootsplash;
-			 * this makes the pics in 15/16bpp modes look much nicer;
-			 * the produced pattern is:
-			 * 303030303..
-			 * 121212121..
-			 */
-			add = (box->x1 & 1);
-			add ^= (add ^ y) & 1 ? 1 : 3;
-		
 			h1 = box->y2 - y;
 			h2 = y - box->y1;
 		

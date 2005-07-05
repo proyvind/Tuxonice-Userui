@@ -26,7 +26,7 @@
 #include "splash.h"
 #include "../userui.h"
 
-int fb_fd, fbsplash_fd;
+int fb_fd, fbsplash_fd = -1;
 char *progress_text;
 static char lastmessage[512];
 static char rendermessage[512];
@@ -176,15 +176,22 @@ static void fbsplash_cleanup() {
 	base_image = NULL;
 
 	free(config_file);
+	config_file = NULL;
 
-	if (frame_buffer)
+	if (frame_buffer) {
 		munmap(frame_buffer, base_image_size);
+		frame_buffer = NULL;
+	}
 
-	if (fb_fd >= 0)
+	if (fb_fd >= 0) {
 		close(fb_fd);
+		fb_fd = -1;
+	}
 
-	if (fbsplash_fd >= 0)
+	if (fbsplash_fd >= 0) {
 		close(fbsplash_fd);
+		fbsplash_fd = -1;
+	}
 
 	free_fonts();
 
@@ -283,8 +290,6 @@ static void fbsplash_log_level_change() {
 	/* Only reset the display if we're switching between nice display
 	 * and displaying debugging output */
 
-	printf("Going from %d to %d\n", lastloglevel, console_loglevel);
-	
 	if (console_loglevel >= SUSPEND_ERROR) {
 		if (lastloglevel < SUSPEND_ERROR)
 			silent_off();

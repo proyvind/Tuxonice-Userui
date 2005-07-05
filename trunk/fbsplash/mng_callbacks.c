@@ -12,19 +12,19 @@
 #include <libmng.h>
 #include <sys/time.h>
 #include <time.h>
-#include "fbsplash_mng.h"
+#include "splash.h"
 
-mng_ptr fbsplash_mng_memalloc(mng_size_t len)
+mng_ptr fb_mng_memalloc(mng_size_t len)
 {
 	return calloc(1, len);
 }
 
-void fbsplash_mng_memfree(mng_ptr p, mng_size_t len)
+void fb_mng_memfree(mng_ptr p, mng_size_t len)
 {
 	free(p);
 }
 
-static mng_bool fbsplash_mng_openstream(mng_handle handle)
+static mng_bool fb_mng_openstream(mng_handle handle)
 {
 	mng_anim *mng = mng_get_userdata(handle);
 
@@ -37,7 +37,7 @@ static mng_bool fbsplash_mng_openstream(mng_handle handle)
 	return MNG_TRUE;
 }
 
-static mng_bool fbsplash_mng_closestream(mng_handle handle)
+static mng_bool fb_mng_closestream(mng_handle handle)
 {
 	mng_anim *mng = mng_get_userdata(handle);
 
@@ -45,7 +45,7 @@ static mng_bool fbsplash_mng_closestream(mng_handle handle)
 	return MNG_TRUE;
 }
 
-static mng_bool fbsplash_mng_readdata(mng_handle handle, mng_ptr buf, 
+static mng_bool fb_mng_readdata(mng_handle handle, mng_ptr buf, 
 		mng_uint32 len, mng_uint32p pread)
 {
 	mng_anim *mng = mng_get_userdata(handle);
@@ -68,7 +68,7 @@ static mng_bool fbsplash_mng_readdata(mng_handle handle, mng_ptr buf,
 	return MNG_TRUE;
 }
 
-static mng_ptr fbsplash_mng_getcanvasline(mng_handle handle, mng_uint32 line_num)
+static mng_ptr fb_mng_getcanvasline(mng_handle handle, mng_uint32 line_num)
 {
 	mng_anim *mng = mng_get_userdata(handle);
 
@@ -81,7 +81,7 @@ static mng_ptr fbsplash_mng_getcanvasline(mng_handle handle, mng_uint32 line_num
 	return mng->canvas + (line_num * mng->canvas_w * mng->canvas_bytes_pp);
 }
 
-static mng_bool fbsplash_mng_refresh(mng_handle handle, mng_uint32 x, mng_uint32 y,
+static mng_bool fb_mng_refresh(mng_handle handle, mng_uint32 x, mng_uint32 y,
 		mng_uint32 width, mng_uint32 height)
 {
 
@@ -89,13 +89,13 @@ static mng_bool fbsplash_mng_refresh(mng_handle handle, mng_uint32 x, mng_uint32
 	return MNG_TRUE;
 }
 
-static mng_uint32 fbsplash_mng_gettickcount(mng_handle handle)
+static mng_uint32 fb_mng_gettickcount(mng_handle handle)
 {
 	struct timeval tv;
 	mng_anim *mng = mng_get_userdata(handle);
 
 	if (gettimeofday(&tv, NULL) < 0) {
-		perror("fbsplash_mng_gettickcount: gettimeofday");
+		perror("fb_mng_gettickcount: gettimeofday");
 		abort();
 	}
 
@@ -108,7 +108,7 @@ static mng_uint32 fbsplash_mng_gettickcount(mng_handle handle)
 		((tv.tv_usec - mng->start_time.tv_usec)/1000);
 }
 
-static mng_bool fbsplash_mng_settimer(mng_handle handle, mng_uint32 msecs)
+static mng_bool fb_mng_settimer(mng_handle handle, mng_uint32 msecs)
 {
 	mng_anim *mng = mng_get_userdata(handle);
 
@@ -116,7 +116,7 @@ static mng_bool fbsplash_mng_settimer(mng_handle handle, mng_uint32 msecs)
 	return MNG_TRUE;
 }
 
-static mng_bool fbsplash_mng_processheader(mng_handle handle, mng_uint32 width,
+static mng_bool fb_mng_processheader(mng_handle handle, mng_uint32 width,
 		mng_uint32 height)
 {
 	mng_anim *mng = mng_get_userdata(handle);
@@ -140,7 +140,7 @@ static mng_bool fbsplash_mng_processheader(mng_handle handle, mng_uint32 width,
 	return MNG_TRUE;
 }
 
-static mng_bool fbsplash_mng_errorproc(mng_handle handler, mng_int32 code,
+static mng_bool fb_mng_errorproc(mng_handle handler, mng_int32 code,
 		mng_int8 severity, mng_chunkid chunkname, mng_uint32 chunkseq,
 		mng_int32 extra1, mng_int32 extra2, mng_pchar errtext)
 {
@@ -151,7 +151,7 @@ static mng_bool fbsplash_mng_errorproc(mng_handle handler, mng_int32 code,
 }
 
 #ifdef MNG_SUPPORT_TRACE
-static mng_bool fbsplash_mng_traceproc(mng_handle handle, mng_int32 funcnr,
+static mng_bool fb_mng_traceproc(mng_handle handle, mng_int32 funcnr,
 		mng_int32 seq, mng_pchar funcname)
 {
 	fprintf(stderr, "libmng trace: %s (seq %d\n)", funcname, seq);
@@ -165,7 +165,7 @@ mng_retcode mng_init_callbacks(mng_handle handle)
 	mng_retcode ret;
 
 #define set_cb(x) \
-		if ((ret = mng_setcb_##x(handle, fbsplash_mng_##x)) != MNG_NOERROR) \
+		if ((ret = mng_setcb_##x(handle, fb_mng_##x)) != MNG_NOERROR) \
 			return ret;
 
 	set_cb(errorproc);

@@ -23,11 +23,11 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <errno.h>
-#include "linux/fb.h"
+#include <linux/fb.h>
 #include "splash.h"
 
 #ifdef CONFIG_FBSPLASH
-#include "linux/console_splash.h"
+#include <linux/console_splash.h>
 
 void cmd_setstate(unsigned int state, unsigned char origin)
 {

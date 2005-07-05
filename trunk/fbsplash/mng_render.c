@@ -14,7 +14,6 @@
 #include <fcntl.h>
 #include <libmng.h>
 #include <unistd.h>
-#include "fbsplash_mng.h"
 #include "splash.h"
 
 static int mng_readfile(mng_handle mngh, char *filename)
@@ -49,7 +48,7 @@ static int mng_readfile(mng_handle mngh, char *filename)
 		ret = read(fd, file_data, amt); /* read up to 64KB at a time */
 		switch (ret) {
 			case -1:
-					perror("mng_readfile: read");
+				perror("mng_readfile: read");
 				goto close_fail;
 			case 0:
 				fprintf(stderr, "mng_readfile: Shorter file than expected!\n");
@@ -82,7 +81,7 @@ mng_handle mng_load(char* filename)
 
 	memset(mng, 0, sizeof(mng_anim));
 
-	mngh = mng_initialize(mng, fbsplash_mng_memalloc, fbsplash_mng_memfree,
+	mngh = mng_initialize(mng, fb_mng_memalloc, fb_mng_memfree,
 			MNG_NULL);
 	if (mngh == MNG_NULL) {
 		fprintf(stderr, "%s: mng_initialize failed\n", __FUNCTION__);
@@ -195,12 +194,10 @@ mng_retcode mng_render_proportional(mng_handle mngh, int progress)
 int mng_display_next(mng_handle mngh, char* dest, int x, int y)
 {
 	truecolor *src;
-	int line;
 	mng_anim *mng = mng_get_userdata(mngh);
-	int bpp = (fb_var.bits_per_pixel + 7) >> 3;
-	int dispwidth, dispheight;
+	int dispwidth, dispheight, line;
 
-	dest += y * fb_var.xres * bpp;
+	dest += y * fb_var.xres * bytespp;
 	src = (truecolor*)mng->canvas;
 
 	if (x + mng->canvas_w > fb_var.xres)
@@ -214,8 +211,8 @@ int mng_display_next(mng_handle mngh, char* dest, int x, int y)
 		dispheight = mng->canvas_h;
 
 	for (line = 0; line < dispheight; line++) {
-		truecolor2fb(src, dest + (x * bpp), dispwidth, y + line, 1);
-		dest += fb_var.xres * bpp;
+		truecolor2fb(src, dest + (x * bytespp), dispwidth, y + line, 1);
+		dest += fb_var.xres * bytespp;
 		src  += mng->canvas_w;
 	}
 

@@ -15,8 +15,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <linux/fb.h>
 
-#include "linux/fb.h"
 #include "config.h"
 
 #ifdef CONFIG_PNG
@@ -77,11 +77,12 @@ int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *h
 	int 		i, j, bytespp = (fb_var.bits_per_pixel + 7) >> 3;
 	u8 *buf = NULL;
 	u8 *t;
+	FILE *fp;
 
 	if (want_alpha)
 		bytespp = 4;
 	
-	FILE *fp = fopen(filename,"r");
+	fp = fopen(filename,"r");
 	if (!fp)
 		return -1;
 	
@@ -362,11 +363,13 @@ int load_images(char mode)
 	}
 	
 	if (mode == 'v' || mode == 'a')
-		load_bg_images('v');
+		if (load_bg_images('v'))
+			return -2;
 
 	if (mode == 's' || mode == 'a') {
-		load_bg_images('s');
-	
+		if (load_bg_images('s'))
+			return -2;
+
 #ifdef CONFIG_PNG
 		for (i = icons.head; i != NULL; i = i->next) {
 			icon_img *ii = (icon_img*) i->p;

@@ -24,6 +24,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <sys/vt.h>
+#include <linux/kd.h>
 
 #include "splash.h"
 
@@ -40,6 +41,7 @@ char arg_mode = 'v';
 char *arg_theme = NULL;
 u16 arg_progress = 0;
 char *progress_text = NULL;
+u8 arg_kdmode = KD_TEXT;
 
 #ifndef TARGET_KERNEL
 char *arg_export = NULL;
@@ -114,7 +116,7 @@ int get_fb_settings(int fb_num)
 #endif
 	bytespp = (fb_var.bits_per_pixel + 7) >> 3;
 
-	/* Check optimized code can be used. We use special optimizations for
+	/* Check if optimized code can be used. We use special optimizations for
 	 * 24/32bpp modes in which all color components have a length of 8 bits. */
 	if (bytespp < 3 || fb_var.blue.length != 8 || fb_var.green.length != 8 || fb_var.red.length != 8) {
 		fb_opt = 0;

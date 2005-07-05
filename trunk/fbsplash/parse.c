@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "linux/fb.h"
+#include <linux/fb.h>
 #include <sys/stat.h>
 #include "splash.h"
 
@@ -505,6 +505,7 @@ pr_err:
 	return;
 }
 
+#if defined(CONFIG_MNG) && !defined(TARGET_KERNEL)
 void parse_anim(char *t)
 {
 	char *p;	
@@ -602,6 +603,7 @@ pa_out:
 	free(canim);
 	return;
 }
+#endif /* CONFIG_MNG */
 
 void parse_box(char *t)
 {
@@ -1020,10 +1022,11 @@ int parse_cfg(char *cfgfile)
 					parse_rect(t);
 					break;
 
+#if defined(CONFIG_MNG) && !defined(TARGET_KERNEL)
 				case t_anim:
 					parse_anim(t);
 					break;
-
+#endif
 #if (defined(CONFIG_TTY_KERNEL) && defined(TARGET_KERNEL)) || defined(CONFIG_TTF)
 				case t_text:
 					parse_text(t);

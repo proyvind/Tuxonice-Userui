@@ -747,6 +747,8 @@ int free_fonts(void)
 		i = j;
 	}
 
+	fonts.head = NULL;
+
 	return 0;
 
 }
