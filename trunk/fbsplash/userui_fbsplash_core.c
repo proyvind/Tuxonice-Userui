@@ -153,9 +153,6 @@ static void fbsplash_prepare() {
 		frame_buffer = NULL;
 	}
 
-	/* Allow for the widest progress bar we might have updating 2px at a time */
-	set_progress_granularity(fb_var.xres/3);
-
 	move_cursor_to(0,0);
 	clear_display();
 

@@ -320,8 +320,6 @@ static void text_prepare() {
 	 * we came in here */
 	barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
 
-	set_progress_granularity(barwidth);
-
 	/* Open /dev/vcsa0 so we can find out the cursor position when we need to */
 	vcsa_fd = open("/dev/vcsa0", O_RDONLY);
 	/* if it errors, don't worry. we'll check later */
