@@ -17,6 +17,7 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
+#include <sys/uio.h>
 #include <linux/kd.h>
 #include <linux/netlink.h>
 #include <linux/vt.h>
@@ -32,7 +33,7 @@
 
 #include "userui.h"
 
-#define NETLINK_SUSPEND2_USERUI 10
+#define NETLINK_SUSPEND2_USERUI 32
 
 #define PAGE_SIZE 0x1000
 
@@ -40,8 +41,10 @@
 #define bail(x...) do { fprintf(stderr, ## x); fflush(stderr); abort(); } while (0)
 
 static struct termios termios_backup;
+static int have_termios_backup = 0;
 static int nlsock = -1;
 static int test_run = 0;
+static int running = 0;
 static int need_cleanup = 0;
 static int safe_to_exit = 1;
 static volatile int need_loglevel_change = 0;
@@ -50,7 +53,7 @@ static int debugging_enabled = 0;
 char software_suspend_version[32];
 
 static FILE *printk_f = NULL;
-static int saved_console_loglevel = 1;
+static int saved_console_loglevel = -1;
 volatile int console_loglevel = 1;
 volatile int suspend_action = 0;
 
@@ -301,18 +304,22 @@ static void enforce_lifesavers() {
 
 static void restore_console() {
 	if (ioctl(STDIN_FILENO, KDSKBMODE, K_XLATE) == -1)
-		perror("fcntl(STDIN_FILENO, KDSKBMODE, K_XLATE)");
+		perror("ioctl(STDIN_FILENO, KDSKBMODE, K_XLATE)");
 	ioctl(STDOUT_FILENO, KDSETMODE, KD_TEXT);
 	write(1, "\033[?25h\033[?0c", 11);
-	tcsetattr(STDIN_FILENO, TCSANOW, &termios_backup);
 
-	console_loglevel = saved_console_loglevel;
-	set_console_loglevel();
+	if (saved_console_loglevel >= 0) {
+		console_loglevel = saved_console_loglevel;
+		set_console_loglevel();
+	}
 
 	if (need_cleanup) {
 		userui_ops->cleanup();
 		need_cleanup = 0;
 	}
+
+	if (have_termios_backup)
+		tcsetattr(STDIN_FILENO, TCSANOW, &termios_backup);
 }
 
 /* A generic signal handler to ensure we don't quit in times of desperation,
@@ -334,7 +341,7 @@ static void keypress_signal_handler(int sig) {
 	static char next_is_escaped = 0;
 	unsigned char a, b;
 
-	if (!need_cleanup) /* We're not running yet */
+	if (!running) /* We're not running yet */
 		return;
 
 	while (1) {
@@ -359,21 +366,31 @@ static void keypress_signal_handler(int sig) {
 	}
 }
 
+static sighandler_t install_sighand(int signum, sighandler_t handler) {
+	struct sigaction act, oact;
+	act.sa_handler = handler;
+	sigemptyset(&act.sa_mask);
+	sigaddset(&act.sa_mask, signum);
+	act.sa_flags = SA_RESTART;
+	sigaction(signum, &act, &oact);
+	return oact.sa_handler;
+}
+
 static void setup_signal_handlers() {
 	/* In a vague numerical order ... */
-	signal(SIGHUP, sig_hand);
-	signal(SIGINT, sig_hand);
-	signal(SIGQUIT, sig_hand);
+	install_sighand(SIGHUP, sig_hand);
+	install_sighand(SIGINT, sig_hand);
+	install_sighand(SIGQUIT, sig_hand);
 	/* Pass on SIGILL... that does signal impending doom */
-	signal(SIGABRT, sig_hand);
-	signal(SIGFPE, sig_hand);
+	install_sighand(SIGABRT, sig_hand);
+	install_sighand(SIGFPE, sig_hand);
 	/* Can't do much about SIGKILL */
-	signal(SIGBUS, sig_hand);
-	signal(SIGSEGV, sig_hand);
-	signal(SIGPIPE, sig_hand);
-	signal(SIGALRM, sig_hand);
-	signal(SIGUSR1, sig_hand);
-	signal(SIGUSR2, sig_hand);
+	install_sighand(SIGBUS, sig_hand);
+	install_sighand(SIGSEGV, sig_hand);
+	install_sighand(SIGPIPE, sig_hand);
+	install_sighand(SIGALRM, sig_hand);
+	install_sighand(SIGUSR1, sig_hand);
+	install_sighand(SIGUSR2, sig_hand);
 }
 
 static void open_console() {
@@ -394,7 +411,6 @@ static void open_console() {
 		bail_err("dup2(fd, STDERR_FILENO)");
 
 	close(fd);
-
 }
 
 static void prepare_console() {
@@ -406,6 +422,8 @@ static void prepare_console() {
 		perror("tcgetattr");
 	} else {
 		memcpy(&termios_backup, &t, sizeof(t));
+		have_termios_backup = 1;
+
 		/* t.c_lflag &= ~(ICANON|ECHO|IXOFF|IGNBRK|BRKINT|); */
 		t.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
 		t.c_lflag &= ~(ISIG|ICANON|ECHO);
@@ -422,7 +440,7 @@ static void prepare_console() {
 		bail_err("fcntl(STDIN_FILENO, KDSKBMODE, K_MEDIUMRAW)");
 	
 	/* And be notified about them asynchronously */
-	signal(SIGIO, keypress_signal_handler);
+	install_sighand(SIGIO, keypress_signal_handler);
 
 	if (fcntl(STDIN_FILENO, F_SETOWN, getpid()) == -1)
 		bail_err("fcntl(STDIN_FILENO, F_SETOWN)");
@@ -476,7 +494,7 @@ static struct nlmsghdr *fetch_message(void* buf, int buf_size, int non_block) {
 	}
 
 	if ((n = recv(nlsock, buf, buf_size, 0)) == -1) {
-		if (!non_block || errno != EAGAIN)
+		if (!non_block || errno != EAGAIN || errno != EINTR)
 			bail_err("recv");
 	}
 
@@ -645,6 +663,7 @@ int main(int argc, char **argv) {
 	userui_ops->prepare();
 
 	need_cleanup = 1;
+	running = 1;
 
 	nice(1);
 
