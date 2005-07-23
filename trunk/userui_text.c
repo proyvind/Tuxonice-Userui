@@ -309,9 +309,13 @@ static void text_prepare() {
 	ioctl(STDOUT_FILENO, TCSETSF, (long)&new_termios);
 
 	/* Find out the screen size */
-	ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz);
-	video_num_lines = winsz.ws_row;
-	video_num_columns = winsz.ws_col;
+	video_num_lines = 24;
+	video_num_columns = 80;
+	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz) != -1 &&
+			winsz.ws_row > 0 && winsz.ws_col > 0) {
+		video_num_lines = winsz.ws_row;
+		video_num_columns = winsz.ws_col;
+	}
 
 	/* Calculate progress bar width. Note that whether the
 	 * splash screen is on might have changed (this might be
@@ -320,6 +324,8 @@ static void text_prepare() {
 	 * we came in here */
 	barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
 
+	printf("video_num_lines: %d video_num_columns: %d barwidth: %d\n",
+			video_num_lines, video_num_columns, barwidth);
 	/* Open /dev/vcsa0 so we can find out the cursor position when we need to */
 	vcsa_fd = open("/dev/vcsa0", O_RDONLY);
 	/* if it errors, don't worry. we'll check later */

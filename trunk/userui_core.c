@@ -21,6 +21,7 @@
 #include <linux/kd.h>
 #include <linux/netlink.h>
 #include <linux/vt.h>
+#include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
@@ -42,6 +43,7 @@
 
 static struct termios termios_backup;
 static int have_termios_backup = 0;
+static int raw_keypresses = 0;
 static int nlsock = -1;
 static int test_run = 0;
 static int running = 0;
@@ -336,6 +338,25 @@ static void sig_hand(int sig) {
 	_exit(1);
 }
 
+static char ascii_to_raw(char a) {
+	const unsigned char raw_to_key[] =
+        "\000\0331234567890-=\177\t"                    /* 0x00 - 0x0f */
+        "qwertyuiop[]\r\000as"                          /* 0x10 - 0x1f */
+        "dfghjkl;'`\000\\zxcv"                          /* 0x20 - 0x2f */
+        "bnm,./\000*\000 \000\201\202\203\204\205"      /* 0x30 - 0x3f */
+        "\206\207\210\211\212\000\000789-456+1"         /* 0x40 - 0x4f */
+        "230\177\000\000\213\214\000\000\000\000\000\000\000\000\000\000" /* 0x50 - 0x5f */
+        "\r\000/";                                      /* 0x60 - 0x6f */
+	int i;
+
+	a = tolower(a);
+	for (i = 0; i < sizeof(raw_to_key); i++) {
+		if (raw_to_key[i] == a)
+			return i;
+	}
+	return 0;
+}
+
 static void keypress_signal_handler(int sig) {
 	static char next_is_escaped = 0;
 	unsigned char a, b;
@@ -348,6 +369,8 @@ static void keypress_signal_handler(int sig) {
 			if (read(STDIN_FILENO, &b, 1) <= 0)
 				break;
 			else {
+				if (!raw_keypresses)
+					a = ascii_to_raw(a);
 				next_is_escaped = 0;
 				userui_ops->keypress((a << 8)|b);
 			}
@@ -355,6 +378,8 @@ static void keypress_signal_handler(int sig) {
 			if (read(STDIN_FILENO, &a, 1) <= 0)
 				break;
 			else {
+				if (!raw_keypresses)
+					a = ascii_to_raw(a);
 				if (a == 0xe0) {
 					next_is_escaped = 1;
 					continue;
@@ -434,9 +459,9 @@ static void prepare_console() {
 	/* Make sure we clean up properly */
 	atexit(restore_console);
 
-	/* Receive raw keypresses */
-	if (ioctl(STDIN_FILENO, KDSKBMODE, K_MEDIUMRAW) == -1)
-		bail_err("ioctl(STDIN_FILENO, KDSKBMODE, K_MEDIUMRAW)");
+	/* Want to receive raw keypresses */
+	if (ioctl(STDIN_FILENO, KDSKBMODE, K_MEDIUMRAW) == 0)
+		raw_keypresses = 1;
 	
 	/* And be notified about them asynchronously */
 	install_sighand(SIGIO, keypress_signal_handler);
@@ -493,7 +518,7 @@ static struct nlmsghdr *fetch_message(void* buf, int buf_size, int non_block) {
 	}
 
 	if ((n = recv(nlsock, buf, buf_size, 0)) == -1) {
-		if (!non_block || errno != EAGAIN || errno != EINTR)
+		if (!non_block && errno != EAGAIN && errno != EINTR)
 			bail_err("recv");
 	}
 
