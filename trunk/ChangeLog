@@ -1,3 +1,8 @@
+0.5.3 (23 July 2005)
+  - Be generally more robust
+  - Work on a serial console
+  - Fix silly logic error
+
 0.5.2 (23 July 2005)
   - Update netlink id for 2.1.9.10
 
