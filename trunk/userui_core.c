@@ -303,8 +303,7 @@ static void enforce_lifesavers() {
 }
 
 static void restore_console() {
-	if (ioctl(STDIN_FILENO, KDSKBMODE, K_XLATE) == -1)
-		perror("ioctl(STDIN_FILENO, KDSKBMODE, K_XLATE)");
+	ioctl(STDIN_FILENO, KDSKBMODE, K_XLATE);
 	ioctl(STDOUT_FILENO, KDSETMODE, KD_TEXT);
 	write(1, "\033[?25h\033[?0c", 11);
 
@@ -437,7 +436,7 @@ static void prepare_console() {
 
 	/* Receive raw keypresses */
 	if (ioctl(STDIN_FILENO, KDSKBMODE, K_MEDIUMRAW) == -1)
-		bail_err("fcntl(STDIN_FILENO, KDSKBMODE, K_MEDIUMRAW)");
+		bail_err("ioctl(STDIN_FILENO, KDSKBMODE, K_MEDIUMRAW)");
 	
 	/* And be notified about them asynchronously */
 	install_sighand(SIGIO, keypress_signal_handler);
