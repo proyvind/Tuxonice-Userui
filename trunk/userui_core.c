@@ -339,7 +339,8 @@ static void sig_hand(int sig) {
 }
 
 static char ascii_to_raw(char a) {
-	const unsigned char raw_to_key[] =
+	/* Table from drivers/char/keyboard.c */
+	const unsigned char raw_to_ascii[] =
         "\000\0331234567890-=\177\t"                    /* 0x00 - 0x0f */
         "qwertyuiop[]\r\000as"                          /* 0x10 - 0x1f */
         "dfghjkl;'`\000\\zxcv"                          /* 0x20 - 0x2f */
@@ -347,14 +348,19 @@ static char ascii_to_raw(char a) {
         "\206\207\210\211\212\000\000789-456+1"         /* 0x40 - 0x4f */
         "230\177\000\000\213\214\000\000\000\000\000\000\000\000\000\000" /* 0x50 - 0x5f */
         "\r\000/";                                      /* 0x60 - 0x6f */
-	int i;
+	static unsigned char ascii_to_raw[sizeof(raw_to_ascii)];
+	static int ascii_to_raw_built = 0;
 
-	a = tolower(a);
-	for (i = 0; i < sizeof(raw_to_key); i++) {
-		if (raw_to_key[i] == a)
-			return i;
+	if (!ascii_to_raw_built) {
+		int i;
+		memset(ascii_to_raw, 0, sizeof(ascii_to_raw));
+		for (i = 0; i < sizeof(raw_to_ascii); i++)
+			if (raw_to_ascii[i])
+				ascii_to_raw[tolower(raw_to_ascii[i])] = i;
+		ascii_to_raw_built = 1;
 	}
-	return 0;
+
+	return ascii_to_raw[(int)a];
 }
 
 static void keypress_signal_handler(int sig) {
