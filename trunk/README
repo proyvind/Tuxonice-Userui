@@ -6,7 +6,9 @@ can be done.
 To get things going, you'll need the following:
 
  - A Software Suspend 2 enabled kernel with suspend_userui enabled either as a
-   kernel module or compiled into the kernel.
+   kernel module or compiled into the kernel. Versions since 2.1.9 or
+   thereabouts have it compiled in unconditionally, so you need not worry about
+   selecting it.
 
    If you have fbsplash compiled into your kernel, you will be able to get the
    verbose splash screens for higher console levels for added eyecandy, but
@@ -17,17 +19,17 @@ To get things going, you'll need the following:
    also get bleeding edge code from the subversion repository:
      svn checkout http://svn.suspend2.net/suspend2-userui/trunk suspend2-userui
 
- - For suspend2_fbsplash - a suitable fbsplash theme. See
+ - For suspend2ui_fbsplash - a suitable fbsplash theme. See
    http://wiki.suspend2.net/UserUI/Themes to grab one you like.
 
 Steps:
 
-1. After patching, compiling and booting your kernel, ensure the suspend_userui
-   module is loaded. You probably also want to get rid of the suspend_text
-   module which is most easily done by either not loading the module, or
-   putting "echo 1 > /proc/software_suspend/disable_textmode_support" in your
-   hibernate script ("ProcSetting disable_textmode_support 1" in
-   hibernate.conf)
+1. If you are running an older Software Suspend patch where userui is a module,
+   ensure the suspend_userui module is loaded. You probably also want to get
+   rid of the suspend_text module which is most easily done by either not
+   compiling/loading the module, or putting
+   "echo 1 > /proc/software_suspend/disable_textmode_support" in your suspend
+   script (or "ProcSetting disable_textmode_support 1" in hibernate.conf)
 
 2. Download the userui sources from the website, extract the tarball, compile
    by running "make", and install with "make install".  This will create
@@ -58,10 +60,10 @@ Steps:
    If you want to see the splash for the first portion of resuming too, you
    will need to put this theme into the initrd too.
 
-6. Login on a console as root, and run "/usr/local/sbin/suspend2_fbsplash -t" (or
-   suspend2_text) to check that everything goes to plan. This runs the user
-   interface in test mode. If it doesn't work here, it's unlikely to work when
-   suspending.
+6. Login on a console as root, and run "/usr/local/sbin/suspend2ui_fbsplash -t"
+   (or suspend2ui_text) to check that everything goes to plan. This runs the
+   user interface in test mode. If it doesn't work here, it's unlikely to work
+   when suspending.
 
 7. Suspend!
 
