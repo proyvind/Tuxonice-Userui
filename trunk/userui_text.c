@@ -280,9 +280,8 @@ static void text_message(unsigned long section, unsigned long level,
 		int normally_logged,
 		char *msg)
 {
-	/* FIXME - should we get at these somehow? */
-	/* if ((section) && (!TEST_DEBUG_STATE(section)))
-		return; */
+	if (section && !((1 << section) & suspend_debug))
+		return;
 
 	if (level == SUSPEND_STATUS) {
 		text_prepare_status_real(1, 0, msg);

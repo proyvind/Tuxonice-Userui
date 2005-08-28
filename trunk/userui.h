@@ -18,11 +18,12 @@ struct userui_ops {
 
 int send_message(int type, void* buf, int len);
 int common_keypress_handler(int key);
-void set_console_loglevel(void);
+void set_console_loglevel();
 
 extern char software_suspend_version[32];
 extern volatile int console_loglevel;
 extern volatile int suspend_action;
+extern volatile int suspend_debug;
 
 /* excerpts from include/linux/suspend2.h : */
 
@@ -53,6 +54,25 @@ enum {
 	SUSPEND_FREEZE_TIMERS,
 	SUSPEND_DISABLE_SYSDEV_SUPPORT,
 	SUSPEND_VGA_POST
+};
+
+/* Debug sections  - if debugging compiled in */
+enum {
+	SUSPEND_ANY_SECTION,
+	SUSPEND_FREEZER,
+	SUSPEND_EAT_MEMORY,
+	SUSPEND_PAGESETS,
+	SUSPEND_IO,
+	SUSPEND_BMAP,
+	SUSPEND_HEADER,
+	SUSPEND_WRITER,
+	SUSPEND_MEMORY,
+	SUSPEND_EXTENTS,
+	SUSPEND_SPINLOCKS,
+	SUSPEND_MEM_POOL,
+	SUSPEND_RANGE_PARANOIA,
+	SUSPEND_NOSAVE,
+	SUSPEND_INTEGRITY
 };
 
 /* excerpts from include/linux/bitops.h */

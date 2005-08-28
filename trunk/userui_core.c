@@ -58,8 +58,27 @@ static FILE *printk_f = NULL;
 static int saved_console_loglevel = -1;
 volatile int console_loglevel = 1;
 volatile int suspend_action = 0;
+volatile int suspend_debug = 0;
 
 extern struct userui_ops *userui_ops;
+
+static char* descriptions[] = {
+	"General",
+	"Freezer",
+	"Memory eating",
+	"Pageset",
+	"I/O",
+	"Bmap",
+	"Image header",
+	"Image writer",
+	"Memory",
+	"Extent",
+	"Spinlock",
+	"Memory pool",
+	"Range paranoia",
+	"Nosave",
+	"Integrity"
+};
 
 static void open_misc() {
 	if ((printk_f = fopen("/proc/sys/kernel/printk", "r+")) == NULL)
@@ -121,6 +140,26 @@ static void toggle_reboot() {
 				 "Rebooting disabled."));
 }
 
+static void toggle_debug_state(key) {
+	int bit = 0;
+	char message[80];
+
+	if (key >= 59 && key <= 68)
+		bit = key - 59;
+
+	if (key == 87 || key == 88)
+		bit = key - 77;
+	
+	suspend_debug ^= (1 << bit);
+
+	send_message(USERUI_MSG_SET_DEBUG_STATE, (int*)&suspend_debug,
+			sizeof(suspend_debug));
+	sprintf(message, "%s messages %s", descriptions[bit],
+			(suspend_debug & (1 << bit)) ?
+			"enabled" : "disabled");
+	userui_ops->message(1, SUSPEND_STATUS, 1, message);
+}
+
 static void toggle_pause() {
 	if (!debugging_enabled)
 		return;
@@ -178,6 +217,20 @@ int common_keypress_handler(int key) {
 			break;
 		case 0x39: /* Spacebar */
 			notify_space_pressed();
+			break;
+		case 0x3B: /* F1 */
+		case 0x3C: /* F2 */
+		case 0x3D: /* F3 */
+		case 0x3E: /* F4 */
+		case 0x3F: /* F5 */
+		case 0x40: /* F6 */
+		case 0x41: /* F7 */
+		case 0x42: /* F8 */
+		case 0x43: /* F9 */
+		case 0x44: /* F10 */
+		case 0x57: /* F11 */
+		case 0x58: /* F12 */
+			toggle_debug_state(key);
 			break;
 		default:
 			return 0;
@@ -237,6 +290,10 @@ static void get_info() {
 	}
 
 	if (!send_message(USERUI_MSG_GET_STATE, NULL, 0)) {
+		bail_err("send_message");
+	}
+	
+	if (!send_message(USERUI_MSG_GET_DEBUG_STATE, NULL, 0)) {
 		bail_err("send_message");
 	}
 	
@@ -611,6 +668,9 @@ static void message_loop() {
 				break;
 			case USERUI_MSG_GET_STATE:
 				suspend_action = *(int*)NLMSG_DATA(nlh);
+				break;
+			case USERUI_MSG_GET_DEBUG_STATE:
+				suspend_debug = *(int*)NLMSG_DATA(nlh);
 				break;
 			case USERUI_MSG_IS_DEBUGGING:
 				debugging_enabled = *(int *)NLMSG_DATA(nlh);
