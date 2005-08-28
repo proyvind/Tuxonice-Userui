@@ -34,8 +34,6 @@
 
 #include "userui.h"
 
-#define NETLINK_SUSPEND2_USERUI 32
-
 #define PAGE_SIZE 0x1000
 
 #define bail_err(x) do { fprintf(stderr, x": %s\n", strerror(errno)); fflush(stderr); abort(); } while (0)
@@ -61,6 +59,8 @@ volatile int suspend_action = 0;
 volatile int suspend_debug = 0;
 
 extern struct userui_ops *userui_ops;
+
+static int netlink_socket_num = 0;
 
 static char* descriptions[] = {
 	"General",
@@ -239,10 +239,12 @@ int common_keypress_handler(int key) {
 }
 
 static void handle_params(int argc, char **argv) {
-	static char *optstring = "ht";
+	static char *optstring = "htc:";
 	static struct option longopts[] = {
 		{"help", 0, 0, 'h'},
 		{"test", 0, 0, 't'},
+		{"channel", 1, 0, 'c'},
+		{0, 0, 0, 0},
 	};
 
 	int c;
@@ -255,6 +257,9 @@ static void handle_params(int argc, char **argv) {
 			break;
 
 		switch (c) {
+			case 'c':
+				sscanf(optarg, "%d", &netlink_socket_num);
+				break;
 			case 't':
 				test_run++;
 				break;
@@ -544,7 +549,7 @@ static void prepare_console() {
 static void open_netlink() {
 	struct sockaddr_nl sanl;
 
-	nlsock = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_SUSPEND2_USERUI);
+	nlsock = socket(PF_NETLINK, SOCK_DGRAM, netlink_socket_num);
 	if (nlsock < 0)
 		bail_err("socket");
 
