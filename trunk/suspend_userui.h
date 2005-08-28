@@ -31,7 +31,7 @@ enum {
 
 struct userui_msg_params {
 	unsigned long a, b, c, d;
-	char text[80];
+	char text[255];
 };
 
 #endif /* _SUSPEND_USERUI_H_ */
