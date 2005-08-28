@@ -68,13 +68,14 @@ static void open_misc() {
 		setvbuf(printk_f, (char*)NULL, _IONBF, 0);
 }
 
-void set_console_loglevel() {
-	need_loglevel_change = 1;
-
+void set_console_loglevel(int exiting) {
 	if (!printk_f)
 		return;
 	fseek(printk_f, 0, SEEK_SET);
 	fprintf(printk_f, "%d\n", console_loglevel);
+
+	if (!exiting)
+		userui_ops->log_level_change();
 }
 
 void get_console_loglevel() {
@@ -165,7 +166,7 @@ int common_keypress_handler(int key) {
 		case 0x0a: /* 9 */
 		case 0x0b: /* 0 */
 			console_loglevel = (key - 1)%10;
-			set_console_loglevel();
+			set_console_loglevel(0);
 			break;
 		case 0x13: /* R */
 			toggle_reboot();
@@ -311,7 +312,7 @@ static void restore_console() {
 
 	if (saved_console_loglevel >= 0) {
 		console_loglevel = saved_console_loglevel;
-		set_console_loglevel();
+		set_console_loglevel(1);
 	}
 
 	if (need_cleanup) {
