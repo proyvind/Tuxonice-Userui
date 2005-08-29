@@ -135,7 +135,7 @@ static void request_abort_suspend() {
 static void toggle_reboot() {
 	suspend_action ^= (1 << SUSPEND_REBOOT);
 	send_message(USERUI_MSG_SET_STATE, (int*)&suspend_action, sizeof(suspend_action));
-	userui_ops->message(1, SUSPEND_STATUS, 1, 
+	userui_ops->message(0, SUSPEND_STATUS, 1, 
 			(suspend_action & (1 << SUSPEND_REBOOT) ?
 				 "Rebooting enabled." :
 				 "Rebooting disabled."));
@@ -158,7 +158,7 @@ static void toggle_debug_state(key) {
 	sprintf(message, "%s messages %s", descriptions[bit],
 			(suspend_debug & (1 << bit)) ?
 			"enabled" : "disabled");
-	userui_ops->message(1, SUSPEND_STATUS, 1, message);
+	userui_ops->message(0, SUSPEND_STATUS, 1, message);
 }
 
 static void toggle_pause() {
@@ -167,7 +167,7 @@ static void toggle_pause() {
 
 	suspend_action ^= (1 << SUSPEND_PAUSE);
 	send_message(USERUI_MSG_SET_STATE, (int*)&suspend_action, sizeof(suspend_action));
-	userui_ops->message(1, SUSPEND_STATUS, 1, 
+	userui_ops->message(0, SUSPEND_STATUS, 1, 
 			(suspend_action & (1 << SUSPEND_PAUSE) ?
 				 "Pause between steps enabled." :
 				 "Pause between steps disabled."));
@@ -179,7 +179,7 @@ static void toggle_singlestep() {
 
 	suspend_action ^= (1 << SUSPEND_SINGLESTEP);
 	send_message(USERUI_MSG_SET_STATE, (int*)&suspend_action, sizeof(suspend_action));
-	userui_ops->message(1, SUSPEND_STATUS, 1, 
+	userui_ops->message(0, SUSPEND_STATUS, 1, 
 			(suspend_action & (1 << SUSPEND_SINGLESTEP) ?
 				 "Single stepping enabled." :
 				 "Single stepping disabled."));
@@ -193,7 +193,7 @@ static void toggle_log_all() {
 
 	/* Log this message always */
 	send_message(USERUI_MSG_SET_STATE, (int*)&temp, sizeof(temp));
-	userui_ops->message(1, SUSPEND_STATUS, 1, 
+	userui_ops->message(0, SUSPEND_STATUS, 1, 
 			(suspend_action & (1 << SUSPEND_LOGALL) ?
 				 "Logging everything enabled." :
 				 "Logging everything disabled."));
