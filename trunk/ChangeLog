@@ -1,4 +1,4 @@
-0.5.4 (29 August 2005)
+0.6.0 (29 August 2005)
   - Get netlink channel number from command line from now on
   - Add support for managing which sections are being debugged.
   - Add support for log everything.
