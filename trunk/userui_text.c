@@ -260,7 +260,7 @@ void text_update_progress(unsigned long value, unsigned long maximum,
 	}
 
 	/* Print string in progress bar on loglevel 1 */
-	if (strlen(msg) && (console_loglevel)) {
+	if (msg && strlen(msg) && (console_loglevel)) {
 		message_len = strlen(msg);
 		move_cursor_to((video_num_columns - message_len) / 2,
 				(video_num_lines / 3) + 1);
@@ -333,6 +333,9 @@ static void text_prepare() {
 	clear_display();
 
 	lastloglevel = console_loglevel;
+
+	console_loglevel = 8;
+	set_console_loglevel();
 }
 
 static void text_cleanup() {
