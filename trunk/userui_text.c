@@ -333,9 +333,6 @@ static void text_prepare() {
 	clear_display();
 
 	lastloglevel = console_loglevel;
-
-	console_loglevel = 8;
-	set_console_loglevel(0);
 }
 
 static void text_cleanup() {
