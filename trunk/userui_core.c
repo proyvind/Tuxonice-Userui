@@ -184,6 +184,22 @@ static void toggle_singlestep() {
 				 "Single stepping disabled."));
 }
 
+static void toggle_log_all() {
+	int temp = suspend_action | (1 << SUSPEND_LOGALL);
+
+	if (!debugging_enabled)
+		return;
+
+	/* Log this message always */
+	send_message(USERUI_MSG_SET_STATE, (int*)&temp, sizeof(temp));
+	userui_ops->message(1, SUSPEND_STATUS, 1, 
+			(suspend_action & (1 << SUSPEND_LOGALL) ?
+				 "Logging everything enabled." :
+				 "Logging everything disabled."));
+	suspend_action ^= (1 << SUSPEND_LOGALL);
+	send_message(USERUI_MSG_SET_STATE, (int*)&suspend_action, sizeof(suspend_action));
+}
+
 static void notify_space_pressed() {
 	send_message(USERUI_MSG_SPACE, NULL, 0);
 }
@@ -214,6 +230,9 @@ int common_keypress_handler(int key) {
 			break;
 		case 0x1F: /* S */
 			toggle_singlestep();
+			break;
+		case 0x26: /* L */
+			toggle_log_all();
 			break;
 		case 0x39: /* Spacebar */
 			notify_space_pressed();

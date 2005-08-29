@@ -84,7 +84,7 @@ static void text_prepare_status_real(int printalways, int clearbar, const char *
 	}
 
 	if (console_loglevel >= SUSPEND_ERROR) {
-		if (printalways)
+		if (printalways & !(suspend_action & (1 << SUSPEND_LOGALL)))
 			printf("\n** %s\n", lastheader);
 		return;
 	}
@@ -291,7 +291,8 @@ static void text_message(unsigned long section, unsigned long level,
 	if (level > console_loglevel)
 		return;
 
-	printf("%s\n", msg);
+	if (!(suspend_action & (1 << SUSPEND_LOGALL)))
+		printf("%s\n", msg);
 }
 
 static void text_prepare() {
