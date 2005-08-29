@@ -1,3 +1,11 @@
+0.5.4 (29 August 2005)
+  - Get netlink channel number from command line from now on
+  - Add support for managing which sections are being debugged.
+  - Add support for log everything.
+  - Change loglevel immediately unless exiting.
+  - Increase message buffer size to 255 chars.
+  - Don't display in-progress-bar message if empty.
+
 0.5.3 (23 July 2005)
   - Be generally more robust
   - Work on a serial console
