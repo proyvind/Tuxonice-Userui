@@ -1,3 +1,7 @@
+0.6.1 (29 August 2005)
+ - Remove silly debug feature that made its way in.
+ - Change section of messages to 0 instead of 1.
+
 0.6.0 (29 August 2005)
   - Get netlink channel number from command line from now on
   - Add support for managing which sections are being debugged.
