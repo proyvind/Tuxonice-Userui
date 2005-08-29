@@ -312,7 +312,7 @@ static void fbsplash_keypress(int key) {
 		case 0x3c: /* F12 */
 			if (console_loglevel < SUSPEND_ERROR) {
 				console_loglevel = 5;
-				set_console_loglevel();
+				set_console_loglevel(0);
 				fbsplash_log_level_change();
 			}
 			break;

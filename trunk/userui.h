@@ -18,7 +18,7 @@ struct userui_ops {
 
 int send_message(int type, void* buf, int len);
 int common_keypress_handler(int key);
-void set_console_loglevel();
+void set_console_loglevel(int exiting);
 
 extern char software_suspend_version[32];
 extern volatile int console_loglevel;
