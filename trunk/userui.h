@@ -29,6 +29,7 @@ extern volatile int suspend_debug;
 
 /* debugging levels. */
 #define SUSPEND_STATUS		0
+#define SUSPEND_UI_MSG		1
 #define SUSPEND_ERROR		2
 #define SUSPEND_LOW	 	3
 #define SUSPEND_MEDIUM	 	4

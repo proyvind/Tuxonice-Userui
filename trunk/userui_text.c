@@ -74,7 +74,7 @@ static int update_cursor_pos(void) {
  * 		const char *fmt, ...: The action to be displayed.
  */
 
-static void text_prepare_status_real(int printalways, int clearbar, const char *msg)
+static void text_prepare_status_real(int printalways, int clearbar, int level, const char *msg)
 {
 	int y;
 
@@ -84,7 +84,7 @@ static void text_prepare_status_real(int printalways, int clearbar, const char *
 	}
 
 	if (console_loglevel >= SUSPEND_ERROR) {
-		if (printalways & !(suspend_action & (1 << SUSPEND_LOGALL)))
+		if (!(suspend_action & (1 << SUSPEND_LOGALL)) || level == SUSPEND_UI_MSG)
 			printf("\n** %s\n", lastheader);
 		return;
 	}
@@ -145,17 +145,17 @@ static void text_prepare_status_real(int printalways, int clearbar, const char *
 	barposn = 0;
 }
 
-static void text_prepare_status(int printalways, int clearbar, const char *fmt, ...)
+static void text_prepare_status(int printalways, int clearbar, int level, const char *fmt, ...)
 {
 	va_list va;
 	char buf[1024];
 	if (fmt) {
 		va_start(va, fmt);
 		vsnprintf(buf, 1024, fmt, va);
-		text_prepare_status_real(printalways, clearbar, buf);
+		text_prepare_status_real(printalways, clearbar, level, buf);
 		va_end(va);
 	} else
-		text_prepare_status_real(printalways, clearbar, NULL);
+		text_prepare_status_real(printalways, clearbar, level, NULL);
 }
 
 /* text_loglevel_change
@@ -188,7 +188,7 @@ static void text_loglevel_change()
 		hide_cursor();
 	
 		/* Get the nice display or last action [re]drawn */
-		text_prepare_status(1, 0, NULL);
+		text_prepare_status(1, 0, SUSPEND_UI_MSG, NULL);
 	}
 	
 	lastloglevel = console_loglevel;
@@ -283,16 +283,10 @@ static void text_message(unsigned long section, unsigned long level,
 	if (section && !((1 << section) & suspend_debug))
 		return;
 
-	if (level == SUSPEND_STATUS) {
-		text_prepare_status_real(1, 0, msg);
-		return;
-	}
-	
 	if (level > console_loglevel)
 		return;
 
-	if (!(suspend_action & (1 << SUSPEND_LOGALL)))
-		printf("%s\n", msg);
+	text_prepare_status_real(1, 0, level, msg);
 }
 
 static void text_prepare() {
@@ -332,7 +326,7 @@ static void text_prepare() {
 
 	clear_display();
 
-	lastloglevel = console_loglevel;
+	text_loglevel_change();
 }
 
 static void text_cleanup() {

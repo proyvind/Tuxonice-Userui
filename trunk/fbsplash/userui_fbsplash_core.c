@@ -219,9 +219,10 @@ static void fbsplash_update_silent_message() {
 
 static void fbsplash_message(unsigned long type, unsigned long level, int normally_logged, char *msg) {
 	strncpy(lastmessage, msg, 512);
-	if (console_loglevel >= SUSPEND_ERROR)
-		printf("\n** %s\n", msg);
-	else
+	if (console_loglevel >= SUSPEND_ERROR) {
+		if (!(suspend_action & (1 << SUSPEND_LOGALL)) || level == SUSPEND_UI_MSG)
+			printf("\n** %s\n", msg);
+	} else
 		fbsplash_update_silent_message();
 }
 
