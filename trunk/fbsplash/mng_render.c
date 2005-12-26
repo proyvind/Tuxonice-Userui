@@ -191,7 +191,7 @@ mng_retcode mng_render_proportional(mng_handle mngh, int progress)
 	return ret;
 }
 
-int mng_display_next(mng_handle mngh, char* dest, int x, int y)
+int mng_display_next(mng_handle mngh, unsigned char* dest, int x, int y)
 {
 	truecolor *src;
 	mng_anim *mng = mng_get_userdata(mngh);

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <libmng.h>
+#include "splash.h"
 
 typedef struct {
 	void *data;
@@ -23,7 +24,7 @@ typedef struct {
 extern mng_handle mng_load(char *filename);
 extern void mng_done(mng_handle mngh);
 extern mng_retcode mng_render_next(mng_handle mngh);
-extern int mng_display_next(mng_handle mngh, char* dest, int x, int y);
+extern int mng_display_next(mng_handle mngh, unsigned char* dest, int x, int y);
 extern mng_retcode mng_render_proportional(mng_handle mngh, int progress);
 
 /* mng_callbacks.c */

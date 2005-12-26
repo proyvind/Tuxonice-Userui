@@ -344,7 +344,7 @@ char *eval_text(char *txt)
 
 void prep_bgnd(u8 *target, u8 *src, int x, int y, int w, int h)
 {
-	char *t, *s;
+	u8 *t, *s;
 	int j, i;
 
 	t = target + (y * fb_var.xres + x) * bytespp;
