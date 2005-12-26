@@ -3,6 +3,8 @@
   - Explicitly unblank the screen upon resume.
   - Fix crazy colours on direct color frame buffers (Sukant Hajra).
   - Try harder to hide the cursor.
+  - Use /proc/suspend2 instead of /proc/software_suspend/ (decidedly not
+    backwards compatible).
 
 0.6.1 (29 August 2005)
   - Remove silly debug feature that made its way in.

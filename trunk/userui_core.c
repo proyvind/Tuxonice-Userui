@@ -307,7 +307,7 @@ static void lock_memory() {
 }
 
 static void get_info() {
-	FILE *f = fopen("/proc/software_suspend/version", "r");
+	FILE *f = fopen("/proc/suspend2/version", "r");
 	if (f) {
 	    fgets(software_suspend_version, sizeof(software_suspend_version), f);
 	    fclose(f);
