@@ -1,6 +1,7 @@
 0.6.2 (27 December 2005)
   - Sync with splashutils 1.1.9.10 code.
   - Explicitly unblank the screen upon resume.
+  - Fix crazy colours on direct color frame buffers (Sukant Hajra).
 
 0.6.1 (29 August 2005)
   - Remove silly debug feature that made its way in.

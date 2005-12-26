@@ -127,6 +127,9 @@ static void fbsplash_prepare() {
 	if (fb_fd == -1)
 		return;
 
+	if (fb_fix.visual == FB_VISUAL_DIRECTCOLOR)
+		set_directcolor_cmap(fb_fd);
+
 	fbsplash_fd = open(SPLASH_DEV, O_WRONLY); /* Don't worry if it fails */
 
 	do_getpic(FB_SPLASH_IO_ORIG_USER, 1, 'v'); /* Don't worry if it fails */
