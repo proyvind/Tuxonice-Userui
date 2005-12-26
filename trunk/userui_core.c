@@ -288,7 +288,8 @@ static void handle_params(int argc, char **argv) {
 				fprintf(stderr, "  Specifying -t once will give an demo of this module.\n");
 				fprintf(stderr, "  Specifying -t twice will make the demo run as fast as it can.\n");
 				fprintf(stderr, "  (useful for performance testing).\n\n");
-				fprintf(stderr, "This userui program has been compiled with the \"%s\" module.\n", userui_ops->name);
+				fprintf(stderr, "\n");
+				fprintf(stderr, "Suspend2 UserUI version %s (%s module)\n", USERUI_VERSION, userui_ops->name);
 				exit(1);
 		}
 

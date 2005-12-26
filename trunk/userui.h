@@ -3,6 +3,8 @@
 
 #include "suspend_userui.h"
 
+#define USERUI_VERSION "0.6.2"
+
 struct userui_ops {
 	char *name;
 	void (*prepare) ();
