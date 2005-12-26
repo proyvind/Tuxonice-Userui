@@ -46,7 +46,6 @@ static inline void clear_to_eol() { write(1, "\033K", 2); }
 static void hide_cursor() { write(1, "\033[?25l\033[?1c", 11); }
 static void show_cursor() { write(1, "\033[?25h\033[?0c", 11); }
 static inline void move_cursor_to(int c, int r) { printf("\033[%d;%dH", r, c); }
-static inline void unblank_screen_via_file() { write(1, "\033[13]", 5); }
 
 static int update_cursor_pos(void) {
 	struct {

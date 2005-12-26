@@ -657,6 +657,11 @@ static void get_nofreeze() {
 	}
 }
 
+static void unblank_screen() {
+	int i = 4 /* TIOCL_UNBLANKSCREEN - see console_ioctl(4) */;
+	ioctl(1, TIOCLINUX, &i);
+}
+
 static void message_loop() {
 	static char buf1[4096], buf2[4096];
 	struct nlmsghdr *nlh, *nlh2;
@@ -706,6 +711,7 @@ static void message_loop() {
 				exit(0);
 			case USERUI_MSG_REDRAW:
 				userui_ops->redraw();
+				unblank_screen();
 				break;
 			case NLMSG_ERROR:
 				report_nl_error(nlh);

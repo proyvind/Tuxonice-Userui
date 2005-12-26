@@ -1,7 +1,6 @@
 - Rename package to suspend2-userui
 - Fix jerkiness of fbanim
 - Fix memory usage - either use it, or get rid of it.
-- Explicitly unblank screen
 - Support non-qwerty keymaps.
 - --version
 - version number in bottom left corner
