@@ -37,6 +37,8 @@ static void *base_image;
 static char *frame_buffer;
 static int base_image_size;
 
+static void fbsplash_log_level_change();
+
 static inline void clear_display() { write(1, "\033c", 2); }
 static inline void move_cursor_to(int c, int r) { printf("\033[%d;%dH", r, c); }
 static void hide_cursor() {
@@ -159,7 +161,7 @@ static void fbsplash_prepare() {
 	move_cursor_to(0,0);
 	clear_display();
 
-	lastloglevel = console_loglevel;
+	fbsplash_log_level_change();
 }
 
 static void fbsplash_cleanup() {
