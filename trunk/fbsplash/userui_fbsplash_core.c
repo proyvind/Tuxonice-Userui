@@ -209,7 +209,6 @@ static void update_fb_img() {
 		lseek(fb_fd, 0, SEEK_SET);
 		write(fb_fd, silent_img.data, base_image_size);
 	}
-	hide_cursor();
 }
 
 static void fbsplash_update_silent_message() {
@@ -302,6 +301,8 @@ static void fbsplash_log_level_change() {
 			printf("\n** %s\n", lastmessage);
 	
 	} else if (lastloglevel >= SUSPEND_ERROR) {
+		hide_cursor();
+
 		/* Get the nice display or last action [re]drawn */
 		fbsplash_redraw();
 	}
