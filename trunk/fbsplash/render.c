@@ -495,10 +495,10 @@ void render_objs(u8 *target, u8 *bgnd, char mode, unsigned char origin, int prog
 
 			a = (anim*)o->p;
 
-			if ((a->flags & F_ANIM_SILENT) && mode != 's')
+			if (mode == 's' && !(a->flags & F_ANIM_SILENT))
 				continue;
 
-			if ((a->flags & F_ANIM_VERBOSE) && mode != 'v')
+			if (mode == 'v' && !(a->flags & F_ANIM_VERBOSE))
 				continue;
 			
 			if ((a->flags & F_ANIM_METHOD_MASK) == F_ANIM_ONCE) {

@@ -1,3 +1,6 @@
+0.6.3 (28 December 2005)
+  - Fix logic bug when displaying silent or verbose animations (Johannes Berg).
+
 0.6.2 (27 December 2005)
   - Sync with splashutils 1.1.9.10 code.
   - Explicitly unblank the screen upon resume.
