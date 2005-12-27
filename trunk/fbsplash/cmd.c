@@ -40,8 +40,7 @@ void cmd_setstate(unsigned int state, unsigned char origin)
 	if (fbsplash_fd == -1)
 		return;
 	
-	if (ioctl(fbsplash_fd, FBIOSPLASH_SETSTATE, &wrapper))
-		printerr("FBIOSPLASH_SETSTATE failed, error code %d.\n", errno);
+	ioctl(fbsplash_fd, FBIOSPLASH_SETSTATE, &wrapper);
 }
 
 void cmd_setpic(struct fb_image *img, unsigned char origin)
@@ -76,8 +75,7 @@ void cmd_setcfg(unsigned char origin)
 	vc_cfg.bg_color = cf.bg_color;
 	vc_cfg.theme = arg_theme;
 	
-	if (ioctl(fbsplash_fd, FBIOSPLASH_SETCFG, &wrapper))
-		printerr("FBIOSPLASH_SETCFG failed, error code %d.\n", errno);
+	ioctl(fbsplash_fd, FBIOSPLASH_SETCFG, &wrapper);
 }
 
 void cmd_getcfg()
