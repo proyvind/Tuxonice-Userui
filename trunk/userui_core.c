@@ -674,13 +674,18 @@ static void message_loop() {
 		if (!(nlh = fetch_message(buf1, sizeof(buf1), 0)))
 			return; /* EOF */
 
-		while (nlh->nlmsg_type == USERUI_MSG_PROGRESS) {
+		while (nlh->nlmsg_type == USERUI_MSG_PROGRESS ||
+				nlh->nlmsg_type == USERUI_MSG_MESSAGE) {
 			nlh2 = fetch_message(buf2, sizeof(buf2), 1);
 			if (nlh2 == NULL)
 				break;
 
 			if (nlh2->nlmsg_type == USERUI_MSG_PROGRESS) {
-				/* Ignore the message in nlh and keep on reading */
+				if (nlh->nlmsg_type == USERUI_MSG_MESSAGE) {
+					/* Simply ignore the progress message */
+					continue;
+				}
+				/* Otherwise, ignore the message in nlh and keep on reading */
 				memcpy(buf1, buf2, sizeof(buf2));
 				missed_progress_events++;
 				if (missed_progress_events == 20)
