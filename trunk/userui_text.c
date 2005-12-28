@@ -42,12 +42,21 @@ static int video_num_lines, video_num_columns, cur_x = -1, cur_y = -1;
 static int vcsa_fd = -1;
 
 static inline void clear_display() { write(1, "\033[2J", 4); }
+static inline void reset_display() { write(1, "\033c", 2); }
 static inline void clear_to_eol() { write(1, "\033K", 2); }
-static void hide_cursor() { write(1, "\033[?25l\033[?1c", 11); }
-static void show_cursor() { write(1, "\033[?25h\033[?0c", 11); }
+static inline void hide_cursor() { write(1, "\033[?25l\033[?1c", 11); }
+static inline void show_cursor() { write(1, "\033[?25h\033[?0c", 11); }
 static inline void move_cursor_to(int c, int r) { printf("\033[%d;%dH", r, c); }
 
-static int update_cursor_pos(void) {
+static void flush_scrollback()
+{
+	int i;
+	for (i = 0; i <= video_num_lines; i++)
+		write(1, "\n", 1);
+}
+
+static int update_cursor_pos(void)
+{
 	struct {
 		unsigned char lines, cols, x, y;
 	} screen;
@@ -328,7 +337,8 @@ static void text_prepare() {
 	text_loglevel_change();
 }
 
-static void text_cleanup() {
+static void text_cleanup()
+{
 	if (vcsa_fd >= 0)
 		close(vcsa_fd);
 
@@ -340,12 +350,16 @@ static void text_cleanup() {
 	/* chvt back? */
 }
 
-static void text_redraw() {
+static void text_redraw()
+{
 	clear_display();
+	reset_display();
+	flush_scrollback();
 	cur_x = -1;
 }
 
-static void text_keypress(int key) {
+static void text_keypress(int key)
+{
 	if (common_keypress_handler(key))
 		return;
 	switch (key) {
