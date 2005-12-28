@@ -315,7 +315,7 @@ static void handle_params(int argc, char **argv) {
 				break;
 			case 'h':
 				fprintf(stderr,
-"Usage: %s [-t [-t]]\n"
+"Usage: %s [options]\n"
 "\n"
 "  -t, --test\n"
 "     Specifying -t once will give an demo of this module.\n"
