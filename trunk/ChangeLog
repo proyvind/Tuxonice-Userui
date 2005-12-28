@@ -2,6 +2,8 @@
   - Fix logic bug when displaying silent or verbose animations (Johannes Berg).
   - Hide harmless fbsplash errors when kernel not patched with fbsplash.
   - Help slower machines catch up on kernel update messages.
+  - Flush vt scrollback on redraw.
+  - Allow fbsplash to choose a theme from the command-line.
 
 0.6.2 (27 December 2005)
   - Sync with splashutils 1.1.9.10 code.

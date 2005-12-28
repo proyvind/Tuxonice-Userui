@@ -259,15 +259,45 @@ int common_keypress_handler(int key) {
 }
 
 static void handle_params(int argc, char **argv) {
-	static char *optstring = "htc:";
-	static struct option longopts[] = {
+	static char global_optstring[] = "htc:";
+	static struct option global_longopts[] = {
 		{"help", 0, 0, 'h'},
 		{"test", 0, 0, 't'},
 		{"channel", 1, 0, 'c'},
-		{0, 0, 0, 0},
+		{NULL, 0, 0, 0},
 	};
 
+	int len;
+	char *optstring, *s1, *s2;
+	struct option *longopts, *o1, *o2;
 	int c;
+
+	/* Create optstring */
+	len = sizeof(global_optstring)-1;
+	if (userui_ops->optstring)
+		len += strlen(userui_ops->optstring);
+	len++; /* NULL terminator */
+
+	s1 = optstring = (char*)malloc(len);
+	for (s2 = global_optstring; (*s1++ = *s2++); );
+	if (userui_ops->optstring)
+		for (s1--, s2 = userui_ops->optstring; (*s1++ = *s2++););
+
+	/* Create longopts */
+	len = sizeof(global_longopts)/sizeof(global_longopts[0])-1;
+	if (userui_ops->longopts) {
+		o1 = userui_ops->longopts;
+		while ((o1++)->name) len++;
+	}
+	len++; /* NULL terminator */
+
+	o1 = longopts = (struct option*)malloc(len * sizeof(struct option));
+	for (o2 = global_longopts; o2->name; o1++, o2++)
+		memcpy(o1, o2, sizeof(*o1));
+	if (userui_ops->longopts)
+		for (o2 = userui_ops->longopts; o2->name; o1++, o2++)
+			memcpy(o1, o2, sizeof(*o1));
+	memset(o1, 0, sizeof(*o1));
 
 	while (1) {
 		int optindex;
@@ -284,20 +314,38 @@ static void handle_params(int argc, char **argv) {
 				test_run++;
 				break;
 			case 'h':
-				fprintf(stderr, "Usage: %s [-t [-t]]\n\n", argv[0]);
-				fprintf(stderr, "  Specifying -t once will give an demo of this module.\n");
-				fprintf(stderr, "  Specifying -t twice will make the demo run as fast as it can.\n");
-				fprintf(stderr, "  (useful for performance testing).\n\n");
-				fprintf(stderr, "\n");
-				fprintf(stderr, "Suspend2 UserUI version %s (%s module)\n", USERUI_VERSION, userui_ops->name);
+				fprintf(stderr,
+"Usage: %s [-t [-t]]\n"
+"\n"
+"  -t, --test\n"
+"     Specifying -t once will give an demo of this module.\n"
+"     Specifying -t twice will make the demo run as fast as it can.\n"
+"     (useful for performance testing).\n"
+"%s"
+"\n"
+"Suspend2 UserUI version %s (%s module)\n",
+					argv[0],
+					(userui_ops->cmdline_options)?userui_ops->cmdline_options():"",
+					USERUI_VERSION, userui_ops->name);
 				exit(1);
+			default:
+				if (userui_ops->option_handler) {
+					userui_ops->option_handler(c);
+				}
 		}
 
 	}
 
 	if (optind < argc) {
-		printf("Hmmm. What to do, what to do?\n");
+		fprintf(stderr, "Invalid parameters: ");
+		while (optind < argc)
+			fprintf(stderr, "%s ", argv[optind++]);
+		fprintf(stderr, "\n");
+		/* Don't actually exit. Just complain. */
 	}
+
+	free(optstring);
+	free(longopts);
 }
 
 static void lock_memory() {

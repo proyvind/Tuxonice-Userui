@@ -23,9 +23,14 @@ following elements :
         void (*redraw) ();
         void (*keypress) (int key);
 
-And one optional one:
+And some optional ones:
 
         unsigned long (*memory_required) ();
+
+        char *optstring;
+        struct option *longopts;
+        int (*option_handler) (char c);
+        char *(*cmdline_options) ();
 
 Each element in turn is described below:
 
@@ -70,12 +75,32 @@ void keypress(int key)
   If the user presses a key whilst suspending, this function is called with the
   appropriate keycode.
 
+
+
+The following functions are optional:
+
 unsigned long memory_required()
   If the process will require a given amount of memory for suspending, that has
   not yet been allocated, it can specify an amount here (in bytes).
 
+char *optstring
+  If the userui module wishes to accept extra command-line options, it can
+  specify a string of characters here (getopt-style). Module authors should
+  verify that it does not clash with existing options in handle_params() in
+  userui_core.c.
 
+struct option *longopts
+  If the userui module wishes to accept long-style command-line options, it can
+  specify a pointer to an empty-terminated array of struct option's.
 
+int option_handler(char c)
+  If not NULL, this function is called when command-line options are found that
+  the userui_core could not handle. If the module handles the given option,
+  then it should return 1. If not, it should return 0.
+
+char *cmdline_options()
+  This function should returns a string containing the usage text for the extra
+  options provided by this module.
 
 Communicating with Software Suspend
 -----------------------------------

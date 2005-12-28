@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -113,7 +114,8 @@ static void fbsplash_prepare() {
 	arg_mode = 's';
 
 	/* Read theme config file */
-	arg_theme = DEFAULT_THEME;
+	if (arg_theme == NULL)
+		arg_theme = DEFAULT_THEME;
 	config_file = get_cfg_file(arg_theme);
 	if (!config_file)
 		return;
@@ -331,6 +333,29 @@ static unsigned long fbsplash_memory_required() {
 	return 4*1024*1024;
 }
 
+static int fbsplash_option_handler(char c)
+{
+	switch (c) {
+		case 'T':
+			arg_theme = strdup(optarg);
+			return 1;
+		default:
+			return 0;
+	}
+}
+
+static char *fbsplash_cmdline_options()
+{
+	return 
+"  -T <theme name>, --theme <theme name>\n"
+"     Selects a given theme from " THEME_DIR " (default: "DEFAULT_THEME")\n";
+}
+
+static struct option userui_fbsplash_longopts[] = {
+	{"theme", 1, 0, 'T'},
+	{NULL, 0, 0, 0},
+};
+
 static struct userui_ops userui_fbsplash_ops = {
 	.name = "fbsplash",
 	.prepare = fbsplash_prepare,
@@ -341,6 +366,12 @@ static struct userui_ops userui_fbsplash_ops = {
 	.redraw = fbsplash_redraw,
 	.keypress = fbsplash_keypress,
 	.memory_required = fbsplash_memory_required,
+
+	/* cmdline options */
+	.optstring = "T:",
+	.longopts  = userui_fbsplash_longopts,
+	.option_handler = fbsplash_option_handler,
+	.cmdline_options = fbsplash_cmdline_options,
 };
 
 struct userui_ops *userui_ops = &userui_fbsplash_ops;

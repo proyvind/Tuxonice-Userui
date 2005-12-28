@@ -15,6 +15,11 @@ struct userui_ops {
 	void (*redraw) ();
 	void (*keypress) (int key);
 	unsigned long (*memory_required) ();
+	/* For extra cmdline options: */
+	char *optstring;
+	struct option *longopts;
+	int (*option_handler) (char c);
+	char *(*cmdline_options) ();
 };
 
 
