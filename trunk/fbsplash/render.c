@@ -566,11 +566,15 @@ void render_objs(u8 *target, u8 *bgnd, char mode, unsigned char origin, int prog
 #if (defined(CONFIG_TTF_KERNEL) && defined(TARGET_KERNEL)) || (!defined(TARGET_KERNEL) && defined(CONFIG_TTF))
 	if (mode == 's' && !progress_only) {
 		if (!boot_message)
-			TTF_Render(target, DEFAULT_MESSAGE, global_font, TTF_STYLE_NORMAL, cf.text_x, cf.text_y, cf.text_color, F_HS_LEFT | F_HS_TOP);
+			TTF_Render(target, DEFAULT_MESSAGE, global_font,
+					TTF_STYLE_NORMAL, cf.text_x, cf.text_y,
+					cf.text_color, F_HS_LEFT | F_HS_TOP);
 		else {
 			char *t;
 			t = eval_text(boot_message);
-			TTF_Render(target, t, global_font, TTF_STYLE_NORMAL, cf.text_x, cf.text_y, cf.text_color, F_HS_LEFT | F_HS_TOP);
+			TTF_Render(target, t, global_font, TTF_STYLE_NORMAL,
+					cf.text_x, cf.text_y, cf.text_color,
+					F_HS_LEFT | F_HS_TOP);
 			free(t);
 		}
 	}
