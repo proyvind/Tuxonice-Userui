@@ -1,3 +1,6 @@
+0.6.4 (29 December 2005)
+  - Fix text rendering on radeonfb. (Michal Januszewski)
+
 0.6.3 (28 December 2005)
   - Fix logic bug when displaying silent or verbose animations (Johannes Berg).
   - Hide harmless fbsplash errors when kernel not patched with fbsplash.
