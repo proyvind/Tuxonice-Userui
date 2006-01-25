@@ -1,6 +1,8 @@
 #ifndef _USERUI_H_
 #define _USERUI_H_
 
+#include <linux/unistd.h>
+#include <sys/types.h>
 #include "suspend_userui.h"
 
 #define USERUI_VERSION "0.6.2"
@@ -116,6 +118,12 @@ static __inline__ int generic_fls(int x)
 	}
 	return r;
 }
+
+/*
+ * Work around random glibc bugs where getpid() caches an invalid pid.
+ */
+#define __NR_xgetpid __NR_getpid
+static inline _syscall0(pid_t, xgetpid);
 
 
 #endif /* _USERUI_H_ */
