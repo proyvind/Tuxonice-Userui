@@ -104,19 +104,6 @@ void get_console_loglevel() {
 	fscanf(printk_f, "%d", &console_loglevel);
 }
 
-int get_my_pid() {
-	static int my_pid = 0;
-	FILE *self;
-
-	if (!my_pid) {
-		self = fopen("/proc/self/stat", "r");
-		fscanf(self, "%d", &my_pid);
-		fclose(self);
-	}
-
-	return my_pid;
-}
-
 int send_message(int type, void* buf, int len) {
 	struct nlmsghdr nl;
 	struct iovec iovec[2];
@@ -127,7 +114,7 @@ int send_message(int type, void* buf, int len) {
 	nl.nlmsg_len = NLMSG_LENGTH(len);
 	nl.nlmsg_type = type;
 	nl.nlmsg_flags = NLM_F_REQUEST;
-	nl.nlmsg_pid = get_my_pid();
+	nl.nlmsg_pid = xgetpid();
 
 	iovec[0].iov_base = &nl; iovec[0].iov_len = sizeof(nl);
 	iovec[1].iov_base = buf; iovec[1].iov_len = len;
@@ -616,7 +603,7 @@ static void prepare_console() {
 	/* And be notified about them asynchronously */
 	install_sighand(SIGIO, keypress_signal_handler);
 
-	if (fcntl(STDIN_FILENO, F_SETOWN, get_my_pid()) == -1)
+	if (fcntl(STDIN_FILENO, F_SETOWN, xgetpid()) == -1)
 		bail_err("fcntl(STDIN_FILENO, F_SETOWN)");
 
 	flags = O_RDONLY | O_ASYNC | O_NONBLOCK;
