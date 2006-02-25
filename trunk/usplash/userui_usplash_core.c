@@ -94,6 +94,9 @@ static void draw_progress(int percentage) {
 }	
 
 static void draw_text(char *string, int length) {
+	/* Move the existing text up */
+	bogl_move(TEXT_X1, TEXT_Y1+LINE_HEIGHT, TEXT_X1, TEXT_Y1, TEXT_X2-TEXT_X1,
+		  TEXT_HEIGHT-LINE_HEIGHT);
 	/* Blank out the previous bottom contents */
 	bogl_clear(TEXT_X1, TEXT_Y2-LINE_HEIGHT, TEXT_X2, TEXT_Y2, 
 		   TEXT_BACKGROUND);
@@ -136,8 +139,8 @@ static void usplash_prepare() {
     
     bogl_set_palette (0, 16, pixmap_usplash_artwork->palette);
 
-    left_edge = (bogl_xres - 640) / 2;
-    top_edge  = (bogl_yres - 400) / 2;
+    left_edge = (bogl_xres - pixmap_usplash_artwork->width) / 2;
+    top_edge  = (bogl_yres - pixmap_usplash_artwork->height) / 2;
 
     usplash_ready = 1;
 
