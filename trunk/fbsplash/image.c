@@ -84,18 +84,25 @@ int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *h
 	
 	fp = fopen(filename,"r");
 	if (!fp)
+	{
+		printerr("Could not open file %s.\n", filename);
 		return -1;
+	}
 	
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	info_ptr = png_create_info_struct(png_ptr);
-	if (!info_ptr) {
+	if (!info_ptr)
+	{
 		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
+		printerr("Could not allocate PNG info struct. Out of memory?\n");
 		return -1;
 	}
 
 	end_info = png_create_info_struct(png_ptr);
-	if (!end_info) {
+	if (!end_info)
+	{
 		png_destroy_read_struct(&png_ptr, (png_infopp)&info_ptr, (png_infopp)NULL);
+		printerr("Could not read file %s. Corrupt PNG header?\n", filename);
 		return -1;
 	}
 
@@ -105,8 +112,10 @@ int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *h
 	png_init_io(png_ptr, fp);
 	png_read_info(png_ptr, info_ptr);
 
-	if (cmap && info_ptr->color_type != PNG_COLOR_TYPE_PALETTE)
+	if (cmap && info_ptr->color_type != PNG_COLOR_TYPE_PALETTE) {
+		printerr("Could not read file %s. Not a palette-based image.\n", filename);
 		goto failed;
+	}
 
 	if (info_ptr->color_type == PNG_COLOR_TYPE_GRAY ||
 	    info_ptr->color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
@@ -125,14 +134,18 @@ int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *h
 #endif
 	png_read_update_info(png_ptr, info_ptr);
 
-	if (!cmap && info_ptr->color_type != PNG_COLOR_TYPE_RGB && info_ptr->color_type != PNG_COLOR_TYPE_RGBA)
+	if (!cmap && info_ptr->color_type != PNG_COLOR_TYPE_RGB && info_ptr->color_type != PNG_COLOR_TYPE_RGBA) {
+		printerr("Could not read file %s. Not an RGB image.\n", filename);
 		goto failed;
+	}
 
 	if (cmap) {
 		png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette);
 	
-		if (num_palette > cmap->len)
+		if (num_palette > cmap->len) {
+			printerr("Could not read file %s. Too many colours in image (%d > %d).\n", filename, num_palette, cmap->len);
 			goto failed;
+		}
 	}
 
 	rowbytes = png_get_rowbytes(png_ptr, info_ptr);	
@@ -333,6 +346,11 @@ int load_bg_images(char mode)
 	/* Deal with 15, 16, 24 and 32bpp modes */
 	} else {
 		pic = (mode == 'v') ? cf_pic : cf_silentpic;
+
+		if (!pic) {
+			printerr("No %s picture specified in the theme config.\n", (mode == 'v') ? "verbose" : "silent" );
+			return -1;
+		}
 		
 #ifdef CONFIG_PNG
 		if (is_png(cf_pic)) {
