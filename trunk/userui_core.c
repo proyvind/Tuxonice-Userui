@@ -793,6 +793,12 @@ static void do_test_run() {
 	 */
 
 	userui_ops->log_level_change();
+	userui_ops->message(0, 0, 1, "Freezing processes ...");
+	if (test_run == 1)
+		usleep(200*1000);
+	userui_ops->message(0, 0, 1, "Preparing image ...");
+	if (test_run == 1)
+		usleep(200*1000);
 	userui_ops->message(0, 0, 1, "Writing caches ...");
 
 	for (i = 0; i <= max; i+=2) {
@@ -801,7 +807,12 @@ static void do_test_run() {
 		userui_ops->update_progress(i, max, buf);
 
 		if (i == 2*max/3) {
-			userui_ops->message(0, 0, 0, "Doing atomic copy");
+			userui_ops->message(0, 0, 0, "Doing atomic copy ...");
+			if (test_run == 1)
+				usleep(800*1000);
+		}
+		if (i == 2 + 2*max/3) {
+			userui_ops->message(0, 0, 0, "Writing kernel data ...");
 			if (test_run == 1)
 				usleep(800*1000);
 		}
