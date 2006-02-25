@@ -348,7 +348,8 @@ int load_bg_images(char mode)
 		pic = (mode == 'v') ? cf_pic : cf_silentpic;
 
 		if (!pic) {
-			printerr("No %s picture specified in the theme config.\n", (mode == 'v') ? "verbose" : "silent" );
+			if (mode == 's') /* only complain about the silent pic */
+				printerr("No silent picture specified in the theme config.\n");
 			return -1;
 		}
 		
