@@ -3,6 +3,9 @@
   - Fix image skewing on 1400x1050 radeonfbs.
   - Reimplement getpid() to avoid glibc caching it.
   - usplash support.
+  - Make fbsplash error messages more informative.
+  - Don't compile as static by default.
+  - Fixed "Failed to load ... (null)" message
 
 0.6.3 (28 December 2005)
   - Fix logic bug when displaying silent or verbose animations (Johannes Berg).
