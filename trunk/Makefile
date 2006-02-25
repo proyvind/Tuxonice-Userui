@@ -1,5 +1,5 @@
 CFLAGS := -Wall -O3 -g
-LDFLAGS := -static
+LDFLAGS := 
 
 DESTDIR :=
 PREFIX := /usr/local
