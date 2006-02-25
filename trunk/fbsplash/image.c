@@ -353,7 +353,7 @@ int load_bg_images(char mode)
 		}
 		
 #ifdef CONFIG_PNG
-		if (is_png(cf_pic)) {
+		if (is_png(pic)) {
 			i = load_png(pic, (u8**)&img->data, NULL, &img->width, &img->height, 0);
 		} else
 #endif
