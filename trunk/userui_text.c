@@ -72,6 +72,18 @@ static int update_cursor_pos(void)
 	return 1;
 }
 
+/*
+ * Help text functions.
+ */
+static void update_help(int update_all)
+{
+	const char intro_text[] = "%-18s    R: %s reboot after suspend ";
+	move_cursor_to(video_num_columns - sizeof(intro_text) - 16, video_num_lines);
+	printf(intro_text, 
+			(can_use_escape) ? "Esc: Abort suspend" : "",
+			(suspend_action & (1 << SUSPEND_REBOOT)) ?  "Disable":"Enable");
+}
+
 /* text_prepare_status
  * Description:	Prepare the 'nice display', drawing the header and version,
  * 		along with the current action and perhaps also resetting the
@@ -105,6 +117,9 @@ static void text_prepare_status_real(int printalways, int clearbar, int level, c
 	move_cursor_to(0, video_num_lines);
 	printf("%s", software_suspend_version);
 
+	/* Update help text */
+	update_help(0);
+	
 	/* Print header */
 	move_cursor_to((video_num_columns - 31) / 2, (video_num_lines / 3) - 3);
 	printf("S O F T W A R E   S U S P E N D");
@@ -112,7 +127,7 @@ static void text_prepare_status_real(int printalways, int clearbar, int level, c
 	/* Print action */
 	y = video_num_lines / 3;
 	move_cursor_to(0, y);
-	
+
 	/* Clear old message */
 	for (barposn = 0; barposn < video_num_columns; barposn++) 
 		printf(" ");
@@ -326,8 +341,6 @@ static void text_prepare() {
 	 * we came in here */
 	barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
 
-	printf("video_num_lines: %d video_num_columns: %d barwidth: %d\n",
-			video_num_lines, video_num_columns, barwidth);
 	/* Open /dev/vcsa0 so we can find out the cursor position when we need to */
 	vcsa_fd = open("/dev/vcsa0", O_RDONLY);
 	/* if it errors, don't worry. we'll check later */

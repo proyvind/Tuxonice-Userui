@@ -51,12 +51,15 @@ static volatile int need_loglevel_change = 0;
 static int debugging_enabled = 0;
 
 char software_suspend_version[32];
+int can_use_escape = 0;
 
 static FILE *printk_f = NULL;
 static int saved_console_loglevel = -1;
 volatile int console_loglevel = 1;
 volatile int suspend_action = 0;
 volatile int suspend_debug = 0;
+
+volatile int resuming = 0;
 
 extern struct userui_ops *userui_ops;
 
@@ -111,10 +114,14 @@ int send_message(int type, void* buf, int len) {
 	if (nlsock < 0)
 		return 0;
 
+	memset(&nl, 0, sizeof(nl));
+
 	nl.nlmsg_len = NLMSG_LENGTH(len);
 	nl.nlmsg_type = type;
 	nl.nlmsg_flags = NLM_F_REQUEST;
 	nl.nlmsg_pid = xgetpid();
+
+	memset(&iovec, 0, sizeof(iovec));
 
 	iovec[0].iov_base = &nl; iovec[0].iov_len = sizeof(nl);
 	iovec[1].iov_base = buf; iovec[1].iov_len = len;
@@ -130,6 +137,7 @@ static void request_abort_suspend() {
 		exit(0);
 	}
 	send_message(USERUI_MSG_ABORT, NULL, 0);
+	resuming = 1;
 }
 
 static void toggle_reboot() {
@@ -363,6 +371,12 @@ static void get_info() {
 	    software_suspend_version[strlen(software_suspend_version)-1] = '\0';
 	}
 
+	f = fopen("/proc/suspend2/enable_escape", "r");
+	if (f) {
+	    fscanf(f, "%d", &can_use_escape);
+	    fclose(f);
+	}
+
 	if (!send_message(USERUI_MSG_GET_STATE, NULL, 0)) {
 		bail_err("send_message");
 	}
@@ -457,9 +471,9 @@ static void restore_console() {
 /* A generic signal handler to ensure we don't quit in times of desperation,
  * risking corrupting the image. */
 static void sig_hand(int sig) {
-	printf("userui: Ack! SIG %d\n", sig);
-
 	restore_console();
+
+	printf("userui: Ack! SIG %d\n", *(int*)sig);
 
 	if (test_run)
 		exit(1);
@@ -527,14 +541,12 @@ static void keypress_signal_handler(int sig) {
 	}
 }
 
-static sighandler_t install_sighand(int signum, sighandler_t handler) {
-	struct sigaction act, oact;
+static void install_sighand(int signum, sighandler_t handler) {
+	struct sigaction act;
 	act.sa_handler = handler;
-	sigemptyset(&act.sa_mask);
-	sigaddset(&act.sa_mask, signum);
+	sigfillset(&act.sa_mask);
 	act.sa_flags = SA_RESTART;
-	sigaction(signum, &act, &oact);
-	return oact.sa_handler;
+	sigaction(signum, &act, NULL);
 }
 
 static void setup_signal_handlers() {
@@ -764,6 +776,7 @@ static void message_loop() {
 				close(nlsock);
 				exit(0);
 			case USERUI_MSG_REDRAW:
+				resuming = 1;
 				userui_ops->redraw();
 				unblank_screen();
 				break;
@@ -810,6 +823,7 @@ static void do_test_run() {
 			userui_ops->message(0, 0, 0, "Doing atomic copy ...");
 			if (test_run == 1)
 				usleep(800*1000);
+			userui_ops->redraw();
 		}
 		if (i == 2 + 2*max/3) {
 			userui_ops->message(0, 0, 0, "Writing kernel data ...");
@@ -861,6 +875,9 @@ int main(int argc, char **argv) {
 	enforce_lifesavers();
 
 	if (test_run) {
+	test_run = 0;
+	safe_to_exit = 0;
+
 		do_test_run();
 		return 0;
 	}

@@ -30,9 +30,11 @@ int common_keypress_handler(int key);
 void set_console_loglevel(int exiting);
 
 extern char software_suspend_version[32];
+extern int can_use_escape;
 extern volatile int console_loglevel;
 extern volatile int suspend_action;
 extern volatile int suspend_debug;
+extern volatile int resuming;
 
 /* excerpts from include/linux/suspend2.h : */
 
