@@ -1,4 +1,4 @@
-0.6.4 (9 January 2005)
+0.6.4 (7 June 2006)
   - Fix text rendering on radeonfb. (Michal Januszewski)
   - Fix image skewing on 1400x1050 radeonfbs.
   - Reimplement getpid() to avoid glibc caching it.
