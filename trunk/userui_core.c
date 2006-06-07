@@ -875,8 +875,7 @@ int main(int argc, char **argv) {
 	enforce_lifesavers();
 
 	if (test_run) {
-	test_run = 0;
-	safe_to_exit = 0;
+		safe_to_exit = 0;
 
 		do_test_run();
 		return 0;
