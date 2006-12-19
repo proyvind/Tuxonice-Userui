@@ -49,6 +49,7 @@ static int need_cleanup = 0;
 static int safe_to_exit = 1;
 static volatile int need_loglevel_change = 0;
 static int debugging_enabled = 0;
+static int powerdown_method = 0;
 
 char software_suspend_version[32];
 int can_use_escape = 0;
@@ -169,6 +170,39 @@ static void toggle_debug_state(key) {
 	userui_ops->message(0, SUSPEND_UI_MSG, 1, message);
 }
 
+static void toggle_poweroff(void) {
+	char message[80];
+	static int other_powerdown_method = 0;
+
+	/* 
+	 * Toggle between 3 and the original powerdown_method. If the
+	 * original method is 3, toggle between that and zero (safest).
+	 *
+	 * This may have no effect in the end, though, because rebooting
+	 * always trumps powering down.
+	 */
+	if (powerdown_method != 3) {
+		other_powerdown_method = powerdown_method;
+		powerdown_method = 3;
+
+		if ((suspend_action & (1 << SUSPEND_REBOOT)))
+			sprintf(message, "Would suspend to ram but rebooting is enabled.");
+		else
+			sprintf(message, "Suspend to ram on completion.");
+	} else {
+		powerdown_method = other_powerdown_method;
+		if ((suspend_action & (1 << SUSPEND_REBOOT)))
+			sprintf(message, "Would power off but rebooting is enabled.");
+		else
+			sprintf(message, "Power off on completion.");
+	}
+
+	send_message(USERUI_MSG_SET_POWERDOWN_METHOD, (int*)&powerdown_method,
+			sizeof(powerdown_method));
+
+	userui_ops->message(0, SUSPEND_UI_MSG, 1, message);
+}
+
 static void toggle_pause() {
 	if (!debugging_enabled)
 		return;
@@ -233,6 +267,9 @@ int common_keypress_handler(int key) {
 			break;
 		case 0x13: /* R */
 			toggle_reboot();
+			break;
+		case 0x18: /* O */
+			toggle_poweroff();
 			break;
 		case 0x19: /* P */
 			toggle_pause();
@@ -389,6 +426,10 @@ static void get_info() {
 		bail_err("send_message");
 	}
 
+	if (!send_message(USERUI_MSG_GET_POWERDOWN_METHOD, NULL, 0)) {
+		bail_err("send_message");
+	}
+	
 	/* We'll get the replies in our message loop */
 
 	get_console_loglevel();
@@ -770,6 +811,9 @@ static void message_loop() {
 				break;
 			case USERUI_MSG_IS_DEBUGGING:
 				debugging_enabled = *(int *)NLMSG_DATA(nlh);
+				break;
+			case USERUI_MSG_GET_POWERDOWN_METHOD:
+				powerdown_method = *(int *)NLMSG_DATA(nlh);
 				break;
 			case USERUI_MSG_CLEANUP:
 				userui_ops->cleanup();

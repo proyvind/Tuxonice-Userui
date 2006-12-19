@@ -21,14 +21,10 @@ processing telling it to proceed.
 when it's done its preparation.  It then simply waits for events to occur and
 process them.
 
-6. At any point, the userui process can send a USERUI_MSG_SET_PROGRESS_GRANULARITY
-message to the kernel, to specify what granularity of progress events are worth
-displaying. For example, a text progress bar might be able to show more than 80
-different progress amounts, so it would set granularity to 80, where as a
-framebuffer progress bar might use some function of the screen width instead.
+6. suspend_userui and the kernel code send messages to each other to inform about
+the progress of suspending and events.
 
-7. suspend_userui sends messages to the userui process to inform it about the
-progress of suspending and any keypress events (if HANDLE_KEYPRESSES_IN_KERNEL
-is not defined).
+7. When the kernel code is finished with its work, it sends USERUI_MSG_CLEANUP and
+the userui program exits.
 
 Life goes on...
