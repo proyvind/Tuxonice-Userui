@@ -775,25 +775,6 @@ static void message_loop() {
 		if (!(nlh = fetch_message(buf1, sizeof(buf1), 0)))
 			return; /* EOF */
 
-		while (nlh->nlmsg_type == USERUI_MSG_PROGRESS ||
-				nlh->nlmsg_type == USERUI_MSG_MESSAGE) {
-			nlh2 = fetch_message(buf2, sizeof(buf2), 1);
-			if (nlh2 == NULL)
-				break;
-
-			if (nlh2->nlmsg_type == USERUI_MSG_PROGRESS) {
-				if (nlh->nlmsg_type == USERUI_MSG_MESSAGE) {
-					/* Simply ignore the progress message */
-					continue;
-				}
-				/* Otherwise, ignore the message in nlh and keep on reading */
-				memcpy(buf1, buf2, sizeof(buf2));
-				missed_progress_events++;
-				if (missed_progress_events == 20)
-					break;
-			}
-		}
-
 		msg = NLMSG_DATA(nlh);
 
 		switch (nlh->nlmsg_type) {
@@ -817,6 +798,7 @@ static void message_loop() {
 				break;
 			case USERUI_MSG_CLEANUP:
 				userui_ops->cleanup();
+				send_message(USERUI_MSG_CLEANUP, NULL, 0);
 				close(nlsock);
 				exit(0);
 			case USERUI_MSG_REDRAW:
