@@ -765,12 +765,11 @@ static void unblank_screen() {
 }
 
 static void message_loop() {
-	static char buf1[4096], buf2[4096];
-	struct nlmsghdr *nlh, *nlh2;
+	static char buf1[4096];
+	struct nlmsghdr *nlh;
 
 	while (1) {
 		struct userui_msg_params *msg;
-		int missed_progress_events = 0;
 
 		if (!(nlh = fetch_message(buf1, sizeof(buf1), 0)))
 			return; /* EOF */
