@@ -1,5 +1,5 @@
 CFLAGS := -Wall -O3 -g
-LDFLAGS := 
+LDFLAGS :=
 
 DESTDIR :=
 PREFIX := /usr/local
@@ -22,10 +22,10 @@ usplash:
 	make -C $@ all
 
 suspend2ui_text: $(CORE_OBJECTS) userui_text.o
-	$(CC) $(LDFLAGS) $^ -o $@
+	$(CC) $(LDFLAGS) -static $^ -o $@
 
 suspend2ui_fbsplash: $(CORE_OBJECTS) fbsplash/userui_fbsplash.o
-	$(CC) $(LDFLAGS) $^ -o $@ $(FBSPLASH_LIBS)
+	$(CC) $(LDFLAGS) -static $^ -o $@ $(FBSPLASH_LIBS)
 
 suspend2ui_usplash: $(CORE_OBJECTS) usplash/userui_usplash.o
 	$(CC) $(filter-out -static,$(LDFLAGS)) $^ -o $@ $(USPLASH_LIBS)
