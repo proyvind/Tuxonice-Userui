@@ -1,4 +1,4 @@
-0.6.5 (17 January 2007)
+0.7.0 (17 January 2007)
   - Make test mode work at a usable speed again.
   - Update for kernel interface changes (send cleanup ack).
   - Fix random segfault bug (Kenneth Crudup).
