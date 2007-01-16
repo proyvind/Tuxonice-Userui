@@ -1,5 +1,7 @@
-0.6.5 (unreleased)
+0.6.5 (17 January 2007)
   - Make test mode work at a usable speed again.
+  - Update for kernel interface changes (send cleanup ack).
+  - Fix random segfault bug (Kenneth Crudup).
 
 0.6.4 (7 June 2006)
   - Fix text rendering on radeonfb. (Michal Januszewski)
