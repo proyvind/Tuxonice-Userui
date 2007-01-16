@@ -514,7 +514,7 @@ static void restore_console() {
 static void sig_hand(int sig) {
 	restore_console();
 
-	printf("userui: Ack! SIG %d\n", *(int*)sig);
+	printf("userui: Ack! SIG %d\n", sig);
 
 	if (test_run)
 		exit(1);
