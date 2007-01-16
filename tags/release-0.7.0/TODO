@@ -1,0 +1,4 @@
+- Fix jerkiness of fbanim
+- Fix memory usage - either use it, or get rid of it.
+- Support non-qwerty keymaps.
+- version number in bottom left corner
