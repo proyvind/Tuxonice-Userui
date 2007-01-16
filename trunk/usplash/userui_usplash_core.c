@@ -214,6 +214,14 @@ static void usplash_log_level_change(int loglevel) {
 static void usplash_redraw() {
     if (!usplash_ready)
 	return;
+
+    bogl_set_palette (0, 16, pixmap_usplash_artwork->palette);
+
+    draw_image(pixmap_usplash_artwork);
+
+    init_progressbar();
+
+    text_clear();
 }
 
 static void usplash_keypress(int key) {
