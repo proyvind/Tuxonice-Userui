@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h>
 #include <unistd.h>
 #include <linux/fb.h>
 #include <linux/kd.h>
@@ -37,6 +38,7 @@ static int video_num_lines, video_num_columns;
 static void *base_image;
 static char *frame_buffer;
 static int base_image_size;
+static struct termios termios;
 
 static void fbsplash_log_level_change();
 
@@ -91,10 +93,17 @@ out:
 
 static void fbsplash_prepare() {
 	struct winsize winsz;
+	struct termios new_termios;
 
 	fb_fd = -1;
 	last_pos = 0;
 	lastloglevel = SUSPEND_ERROR; /* start in verbose mode */
+
+	/* Turn off canonical mode */
+	ioctl(STDOUT_FILENO, TCGETS, (long)&termios);
+	new_termios = termios;
+	new_termios.c_lflag &= ~ICANON;
+	ioctl(STDOUT_FILENO, TCSETSF, (long)&new_termios);
 
 	/* Find out the screen size */
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz);
@@ -169,6 +178,8 @@ static void fbsplash_prepare() {
 static void fbsplash_cleanup() {
 	cmd_setstate(0, FB_SPLASH_IO_ORIG_USER);
 	show_cursor();
+
+	ioctl(STDOUT_FILENO, TCSETSF, (long)&termios);
 
 	free((void*)silent_img.data);
 	silent_img.data = NULL;

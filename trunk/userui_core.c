@@ -50,6 +50,8 @@ static int safe_to_exit = 1;
 static volatile int need_loglevel_change = 0;
 static int debugging_enabled = 0;
 static int powerdown_method = 0;
+static int console_in_fd = -1;
+static int console_out_fd = -1;
 
 char software_suspend_version[32];
 int can_use_escape = 0;
@@ -491,8 +493,8 @@ static void enforce_lifesavers() {
 }
 
 static void restore_console() {
-	ioctl(STDIN_FILENO, KDSKBMODE, K_XLATE);
-	ioctl(STDOUT_FILENO, KDSETMODE, KD_TEXT);
+	ioctl(console_in_fd, KDSKBMODE, K_XLATE);
+	ioctl(console_out_fd, KDSETMODE, KD_TEXT);
 	write(1, "\033[?25h\033[?0c", 11);
 
 	if (saved_console_loglevel >= 0) {
@@ -506,7 +508,7 @@ static void restore_console() {
 	}
 
 	if (have_termios_backup)
-		tcsetattr(STDIN_FILENO, TCSANOW, &termios_backup);
+		tcsetattr(console_out_fd, TCSANOW, &termios_backup);
 }
 
 /* A generic signal handler to ensure we don't quit in times of desperation,
@@ -553,21 +555,19 @@ static void keypress_signal_handler(int sig) {
 	static char next_is_escaped = 0;
 	unsigned char a, b;
 
-	if (!running) /* We're not running yet */
-		return;
-
 	while (1) {
 		if (next_is_escaped) {
-			if (read(STDIN_FILENO, &b, 1) <= 0)
+			if (read(console_in_fd, &b, 1) <= 0)
 				break;
 			else {
 				if (!raw_keypresses)
 					a = ascii_to_raw(a);
 				next_is_escaped = 0;
-				userui_ops->keypress((a << 8)|b);
+				if (running)
+				    userui_ops->keypress((a << 8)|b);
 			}
 		} else {
-			if (read(STDIN_FILENO, &a, 1) <= 0)
+			if (read(console_in_fd, &a, 1) <= 0)
 				break;
 			else {
 				if (!raw_keypresses)
@@ -576,6 +576,8 @@ static void keypress_signal_handler(int sig) {
 					next_is_escaped = 1;
 					continue;
 				}
+				if (running)
+				    userui_ops->keypress((a << 8)|b);
 				userui_ops->keypress(a);
 			}
 		}
@@ -608,23 +610,17 @@ static void setup_signal_handlers() {
 }
 
 static void open_console() {
-	int fd;
+	if ((console_in_fd = open("/dev/console", O_RDONLY)) == -1)
+		bail_err("open(\"/dev/console\", O_RDONLY)");
+	if ((console_out_fd = open("/dev/console", O_WRONLY)) == -1)
+		bail_err("open(\"/dev/console\", O_WRONLY)");
 
-	if ((fd = open("/dev/console", O_RDWR)) == -1)
-		bail_err("open(\"/dev/console\", O_RDWR)");
-
-	/* We're about to replace FDs 0-2, so make sure this isn't one of them. */
-	if (fd <= 2)
-		fd = dup2(fd, 42);
-
-	if (dup2(fd, STDIN_FILENO) == -1)
+	if (dup2(console_in_fd, STDIN_FILENO) == -1)
 		bail_err("dup2(fd_r, STDIN_FILENO)");
-	if (dup2(fd, STDOUT_FILENO) == -1)
+	if (dup2(console_out_fd, STDOUT_FILENO) == -1)
 		bail_err("dup2(fd, STDOUT_FILENO)");
-	if (dup2(fd, STDERR_FILENO) == -1)
+	if (dup2(console_out_fd, STDERR_FILENO) == -1)
 		bail_err("dup2(fd, STDERR_FILENO)");
-
-	close(fd);
 }
 
 static void prepare_console() {
@@ -632,7 +628,7 @@ static void prepare_console() {
 	struct termios t;
 	
 	/* Backup and set our favourite termios settings */
-	if (tcgetattr(STDIN_FILENO, &t) == -1) {
+	if (tcgetattr(console_out_fd, &t) == -1) {
 		perror("tcgetattr");
 	} else {
 		memcpy(&termios_backup, &t, sizeof(t));
@@ -643,25 +639,25 @@ static void prepare_console() {
 		t.c_lflag &= ~(ISIG|ICANON|ECHO);
 		t.c_cc[VTIME] = 0;
 		t.c_cc[VMIN] = 0;
-		tcsetattr(STDIN_FILENO, TCSANOW, &t);
+		tcsetattr(console_out_fd, TCSANOW, &t);
 	}
 
 	/* Make sure we clean up properly */
 	atexit(restore_console);
 
 	/* Want to receive raw keypresses */
-	if (ioctl(STDIN_FILENO, KDSKBMODE, K_MEDIUMRAW) == 0)
+	if (ioctl(console_in_fd, KDSKBMODE, K_MEDIUMRAW) == 0)
 		raw_keypresses = 1;
 	
 	/* And be notified about them asynchronously */
 	install_sighand(SIGIO, keypress_signal_handler);
 
-	if (fcntl(STDIN_FILENO, F_SETOWN, xgetpid()) == -1)
-		bail_err("fcntl(STDIN_FILENO, F_SETOWN)");
+	if (fcntl(console_in_fd, F_SETOWN, xgetpid()) == -1)
+		bail_err("fcntl(console_in_fd, F_SETOWN)");
 
 	flags = O_RDONLY | O_ASYNC | O_NONBLOCK;
-	if (fcntl(STDIN_FILENO, F_SETFL, flags) == -1)
-		bail_err("fcntl(STDIN_FILENO, F_SETFL)");
+	if (fcntl(console_in_fd, F_SETFL, flags) == -1)
+		bail_err("fcntl(console_in_fd, F_SETFL)");
 
 	/* Set outputs to non-buffered */
 	setvbuf(stdout, NULL, _IONBF, 0);
@@ -868,6 +864,7 @@ static void do_test_run() {
 		usleep(400*1000);
 
 	userui_ops->cleanup();
+	need_cleanup = 0;
 }
 
 int main(int argc, char **argv) {
