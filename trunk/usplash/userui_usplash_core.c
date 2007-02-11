@@ -10,20 +10,27 @@
  */
 
 #include <linux/vt.h>
+#include <sys/resource.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "usplash.h"
 #include "usplash_backend.h"
 #include "libusplash.h"
 #include "../userui.h"
 
+#define MIN_ADVANCE_PERCENT 5
+
 static int usplash_ready = 0;
 
 static void userui_usplash_prepare() {
+    /* Set RLIMIT_NPROC now to prevent svgalib from forking. */
+    struct rlimit r;
+    r.rlim_cur = r.rlim_max = 0;
+    setrlimit(RLIMIT_NPROC, &r);
+
     if (usplash_setup(0, 0, 1)) {
 	usplash_restore_console();
 	fprintf(stderr, "Failed to initialise usplash!\n");
@@ -60,6 +67,11 @@ static void userui_usplash_message(unsigned long section, unsigned long level, i
 }
 
 static void userui_usplash_update_progress(unsigned long value, unsigned long maximum, char *msg) {
+    static int prev_maximum = -1;
+    static int old_percent = -1;
+
+    int percent;
+
     if (!usplash_ready)
 	return;
 
@@ -70,9 +82,19 @@ static void userui_usplash_update_progress(unsigned long value, unsigned long ma
 	value = maximum;
 
     if (maximum > 0)
-	draw_progressbar(value * 100 / maximum);
+	percent = value * 100 / maximum;
     else
-	draw_progressbar(100);
+	percent = 100;
+
+    if (prev_maximum == -1)
+	prev_maximum = maximum;
+    else
+	if (prev_maximum == maximum && percent != 100 &&
+	        percent - old_percent < MIN_ADVANCE_PERCENT)
+	    return;
+
+    draw_progressbar(percent);
+    old_percent = percent;
 }
 
 static void userui_usplash_log_level_change(int loglevel) {
