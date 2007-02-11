@@ -1,0 +1,137 @@
+By Edmund GRIMLEY EVANS <edmundo@rano.org>
+Amended by Adam Di Carlo
+Updated by Marcin Owsiany
+
+libutf8 can be found in boot-floppies CVS module now, in 'utilities/bf-utf'
+directory
+
+I haven't made the file UTF-8-test; instead do echo -e "\304\211" to
+get a 'c' with hat, for example.
+
+
+System requirements
+
+I don't know what the requirements are, but this is what I'm using:
+kernel 2.2.14, which I compiled myself and configured to use the
+framebuffer console. My /etc/lilo.conf contains the line "vga=771". I
+have a cheap motherboard with a Cyrix "i686" processor and on-board
+graphics using SiS 5597/8. When the system starts I get a penguin in
+the top left of the screen and a text console with 100 columns. I don't
+have the bandwidth to dist-upgrade, but I keep things like libc6 and
+gcc up-to-date with potato. When I run BOGL I'm using the code in
+bogl-pcfb.c with 8 bpp, I think.
+
+
+The code
+
+If you're not already familiar with boot-floppies, you probably
+shouldn't be reading this, but the basic instructions are: install the
+latest boot-floppies using apt-get, so that you get other required
+packages too, then look in /usr/src/boot-floppies/README-CVS for
+instructions on how to get the very latest version from CVS.
+
+
+Fonts
+
+Get Markus Kuhn's fixed-width BDF fonts with UCS encoding:
+
+http://www.cl.cam.ac.uk/~mgk25/download/ucs-fonts.tar.gz
+http://www.cl.cam.ac.uk/~mgk25/download/ucs-fonts-asian.tar.gz
+
+These fonts are also useful for a UTF-8 xterm. I used 9x18.bdf and
+18x18ja.bdf for testing.
+
+
+Compiling
+
+$ cd /usr/src/boot-floppies/utilities/libutf8
+$ make
+$ cd /usr/src/boot-floppies/utilities/bogl
+$ make bdftobogl bterm
+$ ./mergebdf .../9x18.bdf .../18x18ja.bdf > font.bdf
+$ ./bdftobogl -b font.bdf > font.bgf
+
+For screen-oriented programs you need a terminfo entry for bterm. Do
+the following to check you don't already have an entry for bterm, then
+make one in the user's ~/.terminfo/. Either make sure you run bterm as
+the same user as you ran tic, or run tic as root to make a terminfo
+entry in the system terminfo directory.
+
+$ infocmp bterm
+$ tic bterm.ti
+$ infocmp bterm
+
+
+Running
+
+Go to a text console, as I don't know what effect this might have on X,
+and:
+
+$ cd /usr/src/boot-floppies/utilities/bogl
+$ export LC_CTYPE=eo.UTF-8
+$ ./bterm -f font.bgf
+
+You should get a new text console with a disgusting black-on-white
+colour scheme. You can check that UTF-8 works with:
+
+$ cat UTF-8-test
+
+
+Screen handling
+
+Bterm understands a tiny subset of the control sequences that xterm
+understands, but sufficient, I hope, for slang, curses and GNU
+Readline. (If you want vt100 emulation, you can always run GNU Screen.)
+You can test a program's ability to work in a bterm by running it in a
+UTF-8 xterm with export TERM=bterm. If you notice any incompatibilites
+between bterm and a UTF-8 xterm, please tell me.
+
+For instructions on how to get a UTF-8 xterm, see:
+ftp://ftp.ilog.fr/pub/Users/haible/utf8/Unicode-HOWTO.html
+
+
+Slang and newt
+
+I have patched slang and newt to (partially) work in UTF-8. Get the
+code from:
+
+http://www.rano.org/mutt/slang-1.4.0-ege5.diff 
+http://www.rano.org/mutt/newt-0.50-5.3-ege1.diff 
+
+Here's what to do (there's a fixed relative path to ../slang14 in
+newt-0.50/Makefile; sorry about that):
+
+$ bzcat /usr/local/src/slang/slang-1.4.0.tar.bz2 | tar xf -
+$ mv -i slang-1.4.0 slang14
+$ cd slang14
+$ patch -p0 < ~/slang-1.4.0-ege5.diff
+$ ./configure && make
+$ cd ..
+
+$ tar xzf newt_0.50.orig.tar.gz 
+$ cd newt-0.50
+$ zcat newt_0.50-5.3.diff.gz | patch -p1
+$ patch -p1 < newt-0.50-5.3-ege1.diff
+$ # Using a UTF-8 editor, change the messages in test.c and testgrid.c
+  # to include lots of exotic characters.
+$ ./configure && make testing testgrid
+
+Now, in the bterm (or a UTF-8 xterm):
+
+$ newt-0.25/testing
+$ newt-0.25/testgrid
+
+
+Internationalised boot-floppies
+
+I haven't tried this yet, but I intend to: Convert the PO files to
+UTF-8 using the command iconv in a script. Recompile dbootstrap with
+language chooser against the patched slang and newt. Include bterm and
+a suitable font in root.bin and modify /etc/init.d/ to run dbootstrap
+in a bterm. Make sure the kernel on the rescue floppy has a
+framebuffer. Et voila, maybe.
+
+There are probably bugs in the patched slang and newt, because they're
+not very much tested yet. If you can identify a bug, please send me
+details.
+

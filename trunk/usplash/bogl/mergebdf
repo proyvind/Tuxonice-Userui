@@ -1,0 +1,29 @@
+#!/usr/bin/perl -w
+
+if ($#ARGV < 0) {
+    die "Usage: mergebdf font1.bdf ... > newfont.bdf\n";
+}
+
+foreach $font (@ARGV) {
+    open(F, "<$font") || die;
+    for (;;) {
+	while (defined($_ = <F>) && !/^STARTCHAR /) {
+	    if (!$donehead) { print; }
+	}
+	if (!defined($_)) { last; }
+	$donehead = 1;
+	$c = $_;
+	undef $e;
+	while (($_ = <F>) !~ /^ENDCHAR/) {
+	    if (/^ENCODING (\d+)$/) { $e = $1; }
+	    $c .= $_;
+	}
+	$c .= $_;
+	if (!$char{$e}) {
+	    $char{$e} = 1;
+	    print $c;
+	}
+    }
+    close(F);
+}
+print "ENDFONT\n";

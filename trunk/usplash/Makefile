@@ -1,24 +1,32 @@
-CFLAGS := -Wall -O3 -g -D_GNU_SOURCE -DBOGL_CFB_FB=1 -DBOGL_VGA16_FB=1
-INCLUDES = -I.
+CFLAGS := -g -Wall -fPIC -O3 -D_GNU_SOURCE
+INCLUDES = -I. -Ibogl
 
 TARGET = userui_usplash.o
 OBJECTS = userui_usplash_core.o \
-		bogl.o bogl-bgf.o bogl-cfb.o bogl-font.o bogl-pcfb.o bogl-tcfb.o \
-		bogl-vga16.o \
-		helvB10.o
+	usplash-testcard.o usplash-testcard-theme.o \
+	libusplash.o usplash_bogl.o bogl/libbogl.a
 SOURCES = $(patsubst %.o,%.c,$(OBJECTS))
 
 all: $(TARGET)
 
-userui_usplash.o: $(OBJECTS)
-	$(CC) $(LDFLAGS) -r -nostdlib -nostartfiles $^ -o $@
+userui_usplash.o: bogl $(OBJECTS)
+	$(CC) $(LDFLAGS) -r -nostdlib -nostartfiles $(OBJECTS) -o $@
 
-%.o: %.c ../userui.h
+bogl:
+	$(MAKE) -C bogl
+
+.c.o: ../userui.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c $*.c -o $@
 
-clean:
-	$(RM) *.o $(TARGET) bdftobogl
+.bdf.c: bogl
+	./bogl/bdftobogl $< > $@
 
-bdftobogl: bogl.o bogl-font.o bogl-vga16.o bogl-cfb.o bogl-pcfb.o bogl-tcfb.o
-%.c: %.bdf bdftobogl
-	./bdftobogl $< > $@
+.png.c: bogl
+	./bogl/pngtobogl $< > $@
+
+clean:
+	$(RM) *.o $(TARGET)
+	$(MAKE) -C bogl clean
+
+.PHONY: bogl install clean 
+.SUFFIXES: .png .bdf
