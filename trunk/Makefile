@@ -11,7 +11,7 @@ CORE_OBJECTS = userui_core.o
 
 FBSPLASH_LIBS = -lmng -lpng -ljpeg -lz -lfreetype -llcms -lm
 
-USPLASH_LIBS = -ldl
+USPLASH_LIBS = -lusplash
 
 all: fbsplash usplash $(TARGETS)
 
