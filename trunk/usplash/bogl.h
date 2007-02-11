@@ -75,6 +75,8 @@ int bogl_init (void);
 void bogl_done (void);
 const char *bogl_error (void);
 
+int bogl_set_resolution (int xres, int yres);
+
 void bogl_gray_scale (int make_gray);
 void bogl_fb_set_palette (int c, int nc, unsigned char palette[][3]);
 void bogl_rectangle (int x1, int y1, int x2, int y2, int c);
@@ -94,7 +96,7 @@ void (*bogl_text) (int x, int y, const char *s, int n, int fg, int bg, int ul,
 void (*bogl_clear) (int x1, int y1, int x2, int y2, int c);
 void (*bogl_move) (int sx, int sy, int dx, int dy, int w, int h);
 void (*bogl_put) (int x, int y, const struct bogl_pixmap *pixmap,
-		  const int color_map[16]);
+		  const int color_map[256]);
 void (*bogl_pointer) (int visible, int x, int y,
 		      const struct bogl_pointer *,
 		      int colors[2]);

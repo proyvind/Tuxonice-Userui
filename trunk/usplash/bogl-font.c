@@ -289,7 +289,7 @@ bogl_read_bdf (char *filename)
   /* Make the font name based on the filename.  This is probably not
      the best thing to do, but it seems to work okay for now. */
   {
-    char *cp;
+    unsigned char *cp;
     
     font_name = strdup (filename);
     if (font_name == NULL)
@@ -301,7 +301,7 @@ bogl_read_bdf (char *filename)
     cp = strstr (font_name, ".bdf");
     if (cp)
       *cp = 0;
-    for (cp = (char *) font_name; *cp; cp++)
+    for (cp = (unsigned char *) font_name; *cp; cp++)
       if (!isalnum (*cp))
 	*cp = '_';
   }

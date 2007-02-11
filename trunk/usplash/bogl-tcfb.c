@@ -37,10 +37,10 @@
 #include "bogl-tcfb.h"
 
 static int bpp;
-static char* save;
+static unsigned char* save;
 
-const static int cmap_size = 16;
-static unsigned int cmap[16];
+const static int cmap_size = 256;
+static unsigned int cmap[256];
 
 /* for bitfield information */
 static struct fb_var_screeninfo var;
@@ -128,7 +128,7 @@ bogl_tcfb_vline (int x, int y1, int y2, int c)
 void
 bogl_tcfb_clear (int x1, int y1, int x2, int y2, int c)
 {
-  char *dst;
+  unsigned char *dst;
 #if 0
   assert (0 <= x1 && x1 <= x2 && x2 <= bogl_xres);
   assert (0 <= y1 && y1 <= y2 && y2 <= bogl_yres);
@@ -211,7 +211,7 @@ bogl_tcfb_text (int xx, int yy, const char *s, int n, int fg, int bg, int ul,
 /* Write PIXMAP at location (XX,YY) */
 void
 bogl_tcfb_put (int xx, int yy, const struct bogl_pixmap *pixmap,
-		const int color_map[16])
+		const int color_map[256])
 {
   char *dst;
   const unsigned char *src;
@@ -232,8 +232,8 @@ bogl_tcfb_put (int xx, int yy, const struct bogl_pixmap *pixmap,
       int offset = xx;
       while (w)
 	{
-	  int color = *src & 0xf;
-	  int count = *src >> 4;
+	  int color = *src;
+	  int count = 1;
 	  src++;
 	  w -= count;
 
@@ -353,7 +353,7 @@ bogl_tcfb_pointer (int visible, int x1, int y1,
       color_p = pointer->color + y_ofs;
       for (y = 0; y < y_count; y++, mask_p++, color_p++)
 	{
-	  char *dst;
+	  unsigned char *dst;
 	  unsigned short bg_bits, fg_bits;
 	  int x;
 	  

@@ -31,7 +31,7 @@ void bogl_tcfb_text (int x, int y, const char *s, int n, int fg, int bg, int ul,
 void bogl_tcfb_clear (int x1, int y1, int x2, int y2, int c);
 void bogl_tcfb_move (int sx, int sy, int dx, int dy, int w, int h);
 void bogl_tcfb_put (int x, int y, const struct bogl_pixmap *pixmap,
-		     const int color_map[16]);
+		     const int color_map[256]);
 void bogl_tcfb_pointer (int visible, int x1, int y1,
 			const struct bogl_pointer *pointer,
 			int colors[2]);

@@ -36,7 +36,7 @@
 #include "bogl-pcfb.h"
 
 static int bpp;
-static char* save;
+static unsigned char* save;
 
 static inline unsigned int
 cmap_lookup (int entry)
@@ -101,7 +101,7 @@ bogl_pcfb_vline (int x, int y1, int y2, int c)
 void
 bogl_pcfb_clear (int x1, int y1, int x2, int y2, int c)
 {
-  char *dst;
+  unsigned char *dst;
 
   assert (0 <= x1 && x1 <= x2 && x2 <= bogl_xres);
   assert (0 <= y1 && y1 <= y2 && y2 <= bogl_yres);
@@ -184,7 +184,7 @@ bogl_pcfb_text (int xx, int yy, const char *s, int n, int fg, int bg, int ul,
 /* Write PIXMAP at location (XX,YY) */
 void
 bogl_pcfb_put (int xx, int yy, const struct bogl_pixmap *pixmap,
-		const int color_map[16])
+		const int color_map[256])
 {
   char *dst;
   const unsigned char *src;
@@ -205,8 +205,8 @@ bogl_pcfb_put (int xx, int yy, const struct bogl_pixmap *pixmap,
       int offset = xx;
       while (w)
 	{
-	  int color = *src & 0xf;
-	  int count = *src >> 4;
+	  int color = *src;
+	  int count = 1;
 	  src++;
 	  w -= count;
 
@@ -326,7 +326,7 @@ bogl_pcfb_pointer (int visible, int x1, int y1,
       color_p = pointer->color + y_ofs;
       for (y = 0; y < y_count; y++, mask_p++, color_p++)
 	{
-	  char *dst;
+	  unsigned char *dst;
 	  unsigned short bg_bits, fg_bits;
 	  int x;
 	  

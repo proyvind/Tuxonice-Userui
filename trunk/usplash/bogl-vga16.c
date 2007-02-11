@@ -447,8 +447,8 @@ bogl_vga16_put (int xx, int yy, const struct bogl_pixmap *pixmap,
 
       while (x < xx + pixmap->width) 
 	{
-	  int color = *src & 0xf;
-	  int count = *src >> 4;
+	  int color = *src;
+	  int count = 1;
 	  src++;
 	  
 	  if (color == pixmap->transparent)
@@ -550,7 +550,7 @@ bogl_vga16_pointer (int visible, int x1, int y1,
   /* Save or restore the framebuffer contents. */
   {
     /* Four planes of sixteen rows of four bytes each. */
-    static char saved[4 * 16 * 3];
+    static unsigned char saved[4 * 16 * 3];
 
     int plane;		/* Current plane. */
     int sx_ofs;		/* Byte offset within a scanline to save/restore. */
@@ -703,7 +703,7 @@ void
 bogl_vga16_move (int sx, int sy, int dx, int dy, int w, int h)
 {
 	volatile char *dst;
-	const char *src;
+	const unsigned char *src;
 	int i, j;
 
 	bogl_drawing = 1;

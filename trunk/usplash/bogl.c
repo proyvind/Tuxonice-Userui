@@ -40,10 +40,6 @@
 #include <termios.h>
 #include <unistd.h>
 
-/* Yes, I know, we shouldn't be including headers from the kernel.  But
-   XFree86 also uses this one (to get PAGE_MASK) so it's probably safe.  */
-#include <asm/page.h>
-
 #include "bogl.h"
 #include "boglP.h"
 #if BOGL_VGA16_FB
@@ -93,6 +89,10 @@ static int gray;		/* Convert colors to grayscale? */
 static char *bogl_frame_mapped;	/* Page aligned, while bogl_frame might
 				   not be.  */
 
+/* Saved and desired resolution. */
+static int bogl_orig_xres = 0, bogl_orig_yres = 0;
+static int bogl_want_xres = 0, bogl_want_yres = 0;
+
 /* Functions. */
 
 static size_t init_fb (void);
@@ -109,6 +109,7 @@ static struct fb_fix_screeninfo fb_fix;
 int
 bogl_init (void)
 {
+  long pm;
   unsigned long bogl_frame_offset, bogl_frame_len;
   struct fb_var_screeninfo fb_var;
   struct vt_stat vts;
@@ -140,8 +141,8 @@ bogl_init (void)
 	  return bogl_fail ("reading screen info: %s", strerror (errno));
   }
   
-  bogl_xres = fb_var.xres;
-  bogl_yres = fb_var.yres;
+  bogl_orig_xres = bogl_xres = fb_var.xres;
+  bogl_orig_yres = bogl_yres = fb_var.yres;
   bogl_bpp = fb_var.bits_per_pixel;
   bogl_line_len = fb_fix.line_length;
   type = fb_fix.type;
@@ -151,6 +152,15 @@ bogl_init (void)
      line_length.  */
   if (bogl_line_len == 0)
     bogl_line_len = fb_var.xres * fb_var.bits_per_pixel / 8;
+
+  if (bogl_want_xres != bogl_orig_xres || bogl_want_yres != bogl_orig_yres) {
+    fb_var.xres = bogl_want_xres;
+    fb_var.yres = bogl_want_yres;
+    if (-1 == ioctl (fb, FBIOPUT_VSCREENINFO, &fb_var))
+      return bogl_fail ("setting screen size: %s", strerror (errno));
+    bogl_xres = bogl_want_xres;
+    bogl_yres = bogl_want_yres;
+  }
 
   if (!draw_enable ()) {
 	  return bogl_fail ("don't know screen type %d", type);
@@ -180,9 +190,10 @@ bogl_init (void)
 	  return 0;
   }
 
-  bogl_frame_offset = fb_fix.smem_start & ~PAGE_MASK;
-  bogl_frame_len = ((bogl_frame_offset + fb_fix.smem_len + ~PAGE_MASK)
-		    & PAGE_MASK);
+  pm = ~(sysconf(_SC_PAGESIZE) - 1);
+  bogl_frame_offset = fb_fix.smem_start & ~pm;
+  bogl_frame_len = ((bogl_frame_offset + fb_fix.smem_len + ~pm)
+		    & pm);
 
   bogl_frame_mapped
     = mmap (NULL, bogl_frame_len, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0);
@@ -211,6 +222,29 @@ bogl_init (void)
   if (!status)
     atexit (bogl_done);
   status = 2;
+
+  return 1;
+}
+
+/* Set screen resolution. */
+int
+bogl_set_resolution (int xres, int yres)
+{
+  bogl_want_xres = xres;
+  bogl_want_yres = yres;
+
+  if (status == 2 && (xres != bogl_xres || yres != bogl_yres)) {
+    struct fb_var_screeninfo fb_var;
+
+    if (-1 != ioctl (fb, FBIOGET_VSCREENINFO, &fb_var)) {
+      fb_var.xres = xres;
+      fb_var.yres = yres;
+      if (-1 == ioctl (fb, FBIOPUT_VSCREENINFO, &fb_var))
+	return bogl_fail ("setting screen size: %s", strerror (errno));
+      bogl_xres = xres;
+      bogl_yres = yres;
+    }
+  }
 
   return 1;
 }
@@ -292,6 +326,16 @@ bogl_done (void)
   mode.acqsig = 0;
   ioctl (tty, VT_SETMODE, &mode);
   
+  if (bogl_orig_xres != bogl_xres || bogl_orig_yres != bogl_yres) {
+    struct fb_var_screeninfo fb_var;
+
+    if (-1 != ioctl (fb, FBIOGET_VSCREENINFO, &fb_var)) {
+      fb_var.xres = bogl_orig_xres;
+      fb_var.yres = bogl_orig_yres;
+      ioctl (fb, FBIOPUT_VSCREENINFO, &fb_var);
+    }
+  }
+
   close (tty);
   close (fb);
 }
