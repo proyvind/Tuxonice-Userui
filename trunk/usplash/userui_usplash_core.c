@@ -88,10 +88,12 @@ static void userui_usplash_update_progress(unsigned long value, unsigned long ma
 
     if (prev_maximum == -1)
 	prev_maximum = maximum;
-    else
+    else {
+	int adv = percent - old_percent;
 	if (prev_maximum == maximum && percent != 100 &&
-	        percent - old_percent < MIN_ADVANCE_PERCENT)
+	        0 < adv && adv < MIN_ADVANCE_PERCENT)
 	    return;
+    }
 
     draw_progressbar(percent);
     old_percent = percent;
