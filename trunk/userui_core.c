@@ -416,6 +416,10 @@ static void get_info() {
 	    fclose(f);
 	}
 
+	get_console_loglevel();
+	saved_console_loglevel = console_loglevel;
+
+	/* We'll get the replies in our message loop */
 	if (!send_message(USERUI_MSG_GET_STATE, NULL, 0)) {
 		bail_err("send_message");
 	}
@@ -428,14 +432,13 @@ static void get_info() {
 		bail_err("send_message");
 	}
 
-	if (!send_message(USERUI_MSG_GET_POWERDOWN_METHOD, NULL, 0)) {
+	if (!send_message(USERUI_MSG_GET_LOGLEVEL, NULL, 0)) {
 		bail_err("send_message");
 	}
 	
-	/* We'll get the replies in our message loop */
-
-	get_console_loglevel();
-	saved_console_loglevel = console_loglevel;
+	if (!send_message(USERUI_MSG_GET_POWERDOWN_METHOD, NULL, 0)) {
+		bail_err("send_message");
+	}
 }
 
 static long my_vm_size() {
@@ -785,6 +788,10 @@ static void message_loop() {
 			case USERUI_MSG_GET_DEBUG_STATE:
 				suspend_debug = *(int*)NLMSG_DATA(nlh);
 				break;
+			case USERUI_MSG_GET_LOGLEVEL:
+				console_loglevel = *(int*)NLMSG_DATA(nlh);
+				set_console_loglevel(0);
+				break;
 			case USERUI_MSG_IS_DEBUGGING:
 				debugging_enabled = *(int *)NLMSG_DATA(nlh);
 				break;
@@ -792,6 +799,7 @@ static void message_loop() {
 				powerdown_method = *(int *)NLMSG_DATA(nlh);
 				break;
 			case USERUI_MSG_CLEANUP:
+				send_message(USERUI_MSG_SET_LOGLEVEL, (int*)&console_loglevel, sizeof(console_loglevel));
 				userui_ops->cleanup();
 				send_message(USERUI_MSG_CLEANUP, NULL, 0);
 				close(nlsock);
