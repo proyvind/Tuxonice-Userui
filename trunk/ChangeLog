@@ -1,3 +1,10 @@
+0.7.1 (18 May 2007)
+  - Update for kernel interface change (console loglevel).
+  - Fix xpid issue.
+  - Allow usplash progress bar to go backwards.
+  - Always restore the console.
+  - Use libusplash.
+
 0.7.0 (17 January 2007)
   - Make test mode work at a usable speed again.
   - Update for kernel interface changes (send cleanup ack).
