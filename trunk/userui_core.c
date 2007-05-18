@@ -804,10 +804,14 @@ static void message_loop() {
 				send_message(USERUI_MSG_CLEANUP, NULL, 0);
 				close(nlsock);
 				exit(0);
-			case USERUI_MSG_REDRAW:
+			case USERUI_MSG_POST_ATOMIC_RESTORE:
 				resuming = 1;
 				userui_ops->redraw();
 				unblank_screen();
+				send_message(USERUI_MSG_GET_LOGLEVEL, NULL, 0);
+				send_message(USERUI_MSG_GET_STATE, NULL, 0);
+				send_message(USERUI_MSG_GET_DEBUG_STATE, NULL, 0);
+				send_message(USERUI_MSG_GET_POWERDOWN_METHOD, NULL, 0);
 				break;
 			case NLMSG_ERROR:
 				report_nl_error(nlh);
