@@ -155,10 +155,10 @@ static int usplash_option_handler(char c)
 static char *usplash_cmdline_options()
 {
     return 
-"  -x, --xres\n"
-"     Specifies the X resolution.\n"
-"  -y, --yres\n"
-"     Specifies the Y resolution.\n"
+"  -x <x-resolution>, --xres <x-resolution>\n"
+"     Specifies the X resolution in pixels.\n"
+"  -y <y-resolution>, --yres <y-resolution>\n"
+"     Specifies the Y resolution in pixels.\n"
 "  -q, --quiet\n"
 "     Enables usplash's quiet mode (no text is shown).\n";
 }

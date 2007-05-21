@@ -3,6 +3,7 @@
   - Don't let <Enter> kill usplash.
   - Default Makefile target is now a helpful message. Use "make all" for
     old-style behaviour.
+  - Added --xres, --yres and --quiet options to usplash (Whoopie).
 
 0.7.1 (18 May 2007)
   - Update for kernel interface change (console loglevel).
