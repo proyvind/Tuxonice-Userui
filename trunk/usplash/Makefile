@@ -1,5 +1,5 @@
 CFLAGS := -g -Wall -fPIC -O3 -D_GNU_SOURCE
-INCLUDES = -I. -Ibogl
+INCLUDES = -I.
 
 TARGET = userui_usplash.o
 OBJECTS = userui_usplash_core.o

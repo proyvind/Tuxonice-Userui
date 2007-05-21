@@ -29,7 +29,7 @@ default:
 	@echo "   make suspend2ui_usplash"
 	@echo "       - To build this, you must have libusplash0 installed."
 
-all: fbsplash usplash $(TARGETS)
+all: $(TARGETS)
 
 fbsplash:
 	make -C $@ all
@@ -38,13 +38,13 @@ usplash:
 	make -C $@ all
 
 suspend2ui_text: $(CORE_OBJECTS) userui_text.o
-	$(CC) $(LDFLAGS) -static $^ -o $@
+	$(CC) $(LDFLAGS) $^ -o $@
 
-suspend2ui_fbsplash: $(CORE_OBJECTS) fbsplash/userui_fbsplash.o
-	$(CC) $(LDFLAGS) -static $^ -o $@ $(FBSPLASH_LIBS)
+suspend2ui_fbsplash: fbsplash $(CORE_OBJECTS) fbsplash/userui_fbsplash.o
+	$(CC) $(LDFLAGS) -static $(CORE_OBJECTS) fbsplash/userui_fbsplash.o -o $@ $(FBSPLASH_LIBS)
 
-suspend2ui_usplash: $(CORE_OBJECTS) usplash/userui_usplash.o
-	$(CC) $(filter-out -static,$(LDFLAGS)) $^ -o $@ $(USPLASH_LIBS)
+suspend2ui_usplash: usplash $(CORE_OBJECTS) usplash/userui_usplash.o
+	$(CC) $(filter-out -static,$(LDFLAGS)) $(CORE_OBJECTS) usplash/userui_usplash.o -o $@ $(USPLASH_LIBS)
 
 clean:
 	$(RM) *.o $(TARGETS)
