@@ -1,3 +1,7 @@
+0.7.2 (unreleased)
+  - Fix the escape key in usplash.
+  - Don't let <Enter> kill usplash.
+
 0.7.1 (18 May 2007)
   - Update for kernel interface change (console loglevel).
   - Fix xpid issue.

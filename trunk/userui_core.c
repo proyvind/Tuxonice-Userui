@@ -50,8 +50,7 @@ static int safe_to_exit = 1;
 static volatile int need_loglevel_change = 0;
 static int debugging_enabled = 0;
 static int powerdown_method = 0;
-static int console_in_fd = -1;
-static int console_out_fd = -1;
+static int console_fd = -1;
 
 char software_suspend_version[32];
 int can_use_escape = 0;
@@ -496,8 +495,8 @@ static void enforce_lifesavers() {
 }
 
 static void restore_console() {
-	ioctl(console_in_fd, KDSKBMODE, K_XLATE);
-	ioctl(console_out_fd, KDSETMODE, KD_TEXT);
+	ioctl(console_fd, KDSKBMODE, K_XLATE);
+	ioctl(console_fd, KDSETMODE, KD_TEXT);
 	write(1, "\033[?25h\033[?0c", 11);
 
 	if (saved_console_loglevel >= 0) {
@@ -511,7 +510,7 @@ static void restore_console() {
 	}
 
 	if (have_termios_backup)
-		tcsetattr(console_out_fd, TCSANOW, &termios_backup);
+		tcsetattr(console_fd, TCSANOW, &termios_backup);
 }
 
 /* A generic signal handler to ensure we don't quit in times of desperation,
@@ -560,7 +559,7 @@ static void keypress_signal_handler(int sig) {
 
 	while (1) {
 		if (next_is_escaped) {
-			if (read(console_in_fd, &b, 1) <= 0)
+			if (read(STDIN_FILENO, &b, 1) <= 0)
 				break;
 			else {
 				if (!raw_keypresses)
@@ -570,7 +569,7 @@ static void keypress_signal_handler(int sig) {
 				    userui_ops->keypress((a << 8)|b);
 			}
 		} else {
-			if (read(console_in_fd, &a, 1) <= 0)
+			if (read(STDIN_FILENO, &a, 1) <= 0)
 				break;
 			else {
 				if (!raw_keypresses)
@@ -613,25 +612,22 @@ static void setup_signal_handlers() {
 }
 
 static void open_console() {
-	if ((console_in_fd = open("/dev/console", O_RDONLY)) == -1)
-		bail_err("open(\"/dev/console\", O_RDONLY)");
-	if ((console_out_fd = open("/dev/console", O_WRONLY)) == -1)
-		bail_err("open(\"/dev/console\", O_WRONLY)");
+	if ((console_fd = open("/dev/console", O_RDWR)) == -1)
+		bail_err("open(\"/dev/console\", O_RDWR)");
 
-	if (dup2(console_in_fd, STDIN_FILENO) == -1)
-		bail_err("dup2(fd_r, STDIN_FILENO)");
-	if (dup2(console_out_fd, STDOUT_FILENO) == -1)
+	if (dup2(console_fd, STDIN_FILENO) == -1)
+		bail_err("dup2(fd, STDIN_FILENO)");
+	if (dup2(console_fd, STDOUT_FILENO) == -1)
 		bail_err("dup2(fd, STDOUT_FILENO)");
-	if (dup2(console_out_fd, STDERR_FILENO) == -1)
+	if (dup2(console_fd, STDERR_FILENO) == -1)
 		bail_err("dup2(fd, STDERR_FILENO)");
 }
 
 static void prepare_console() {
-	int flags;
 	struct termios t;
 	
 	/* Backup and set our favourite termios settings */
-	if (tcgetattr(console_out_fd, &t) == -1) {
+	if (tcgetattr(console_fd, &t) == -1) {
 		perror("tcgetattr");
 	} else {
 		memcpy(&termios_backup, &t, sizeof(t));
@@ -642,29 +638,33 @@ static void prepare_console() {
 		t.c_lflag &= ~(ISIG|ICANON|ECHO);
 		t.c_cc[VTIME] = 0;
 		t.c_cc[VMIN] = 0;
-		tcsetattr(console_out_fd, TCSANOW, &t);
+		tcsetattr(console_fd, TCSANOW, &t);
 	}
 
 	/* Make sure we clean up properly */
 	atexit(restore_console);
 
-	/* Want to receive raw keypresses */
-	if (ioctl(console_in_fd, KDSKBMODE, K_MEDIUMRAW) == 0)
-		raw_keypresses = 1;
-	
-	/* And be notified about them asynchronously */
-	install_sighand(SIGIO, keypress_signal_handler);
-
-	if (fcntl(console_in_fd, F_SETOWN, xgetpid()) == -1)
-		bail_err("fcntl(console_in_fd, F_SETOWN)");
-
-	flags = O_RDONLY | O_ASYNC | O_NONBLOCK;
-	if (fcntl(console_in_fd, F_SETFL, flags) == -1)
-		bail_err("fcntl(console_in_fd, F_SETFL)");
-
 	/* Set outputs to non-buffered */
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
+}
+
+static void register_keypress_handler() {
+	int flags;
+
+	/* Want to receive raw keypresses */
+	if (ioctl(STDIN_FILENO, KDSKBMODE, K_MEDIUMRAW) == 0)
+		raw_keypresses = 1;
+
+	/* And be notified about them asynchronously */
+	install_sighand(SIGIO, keypress_signal_handler);
+
+	if (fcntl(STDIN_FILENO, F_SETOWN, xgetpid()) == -1)
+		bail_err("fcntl(STDIN_FILENO, F_SETOWN)");
+
+	flags = O_RDWR | O_ASYNC | O_NONBLOCK;
+	if (fcntl(STDIN_FILENO, F_SETFL, flags) == -1)
+		bail_err("fcntl(STDIN_FILENO, F_SETFL)");
 }
 
 static void open_netlink() {
@@ -895,6 +895,8 @@ int main(int argc, char **argv) {
 	prepare_console();
 
 	userui_ops->prepare();
+
+	register_keypress_handler();
 
 	need_cleanup = 1;
 	running = 1;

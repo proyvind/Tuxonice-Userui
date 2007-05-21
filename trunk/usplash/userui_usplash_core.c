@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
+#include <termios.h>
 #include <unistd.h>
 
 #include "usplash_backend.h"
@@ -27,16 +28,28 @@ static int usplash_ready = 0;
 
 static void userui_usplash_prepare() {
     /* Set RLIMIT_NPROC now to prevent svgalib from forking. */
+    struct termios t;
+    int have_termios;
     struct rlimit r;
     r.rlim_cur = r.rlim_max = 0;
     setrlimit(RLIMIT_NPROC, &r);
 
+    /* Save termios as usplash does silly things with it.  (specifically, makes
+     * \n send SIGQUIT). We should already have all the termios we need.
+     */
+    have_termios = (-1 != tcgetattr(STDIN_FILENO, &t));
+
     if (usplash_setup(0, 0, 1)) {
 	usplash_restore_console();
+	if (have_termios)
+	    tcsetattr(STDIN_FILENO, TCSANOW, &t);
 	fprintf(stderr, "Failed to initialise usplash!\n");
 	//exit (2);
 	return;
     }
+
+    if (have_termios)
+	tcsetattr(STDIN_FILENO, TCSANOW, &t);
 
     clear_screen();
     clear_progressbar();
