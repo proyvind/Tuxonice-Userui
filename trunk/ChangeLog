@@ -1,6 +1,8 @@
 0.7.2 (unreleased)
   - Fix the escape key in usplash.
   - Don't let <Enter> kill usplash.
+  - Default Makefile target is now a helpful message. Use "make all" for
+    old-style behaviour.
 
 0.7.1 (18 May 2007)
   - Update for kernel interface change (console loglevel).
