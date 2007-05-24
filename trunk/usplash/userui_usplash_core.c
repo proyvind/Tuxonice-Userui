@@ -1,7 +1,7 @@
 /*
  * userui_usplash_core.c - usplash userspace user interface module.
  *
- * Copyright (C) 2005, Bernard Blackham <bernard@blackham.com.au>
+ * Copyright (C) 2005-2007, Bernard Blackham <bernard@blackham.com.au>
  * 
  * This file is subject to the terms and conditions of the GNU General Public
  * License v2.  See the file COPYING in the main directory of this archive for
@@ -12,6 +12,7 @@
 #include <linux/vt.h>
 #include <sys/resource.h>
 #include <sys/ioctl.h>
+#include <ctype.h>
 #include <fcntl.h>
 #include <getopt.h>
 #include <stdio.h>
@@ -30,11 +31,88 @@ static int userui_usplash_xres = 0;
 static int userui_usplash_yres = 0;
 static int userui_usplash_verbose = 1;
 
+static void read_usplash_conf() {
+    char s[1024];
+    FILE *f;
+
+    f = fopen("/etc/usplash.conf", "r");
+    if (f == NULL)
+	return;
+
+    while (fgets(s, sizeof(s), f)) {
+	char *p, *varname, *varvalue;
+
+	/* Oh, how I long for a regex. */
+	/* m/^\s*([a-z]+)\s*=\s*([0-9]+)\s*$/ */
+
+	/* Trim leading whitespace */
+	p = s;
+	while (isspace(*p))
+	    p++;
+
+	/* Match [a-z]+ */
+	if (*p == '\0' || !isalpha(*p))
+	    continue;
+	varname = p;
+	while (isalpha(*p))
+	    p++;
+
+	/* Match \s*= and null-terminate */
+	if (*p == '=')
+	    *p++ = '\0';
+        else if (isspace(*p)) {
+	    *p++ = '\0';
+	    while (isspace(*p))
+		p++;
+	    if (*p != '=')
+		continue;
+	    p++;
+	} else
+	    continue;
+
+	/* Snip more whitespace */
+	while (isspace(*p))
+	    p++;
+
+	/* Match [0-9]+ */
+	if (*p == '\0' || !isdigit(*p))
+	    continue;
+	varvalue = p;
+	while (isdigit(*p))
+	    p++;
+
+	/* Null terminate value */
+	if (*p != '\0')
+	    *p++ = '\0';
+
+	/* Trim trailing whitespace */
+	while (isspace(*p))
+	    p++;
+
+	/* Make sure we hit the end. */
+	if (*p != '\0')
+	    continue;
+
+	/* Yay! Now see if it's useful. */
+	if (strcmp(varname, "xres") == 0)
+	    userui_usplash_xres = atoi(varvalue);
+	else if (strcmp(varname, "yres") == 0)
+	    userui_usplash_yres = atoi(varvalue);
+    }
+
+    fclose(f);
+}
+
 static void userui_usplash_prepare() {
-    /* Set RLIMIT_NPROC now to prevent svgalib from forking. */
     struct termios t;
     int have_termios;
     struct rlimit r;
+
+    /* Read the usplash.conf file (not quite bash-like, but hopefully good
+     * enough. */
+    read_usplash_conf();
+
+    /* Set RLIMIT_NPROC now to prevent svgalib from forking. */
     r.rlim_cur = r.rlim_max = 0;
     setrlimit(RLIMIT_NPROC, &r);
 
