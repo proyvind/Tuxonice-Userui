@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <getopt.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
@@ -94,9 +95,9 @@ static void read_usplash_conf() {
 	    continue;
 
 	/* Yay! Now see if it's useful. */
-	if (strcmp(varname, "xres") == 0)
+	if (strcmp(varname, "xres") == 0 && userui_usplash_xres == 0)
 	    userui_usplash_xres = atoi(varvalue);
-	else if (strcmp(varname, "yres") == 0)
+	else if (strcmp(varname, "yres") == 0 && userui_usplash_yres == 0)
 	    userui_usplash_yres = atoi(varvalue);
     }
 
