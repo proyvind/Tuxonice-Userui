@@ -1,4 +1,5 @@
 0.7.2 (unreleased)
+  - Update paths from /proc/suspend2 to /sys/power/suspend2.
   - Fix the escape key in usplash.
   - Don't let <Enter> kill usplash.
   - Default Makefile target is now a helpful message. Use "make all" for
