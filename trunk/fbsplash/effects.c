@@ -1,7 +1,7 @@
 /*
  * effects.c - miscellaneous graphical effects for splashutils
  *
- * Suspend2 userui adaptations:
+ * TuxOnIce userui adaptations:
  *   Copyright (C) 2005 Bernard Blackham <bernard@blackham.com.au>
  *
  * Based on the original splashutils code:

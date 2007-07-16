@@ -1,5 +1,10 @@
 0.7.2 (unreleased)
+  - Update paths from /sys/power/suspend2 to /sys/power/tuxonice!
+  - Change Suspend2 (and variants) to TuxOnIce.
   - Update paths from /proc/suspend2 to /sys/power/suspend2.
+  - Add support for getting the kernel to printk messages (for debugging).
+  - Reorder resume time code to try to minimise time with suspend-time
+    display.
   - Fix the escape key in usplash.
   - Don't let <Enter> kill usplash.
   - Default Makefile target is now a helpful message. Use "make all" for

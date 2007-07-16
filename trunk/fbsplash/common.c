@@ -2,7 +2,7 @@
  * common.c - miscellaneous functions used by both the kernel helper and
  *            user utilities.
  * 
- * Suspend2 userui adaptations:
+ * TuxOnIce userui adaptations:
  *   Copyright (C) 2005 Bernard Blackham <bernard@blackham.com.au>
  *
  * Based on the original splashutils code:

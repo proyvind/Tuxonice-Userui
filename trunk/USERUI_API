@@ -42,10 +42,10 @@ void prepare()
   after the suspend cycle has started. This is where you do all your setup -
   this entails opening and reading all the files you will need, allocating all
   the memory you will need and anything else to avoid touching the filesystem
-  once suspending has started. Suspending will not proceed until this function
+  once suspending has started. Hibernating will not proceed until this function
   exits. If you really need to abort the suspend process because something
   failed (not really recommended), you can send a USERUI_MSG_ABORT. This is
-  described in Communicating with Software Suspend.
+  described in Communicating with TuxOnIce.
 
 void cleanup()
   This is called after the suspend has completed (either through resuming or
@@ -53,11 +53,11 @@ void cleanup()
   effects of prepare() that would otherwise persist.
 
 void message(type, level, normally_logged, text)
-  This function is called by Software Suspend when it wishes to update the message
+  This function is called by TuxOnIce when it wishes to update the message
   on the screen.  FIXME ... fill in details of parameters!
 
 void update_progress(value, maximum, text)
-  This function is called by Software Suspend to update progress of suspending or
+  This function is called by TuxOnIce to update progress of suspending or
   resuming. The text parameter specifies the text to display in the middle of the
   progress bar.
 
@@ -102,11 +102,11 @@ char *cmdline_options()
   This function should returns a string containing the usage text for the extra
   options provided by this module.
 
-Communicating with Software Suspend
------------------------------------
+Communicating with TuxOnIce
+---------------------------
 
 Most of the messages are handled by userui_core, but there may arise occasions
-where you wish to manipulate Software Suspend directly. This can be achieved by
+where you wish to manipulate TuxOnIce directly. This can be achieved by
 using the send_message function:
         int send_message(int type, void* buf, int len);
 
@@ -142,7 +142,7 @@ Restrictions on your userui module
 Memory Allocation and Usage
  - it shouldn't use too much. All memory of the userui is mlock()'d so it is
    not swapped out to disk. It shouldn't try to allocate huge amounts of memory
-   outside of your prepare() function as this will starve Software Suspend of
+   outside of your prepare() function as this will starve TuxOnIce of
    memory for IO. A resource limit is enforced while suspending so excessive
    allocations should hopefully return with ENOMEM, but you should avoid this
    in the first place.

@@ -1,7 +1,7 @@
 /*
  * image.c - Functions to load & unpack PNGs and JPEGs
  *
- * Suspend2 userui adaptations:
+ * TuxOnIce userui adaptations:
  *   Copyright (C) 2005 Bernard Blackham <bernard@blackham.com.au>
  *
  * Based on the original splashutils code:

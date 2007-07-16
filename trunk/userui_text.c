@@ -3,8 +3,8 @@
  *
  * Copyright (C) 2005, Bernard Blackham <bernard@blackham.com.au>
  *
- * Based on the suspend_text module from Software Suspend 2, written by
- * Nigel Cunningham <ncunningham@cyclades.com>
+ * Based on the suspend_text module from Suspend2, written by
+ * Nigel Cunningham <nigel@nigel.suspend2.net>
  * 
  * This file is subject to the terms and conditions of the GNU General Public
  * License v2.  See the file COPYING in the main directory of this archive for
@@ -200,13 +200,14 @@ static void text_loglevel_change()
 
 		show_cursor();
 
-		printf("\nSwitched to console loglevel %d.\n", console_loglevel);
+		if (lastloglevel > -1)
+			printf("\nSwitched to console loglevel %d.\n", console_loglevel);
 
-		if (lastloglevel < SUSPEND_ERROR) {
+		if (lastloglevel > -1 && lastloglevel < SUSPEND_ERROR) {
 			printf("\n** %s\n", lastheader);
 		}
 	
-	} else if (lastloglevel >= SUSPEND_ERROR) {
+	} else if (lastloglevel >= SUSPEND_ERROR || lastloglevel == -1) {
 		clear_display();
 		hide_cursor();
 	

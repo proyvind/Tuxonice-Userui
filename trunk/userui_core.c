@@ -31,10 +31,13 @@
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 #include "userui.h"
 
 #define PAGE_SIZE 0x1000
+
+void printk(char *msg, ...);
 
 #define bail_err(x) do { fprintf(stderr, x": %s\n", strerror(errno)); fflush(stderr); abort(); } while (0)
 #define bail(x...) do { fprintf(stderr, ## x); fflush(stderr); abort(); } while (0)
@@ -140,6 +143,18 @@ static void request_abort_suspend() {
 	}
 	send_message(USERUI_MSG_ABORT, NULL, 0);
 	resuming = 1;
+}
+
+void printk(char *msg, ...)
+{
+	char buf[256];
+	int len;
+
+	va_list args;
+	va_start(args, msg);
+	len = vsnprintf(buf, sizeof(buf), msg, args);
+	va_end(args);
+	send_message(USERUI_MSG_PRINTK, buf, len + 1);
 }
 
 static void toggle_reboot() {
@@ -369,7 +384,7 @@ static void handle_params(int argc, char **argv) {
 "     (useful for performance testing).\n"
 "%s"
 "\n"
-"Suspend2 UserUI version %s (%s module)\n",
+"TuxOnIce UserUI version %s (%s module)\n",
 					argv[0],
 					(userui_ops->cmdline_options)?userui_ops->cmdline_options():"",
 					USERUI_VERSION, userui_ops->name);
@@ -470,8 +485,8 @@ static void reserve_memory(unsigned long bytes) {
 		return;
 
 	/* Give an upper limit on our maximum address space so that we don't starve
-	 * Software Suspend of memory.
-	 * FIXME - this never actually gets reported to software suspend! Perhaps
+	 * TuxOnIce of memory.
+	 * FIXME - this never actually gets reported to the kernel! Perhaps
 	 * suspend_userui should look at our RLIMIT_AS ?
 	 */
 	r.rlim_cur = r.rlim_max = vm_size + bytes;
@@ -805,13 +820,13 @@ static void message_loop() {
 				close(nlsock);
 				exit(0);
 			case USERUI_MSG_POST_ATOMIC_RESTORE:
-				resuming = 1;
-				userui_ops->redraw();
-				unblank_screen();
 				send_message(USERUI_MSG_GET_LOGLEVEL, NULL, 0);
 				send_message(USERUI_MSG_GET_STATE, NULL, 0);
 				send_message(USERUI_MSG_GET_DEBUG_STATE, NULL, 0);
 				send_message(USERUI_MSG_GET_POWERDOWN_METHOD, NULL, 0);
+				resuming = 1;
+				unblank_screen();
+				userui_ops->redraw();
 				break;
 			case NLMSG_ERROR:
 				report_nl_error(nlh);

@@ -1,7 +1,7 @@
 /*
  * splash_cmd.c - Functions for handling communication with the kernel
  *
- * Suspend2 userui adaptations:
+ * TuxOnIce userui adaptations:
  *   Copyright (C) 2005 Bernard Blackham <bernard@blackham.com.au>
  *
  * Based on the original splashutils code:
