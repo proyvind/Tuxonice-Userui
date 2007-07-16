@@ -1,4 +1,6 @@
-0.7.2 (unreleased)
+0.7.3 (unreleased)
+
+0.7.2 (16 July 2007)
   - Do text u/i title too.
   - Update paths from /sys/power/suspend2 to /sys/power/tuxonice!
   - Change Suspend2 (and variants) to TuxOnIce.
