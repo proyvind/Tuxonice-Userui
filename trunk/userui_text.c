@@ -121,8 +121,8 @@ static void text_prepare_status_real(int printalways, int clearbar, int level, c
 	update_help(0);
 	
 	/* Print header */
-	move_cursor_to((video_num_columns - 31) / 2, (video_num_lines / 3) - 3);
-	printf("S O F T W A R E   S U S P E N D");
+	move_cursor_to((video_num_columns - 19) / 2, (video_num_lines / 3) - 3);
+	printf("T U X   O N   I C E");
 
 	/* Print action */
 	y = video_num_lines / 3;
