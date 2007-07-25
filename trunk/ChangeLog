@@ -1,4 +1,5 @@
 0.7.3 (unreleased)
+  - Fix version number. Nigel failed to update userui.h.
 
 0.7.2 (16 July 2007)
   - Do text u/i title too.
