@@ -416,7 +416,7 @@ static void lock_memory() {
 }
 
 static void get_info() {
-	FILE *f = fopen("/sys/power/suspend2/version", "r");
+	FILE *f = fopen("/sys/power/tuxonice/version", "r");
 	if (f) {
 	    fgets(software_suspend_version, sizeof(software_suspend_version), f);
 	    fclose(f);
@@ -424,7 +424,7 @@ static void get_info() {
 	    software_suspend_version[strlen(software_suspend_version)-1] = '\0';
 	}
 
-	f = fopen("/sys/power/suspend2/enable_escape", "r");
+	f = fopen("/sys/power/tuxonice/enable_escape", "r");
 	if (f) {
 	    fscanf(f, "%d", &can_use_escape);
 	    fclose(f);
