@@ -1,0 +1,10 @@
+--- tuxonice-userui-0.7.2.orig/Makefile	2007-08-27 15:34:18.000000000 +0200
++++ tuxonice-userui-0.7.2/Makefile	2007-08-27 15:34:25.000000000 +0200
+@@ -52,7 +52,6 @@
+ 	make -C usplash clean
+ 
+ $(INSTDIR)/%: %
+-	strip $<
+ 	install -m 755 -o root -g root $< $@
+ 
+ install: all $(patsubst %,$(INSTDIR)/%,$(TARGETS))

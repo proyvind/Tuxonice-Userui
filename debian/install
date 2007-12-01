@@ -1,0 +1,2 @@
+debian/lintian/tuxonice-userui		usr/share/lintian/overrides
+debian/linda/tuxonice-userui		usr/share/linda/overrides
