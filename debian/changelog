@@ -1,3 +1,17 @@
+tuxonice-userui (0.7.2+clean-4) unstable; urgency=low
+
+  * New email address.
+  * Drop useless debian/control.in.
+  * debian/control:
+    + Update Standards-Version to 3.8.0.
+    + Wrap Build-Depends field.
+  * Drop patches which are now useless because this is done in
+    debian/rules directly.
+  * Don't build tuxoniceui_usplash binary on ia64 because usplash is
+    unavailable on ia64. Closes: #423714.
+
+ -- Arnaud Fontaine <arnau@debian.org>  Mon, 30 Jun 2008 16:13:53 +0200
+
 tuxonice-userui (0.7.2+clean-3) unstable; urgency=low
 
   * Rename suspend2-userui to tuxonice-userui. Closes: #446147.

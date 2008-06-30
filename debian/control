@@ -1,9 +1,14 @@
 Source: tuxonice-userui
 Priority: extra
 Section: misc
-Maintainer: Arnaud Fontaine <arnaud@andesi.org>
-Build-Depends: cdbs (>= 0.4.23-1.1), patchutils (>= 0.2.25), debhelper (>= 4.2.0), libmng-dev, libfreetype6-dev, libpng12-dev, libusplash-dev
-Standards-Version: 3.7.2
+Maintainer: Arnaud Fontaine <arnau@debian.org>
+Build-Depends: cdbs (>= 0.4.23-1.1),
+               debhelper (>= 4.2.0),
+               libmng-dev,
+               libfreetype6-dev,
+               libpng12-dev,
+               libusplash-dev [!ia64]
+Standards-Version: 3.8.0
 Homepage: http://www.tuxonice.net/userui
 
 Package: tuxonice-userui

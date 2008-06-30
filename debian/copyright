@@ -2,7 +2,7 @@ This is the Debian/Ubuntu package for tuxonice-userui.
 
 The package was debianised by martin f. krafft <madduck@debian.org>.
 It was maintained by Thomas Schoepf <schoepf@debian.org> and is now
-maintained by Arnaud Fontaine <arnaud@andesi.org>.
+maintained by Arnaud Fontaine <arnau@debian.org>.
 
 The debian specific changes are copyright (c) 1996-2005 martin f. krafft, and
 copyright (c) 2006 Thomas Schoepf, and distributed under the terms of the
