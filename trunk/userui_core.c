@@ -101,6 +101,12 @@ void set_console_loglevel(int exiting) {
 	fseek(printk_f, 0, SEEK_SET);
 	fprintf(printk_f, "%d\n", console_loglevel);
 
+	/*
+	 * Tell kernel about the change so it can store the right
+	 * value in the image header
+	 */
+	send_message(USERUI_MSG_SET_LOGLEVEL, (int*)&console_loglevel, sizeof(console_loglevel));
+
 	if (!exiting)
 		userui_ops->log_level_change();
 }
@@ -814,7 +820,6 @@ static void message_loop() {
 				powerdown_method = *(int *)NLMSG_DATA(nlh);
 				break;
 			case USERUI_MSG_CLEANUP:
-				send_message(USERUI_MSG_SET_LOGLEVEL, (int*)&console_loglevel, sizeof(console_loglevel));
 				userui_ops->cleanup();
 				send_message(USERUI_MSG_CLEANUP, NULL, 0);
 				close(nlsock);
