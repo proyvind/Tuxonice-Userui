@@ -2,6 +2,10 @@
   - Fix version number. Nigel failed to update userui.h.
   - s@/sys/power/suspend2@/sys/power/tuxonice@ in userui_core.c, as directed
     by "Whoopie".
+  - Tell the kernel immediately when the loglevel changes, rather than
+    only when told to clean up. This lets the kernel store the correct
+    loglevel in the image header and therefore have it properly restored
+    when starting to resume.
 
 0.7.2 (16 July 2007)
   - Do text u/i title too.
