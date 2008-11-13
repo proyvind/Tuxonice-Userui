@@ -6,6 +6,7 @@
     only when told to clean up. This lets the kernel store the correct
     loglevel in the image header and therefore have it properly restored
     when starting to resume.
+  - Change default fbsplash theme dir to /etc/splash/tuxonice.
 
 0.7.2 (16 July 2007)
   - Do text u/i title too.
