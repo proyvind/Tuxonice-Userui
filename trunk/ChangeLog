@@ -7,6 +7,7 @@
     loglevel in the image header and therefore have it properly restored
     when starting to resume.
   - Change default fbsplash theme dir to /etc/splash/tuxonice.
+  - Fix usplash - thanks to Tobias Doerffel for the patch.
 
 0.7.2 (16 July 2007)
   - Do text u/i title too.

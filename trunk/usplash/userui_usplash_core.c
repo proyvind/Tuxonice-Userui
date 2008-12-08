@@ -204,6 +204,7 @@ static void userui_usplash_log_level_change(int loglevel) {
 static void userui_usplash_redraw() {
     if (!usplash_ready)
 	return;
+    clear_screen();
 }
 
 static void userui_usplash_keypress(int key) {
