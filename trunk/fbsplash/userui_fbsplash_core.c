@@ -28,7 +28,7 @@
 #include "splash.h"
 #include "../userui.h"
 
-int fb_fd, fbsplash_fd = -1;
+int fb_fd, fbsplash_fd = -1, no_silent_image = 0;
 char *progress_text;
 static char lastmessage[512];
 static char rendermessage[512];
@@ -147,7 +147,7 @@ static void fbsplash_prepare() {
 
 	do_getpic(FB_SPLASH_IO_ORIG_USER, 1, 'v'); /* Don't worry if it fails */
 	if (do_getpic(FB_SPLASH_IO_ORIG_USER, 0, 's') == -1)
-		return; /* We do care if this fails. */
+		no_silent_image = 1; /* We do care if this fails. */
 
 	/* These next two touch the kernel and are needed even for silent mode, to
 	 * get the colours right (even on 32-bit depth displays funnily enough. */
@@ -155,13 +155,15 @@ static void fbsplash_prepare() {
 	cmd_setstate(1, FB_SPLASH_IO_ORIG_USER);
 
 	/* copy the silent pic to base_image for safe keeping */
-	base_image_size = silent_img.width * silent_img.height * (silent_img.depth >> 3);
-	base_image = malloc(base_image_size);
-	if (!base_image) {
-		fprintf(stderr, "Couldn't get enough memory for framebuffer image.\n");
-		return;
+	if (!no_silent_image) {
+		base_image_size = silent_img.width * silent_img.height * (silent_img.depth >> 3);
+		base_image = malloc(base_image_size);
+		if (!base_image) {
+			fprintf(stderr, "Couldn't get enough memory for framebuffer image.\n");
+			return;
+		}
+		memcpy(base_image, (void*)silent_img.data, base_image_size);
 	}
-	memcpy(base_image, (void*)silent_img.data, base_image_size);
 
 	frame_buffer = mmap(NULL, fb_fix.line_length * fb_var.yres,
 			PROT_READ | PROT_WRITE, MAP_SHARED, fb_fd, 0);
@@ -187,8 +189,10 @@ static void fbsplash_cleanup() {
 	free(silent_img.cmap.red);
 	silent_img.cmap.red = NULL;
 
-	free(base_image);
-	base_image = NULL;
+	if (!no_silent_image) {
+		free(base_image);
+		base_image = NULL;
+	}
 
 	free(config_file);
 	config_file = NULL;
@@ -243,7 +247,7 @@ static void fbsplash_update_silent_message() {
 	update_fb_img();
 }
 
-static void fbsplash_message(unsigned long type, unsigned long level, int normally_logged, char *msg) {
+static void fbsplash_message(u32 type, u32 level, u32 normally_logged, char *msg) {
 	strncpy(lastmessage, msg, 512);
 	if (console_loglevel >= SUSPEND_ERROR) {
 		if (!(suspend_action & (1 << SUSPEND_LOGALL)) || level == SUSPEND_UI_MSG)
@@ -262,7 +266,7 @@ static void fbsplash_redraw() {
 	update_fb_img();
 }
 
-static void fbsplash_update_progress(unsigned long value, unsigned long maximum, char *msg) {
+static void fbsplash_update_progress(u32 value, u32 maximum, char *msg) {
 	int bitshift, tmp;
 
 	if (console_loglevel >= SUSPEND_ERROR)
@@ -284,11 +288,11 @@ static void fbsplash_update_progress(unsigned long value, unsigned long maximum,
 
 	/* Try to avoid math problems */
 	if (bitshift > 0) {
-		unsigned long temp_maximum = maximum >> bitshift;
-		unsigned long temp_value = value >> bitshift;
-		tmp = (int) (temp_value * PROGRESS_MAX / temp_maximum);
+		u32 temp_maximum = maximum >> bitshift;
+		u32 temp_value = value >> bitshift;
+		tmp = (u32) (temp_value * PROGRESS_MAX / temp_maximum);
 	} else
-		tmp = (int) (value * PROGRESS_MAX / maximum);
+		tmp = (u32) (value * PROGRESS_MAX / maximum);
 
 	cur_value = value;
 	cur_maximum = maximum;

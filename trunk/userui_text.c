@@ -221,7 +221,7 @@ static void text_loglevel_change()
 /* text_update_progress
  *
  * Description: Update the progress bar and (if on) in-bar message.
- * Arguments:	UL value, maximum: Current progress percentage (value/max).
+ * Arguments:	U32 value, maximum: Current progress percentage (value/max).
  * 		const char *fmt, ...: Message to be displayed in the middle
  * 		of the progress bar.
  * 		Note that a NULL message does not mean that any previous
@@ -230,10 +230,9 @@ static void text_loglevel_change()
  * Returns:	Unsigned long: The next value where status needs to be updated.
  * 		This is to reduce unnecessary calls to text_update_progress.
  */
-void text_update_progress(unsigned long value, unsigned long maximum,
-		char *msg)
+void text_update_progress(__uint32_t value, __uint32_t maximum, char *msg)
 {
-	unsigned long next_update = 0;
+	__uint32_t next_update = 0;
 	int bitshift = generic_fls(maximum) - 16;
 	int message_len = 0;
 
@@ -250,11 +249,11 @@ void text_update_progress(unsigned long value, unsigned long maximum,
 	 * (and shouldn't need it - anyone got screen resolution
 	 * of 65536 pixels or more?) */
 	if (bitshift > 0) {
-		unsigned long temp_maximum = maximum >> bitshift;
-		unsigned long temp_value = value >> bitshift;
-		newbarposn = (int) (temp_value * barwidth / temp_maximum);
+		__uint32_t temp_maximum = maximum >> bitshift;
+		__uint32_t temp_value = value >> bitshift;
+		newbarposn = (__uint32_t) (temp_value * barwidth / temp_maximum);
 	} else
-		newbarposn = (int) (value * barwidth / maximum);
+		newbarposn = (__uint32_t) (value * barwidth / maximum);
 	
 	if (newbarposn < barposn)
 		barposn = 0;
@@ -300,9 +299,8 @@ void text_update_progress(unsigned long value, unsigned long maximum,
 	/* return next_update; */
 }
 
-static void text_message(unsigned long section, unsigned long level,
-		int normally_logged,
-		char *msg)
+static void text_message(__uint32_t section, __uint32_t level,
+		__uint32_t normally_logged, char *msg)
 {
 	if (section && !((1 << section) & suspend_debug))
 		return;

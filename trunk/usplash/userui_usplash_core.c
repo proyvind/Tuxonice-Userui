@@ -150,7 +150,8 @@ static void userui_usplash_cleanup() {
     usplash_restore_console();
 }
 
-static void userui_usplash_message(unsigned long section, unsigned long level, int normally_logged, char *msg) {
+static void userui_usplash_message(__uint32_t section, __uint32_t level,
+		__uint32_t normally_logged, char *msg) {
     if (!usplash_ready)
 	return;
 
@@ -163,16 +164,17 @@ static void userui_usplash_message(unsigned long section, unsigned long level, i
     draw_text(msg, strlen(msg));
 }
 
-static void userui_usplash_update_progress(unsigned long value, unsigned long maximum, char *msg) {
-    static int prev_maximum = -1;
-    static int old_percent = -1;
+static void userui_usplash_update_progress(__uint32_t value, __uint32_t maximum,
+		char *msg) {
+    static __uint32_t prev_maximum = -1;
+    static __uint32_t old_percent = -1;
 
-    int percent;
+    __uint32_t percent;
 
     if (!usplash_ready)
 	return;
 
-    if (maximum == (unsigned long)(-1))
+    if (maximum == (__uint32_t)(-1))
 	value = maximum = 1;
 
     if (value > maximum)
@@ -186,7 +188,7 @@ static void userui_usplash_update_progress(unsigned long value, unsigned long ma
     if (prev_maximum == -1)
 	prev_maximum = maximum;
     else {
-	int adv = percent - old_percent;
+	__uint32_t adv = percent - old_percent;
 	if (prev_maximum == maximum && percent != 100 &&
 	        0 < adv && adv < MIN_ADVANCE_PERCENT)
 	    return;
