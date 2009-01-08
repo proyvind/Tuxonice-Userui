@@ -1,0 +1,68 @@
+TuxOnIce's userspace user interface appeared in 2.1.7 as a "Possibly broken
+developer option". It allows you put the user interface of TuxOnIce into a
+userspace process which offers a great deal of flexibility as to what can
+be done.
+
+To get things going, you'll need the following:
+
+ - A TuxOnIce enabled kernel with suspend_userui enabled either as a
+   kernel module or compiled into the kernel. Versions since 2.1.9 or
+   thereabouts have it compiled in unconditionally, so you need not worry about
+   selecting it.
+
+   If you have fbsplash compiled into your kernel, you will be able to get the
+   verbose splash screens for higher console levels for added eyecandy, but
+   this is not required.
+
+ - The userspace UI sources. These are available from the download page at
+   http://www.TuxOnIce.net/downloads/ under the "Userspace UI" section. You can
+   also get bleeding edge code from the subversion repository:
+     svn checkout http://svn.TuxOnIce.net/TuxOnIce-userui/trunk TuxOnIce-userui
+
+ - For TuxOnIceui_fbsplash - a suitable fbsplash theme. See
+   http://wiki.TuxOnIce.net/UserUI/Themes to grab one you like.
+
+Steps:
+
+1. If you are running a version of TuxOnIce patch where userui is a module,
+   ensure the tuxonice_userui module is loaded.
+
+2. Download the userui sources from the website, extract the tarball, compile
+   by running "make", and install with "make install".  This will create
+   tuxoniceui_text and tuxoniceui_fbsplash and install them into
+   /usr/local/sbin by default. The fbsplash module will only succeed in
+   compiling if you have all the relevant libraries and dev files (libpng,
+   libz, libjpeg, freetype2, lcms and libmng-1.0.5 or later).
+
+3. In your hibernate script, put the path to the tuxoniceui_text or
+   tuxoniceui_fbsplash binary into /sys/power/tuxonice/user_interface/program.
+
+4. [This step is somewhat optional - if you omit it, you simply will not have a
+    user interface for the first portion of resuming].
+   Add the tuxoniceui_text or tuxoniceui_fbsplash binary to your initrd image
+   and set your initrd script to set the user_interface/program path
+   appropriately (if it is in a different location in the initrd image).
+
+5. [This step for fbsplash only]
+   Download your favourite fbsplash theme (see
+   http://wiki.tuxonice.net/UserUI/Themes). Extract the tarball into
+   /etc/splash, and create a symlink called /etc/splash/TuxOnIce to point to
+   your preferred theme. For example:
+
+        /etc/splash# ln -s debian-black-suspend2 TuxOnIce
+
+   would set your theme to debian-black-suspend2.
+
+   If you want to see the splash for the first portion of resuming too, you
+   will need to put this theme into the initrd too.
+
+6. Login on a console as root, and run "/usr/local/sbin/tuxoniceui_fbsplash -t"
+   (or tuxoniceui_text) to check that everything goes to plan. This runs the
+   user interface in test mode. If it doesn't work here, it's unlikely to work
+   when suspending.
+
+7. Hibernate!
+
+Please report any bugs to either the suspend2-devel mailing list or
+bernard@blackham.com.au
+
