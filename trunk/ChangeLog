@@ -1,4 +1,4 @@
-0.7.3 (unreleased)
+0.7.3 (8 January 2008)
   - Fix version number. Nigel failed to update userui.h.
   - s@/sys/power/suspend2@/sys/power/tuxonice@ in userui_core.c, as directed
     by "Whoopie".
