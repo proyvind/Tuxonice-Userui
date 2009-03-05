@@ -51,18 +51,18 @@ static int running = 0;
 static int need_cleanup = 0;
 static int safe_to_exit = 1;
 static volatile int need_loglevel_change = 0;
-static int debugging_enabled = 0;
-static int powerdown_method = 0;
+static __uint32_t debugging_enabled = 0;
+static __uint32_t powerdown_method = 0;
 static int console_fd = -1;
 
 char software_suspend_version[32];
 int can_use_escape = 0;
 
 static FILE *printk_f = NULL;
-static int saved_console_loglevel = -1;
-volatile int console_loglevel = 1;
-volatile int suspend_action = 0;
-volatile int suspend_debug = 0;
+static __uint32_t saved_console_loglevel = -1;
+volatile __uint32_t console_loglevel = 1;
+volatile __uint32_t suspend_action = 0;
+volatile __uint32_t suspend_debug = 0;
 
 volatile int resuming = 0;
 
@@ -100,6 +100,12 @@ void set_console_loglevel(int exiting) {
 		return;
 	fseek(printk_f, 0, SEEK_SET);
 	fprintf(printk_f, "%d\n", console_loglevel);
+
+	/*
+	 * Tell kernel about the change so it can store the right
+	 * value in the image header
+	 */
+	send_message(USERUI_MSG_SET_LOGLEVEL, (void *) &console_loglevel, sizeof(console_loglevel));
 
 	if (!exiting)
 		userui_ops->log_level_change();
@@ -416,7 +422,7 @@ static void lock_memory() {
 }
 
 static void get_info() {
-	FILE *f = fopen("/sys/power/suspend2/version", "r");
+	FILE *f = fopen("/sys/power/tuxonice/version", "r");
 	if (f) {
 	    fgets(software_suspend_version, sizeof(software_suspend_version), f);
 	    fclose(f);
@@ -424,7 +430,7 @@ static void get_info() {
 	    software_suspend_version[strlen(software_suspend_version)-1] = '\0';
 	}
 
-	f = fopen("/sys/power/suspend2/enable_escape", "r");
+	f = fopen("/sys/power/tuxonice/enable_escape", "r");
 	if (f) {
 	    fscanf(f, "%d", &can_use_escape);
 	    fclose(f);
@@ -696,7 +702,7 @@ static void open_netlink() {
 }
 
 static int send_ready() {
-	int version = SUSPEND_USERUI_INTERFACE_VERSION;
+	__uint32_t version = SUSPEND_USERUI_INTERFACE_VERSION;
 
 	safe_to_exit = 0;
 
@@ -798,23 +804,22 @@ static void message_loop() {
 				userui_ops->update_progress(msg->a, msg->b, msg->text);
 				break;
 			case USERUI_MSG_GET_STATE:
-				suspend_action = *(int*)NLMSG_DATA(nlh);
+				suspend_action = *(__uint32_t*)NLMSG_DATA(nlh);
 				break;
 			case USERUI_MSG_GET_DEBUG_STATE:
-				suspend_debug = *(int*)NLMSG_DATA(nlh);
+				suspend_debug = *(__uint32_t*)NLMSG_DATA(nlh);
 				break;
 			case USERUI_MSG_GET_LOGLEVEL:
-				console_loglevel = *(int*)NLMSG_DATA(nlh);
+				console_loglevel = *(__uint32_t*)NLMSG_DATA(nlh);
 				set_console_loglevel(0);
 				break;
 			case USERUI_MSG_IS_DEBUGGING:
-				debugging_enabled = *(int *)NLMSG_DATA(nlh);
+				debugging_enabled = *(__uint32_t *)NLMSG_DATA(nlh);
 				break;
 			case USERUI_MSG_GET_POWERDOWN_METHOD:
-				powerdown_method = *(int *)NLMSG_DATA(nlh);
+				powerdown_method = *(__uint32_t *)NLMSG_DATA(nlh);
 				break;
 			case USERUI_MSG_CLEANUP:
-				send_message(USERUI_MSG_SET_LOGLEVEL, (int*)&console_loglevel, sizeof(console_loglevel));
 				userui_ops->cleanup();
 				send_message(USERUI_MSG_CLEANUP, NULL, 0);
 				close(nlsock);

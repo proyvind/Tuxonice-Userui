@@ -1,3 +1,0 @@
-# tuxonice-userui needs to be  statically linked because called by the
-# kernel at startup
-Tag: static-binary

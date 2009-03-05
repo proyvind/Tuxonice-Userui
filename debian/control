@@ -3,34 +3,24 @@ Priority: extra
 Section: misc
 Maintainer: Arnaud Fontaine <arnau@debian.org>
 Build-Depends: cdbs (>= 0.4.23-1.1),
-               debhelper (>= 4.2.0),
-               libmng-dev,
+               debhelper (>= 6.0.7),
+               libmng-dev (>= 1.0.5),
                libfreetype6-dev,
                libpng12-dev,
-               libusplash-dev [!ia64]
+               libusplash-dev [!ia64],
+	       quilt     
 Standards-Version: 3.8.0
 Homepage: http://www.tuxonice.net/userui
 
 Package: tuxonice-userui
 Architecture: i386 ia64 powerpc ppc64 amd64
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, initramfs-tools
 Recommends: hibernate
-Provides: suspend2-userui
-Replaces: suspend2-userui (<< 0.7.2+clean-3)
-Conflicts: suspend2-userui (<< 0.7.2+clean-3)
 Description: user-space interfaces for TuxOnIce
- TuxOnIce is an alternative implementation to suspend a linux machine
+ TuxOnIce is an alternative implementation to suspend a Linux machine
  by writing its state to memory for later resuming. A kernel patch for
  TuxOnIce is available separately.
  .
  This package provides several user interfaces which improve the
  user's experience during the suspend and resume processes. It is not
  needed for TuxOnIce functionality.
-
-Package: suspend2-userui
-Depends: tuxonice-userui
-Architecture: all
-Description: transitional dummy package
- This package is provided to smooth upgrade to TuxOnIce, because
- suspend2-userui package has been renamed to tuxonice-userui. It can
- be safely removed after upgrade.

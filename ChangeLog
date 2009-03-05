@@ -1,4 +1,18 @@
-0.7.3 (unreleased)
+0.7.3 (8 January 2008)
+  - Fix version number. Nigel failed to update userui.h.
+  - s@/sys/power/suspend2@/sys/power/tuxonice@ in userui_core.c, as directed
+    by "Whoopie".
+  - Tell the kernel immediately when the loglevel changes, rather than
+    only when told to clean up. This lets the kernel store the correct
+    loglevel in the image header and therefore have it properly restored
+    when starting to resume.
+  - Change default fbsplash theme dir to /etc/splash/tuxonice.
+  - Fix usplash - thanks to Tobias Doerffel for the patch.
+  - Modify message so it indicates that you can press Escape to abort resuming
+    too.
+  - Switch to explicitly using 32 bit integers for netlink data, to fix
+    word-size issues with mixed 32 & 64 bit useruis and kernels. This is an
+    ABI bump, requiring TuxOnIce 3.0-rc8 (git from Jan 6 2009 or later).
 
 0.7.2 (16 July 2007)
   - Do text u/i title too.

@@ -1,3 +1,11 @@
+tuxonice-userui (0.7.3-1) unstable; urgency=low
+
+  * Add ramdisk  support, which means you can  now include tuxonice-userui
+    binaries  within   a  ramdisk  by   simply  running  'update-initramfs
+    -u'. This command is automatically run on package installation.
+
+ -- Arnaud Fontaine <arnau@debian.org>  Tue, 20 Jan 2009 11:51:00 +0000
+
 tuxonice-userui (0.7.2+clean-3) unstable; urgency=low
 
   * Rename suspend2-userui packages to tuxonice-userui.

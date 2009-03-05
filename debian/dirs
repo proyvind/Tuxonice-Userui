@@ -1,3 +1,2 @@
-usr/lib/tuxonice-userui
-usr/share/lintian/overrides
-usr/share/linda/overrides
+usr/lib/tuxonice-userui/
+usr/share/initramfs-tools/hooks/

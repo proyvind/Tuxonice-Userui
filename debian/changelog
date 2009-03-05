@@ -1,3 +1,33 @@
+tuxonice-userui (0.7.3-1) unstable; urgency=low
+
+  * New upstream release. Closes: #512302.
+  * Add debian/watch.
+  * Get rid of deprecated linda override.
+  * Get rid of now useless suspend2-userui dummy package.
+  * debian/control:
+    + Fix mispelling in description.
+    + Add ${misc:Depends} to Depends in case the result of a call to
+      debhelper tools adds extra dependencies.
+    + Bump debhelper Build-Depends to take advantage of dh_lintian.
+  * debian/copyright:
+    + Update copyright years.
+    + Reorganize to make it clearer.
+  * Add ramdisk support. Thanks to Dylan Thurston. Closes: #499856.
+    + Add debian/postinst and debian/postrm.
+    + debian/control:
+      - Add Depends against initramfs-tools.
+    + debian/NEWS:
+      - Add entry explaining how to use it.
+  * Add 01_dont-display-reboot-option-on-resume.patch to not display
+    reboot option when resuming. Closes: #424943.
+    + Add debian/README.source according to the policy.
+    + debian/control:
+      - Add Build-Depends on quilt.
+    + debian/rules:
+      - Include CDBS patchsys-quilt.mk.
+
+ -- Arnaud Fontaine <arnau@debian.org>  Thu, 05 Mar 2009 22:42:46 +0000
+
 tuxonice-userui (0.7.2+clean-4) unstable; urgency=low
 
   * New email address.

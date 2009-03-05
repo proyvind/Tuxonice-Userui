@@ -1,44 +1,43 @@
-This is the Debian/Ubuntu package for tuxonice-userui.
-
-The package was debianised by martin f. krafft <madduck@debian.org>.
-It was maintained by Thomas Schoepf <schoepf@debian.org> and is now
+This is the Debian/Ubuntu package for tuxonice-userui. The package was
+debianised   by  martin  f.   krafft  <madduck@debian.org>.    It  was
+maintained   by  Thomas  Schoepf   <schoepf@debian.org>  and   is  now
 maintained by Arnaud Fontaine <arnau@debian.org>.
 
-The debian specific changes are copyright (c) 1996-2005 martin f. krafft, and
-copyright (c) 2006 Thomas Schoepf, and distributed under the terms of the
-Artistic License. On Debian systems, the full licence text may be found in
-`/usr/share/common-licenses/Artistic'. 
+It was downloaded from http://www.tuxonice.net/downloads/
 
-The upstream sources for the package may be found at:
-  http://www.tuxonice.net
-
-Authors: 
+Authors:
   Bernard Blackham <bernard@blackham.com.au>
   Henrix Brix Andersen <brix@gentoo.org>
 
-  The fbsplash module is based very heavily on splashutils, written by
-  Michal Januszewski <spock@gentoo.org> and available at 
-  http://dev.gentoo.org/~spock/projects/gensplash/
+Files: *
+  Copyright (C) 2005-2009 Bernard Blackham <bernard@blackham.com.au>
 
-Copyright: 2005 Bernard Blackham <bernard@blackham.com.au>
-           fbsplash based on splashutils
-           copyright (c) 2004-2005 Michal Januszewski <spock@gentoo.org>
+Files: fbplash/*
+  Copyright (C) 2005-2009 Bernard Blackham <bernard@blackham.com.au>
+  Copyright (C) 2004-2009 Michal Januszewski <spock@gentoo.org>
 
-License:
+All the files are under the following license:
 
-   This package is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
+  This package is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free  Software Foundation; either  version 2 of the  License, or
+  (at your option) any later version.
 
-   This package is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+  This package is distributed in the  hope that it will be useful, but
+  WITHOUT  ANY   WARRANTY;  without  even  the   implied  warranty  of
+  MERCHANTABILITY or  FITNESS FOR A  PARTICULAR PURPOSE.  See  the GNU
+  General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with this package; if not, write to the Free Software Foundation,
-   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
+  You should  have received a copy  of the GNU  General Public License
+  along  with  this  package;  if  not, write  to  the  Free  Software
+  Foundation,  Inc.,   51  Franklin   St,  Fifth  Floor,   Boston,  MA
+  02110-1301, USA.
 
-On Debian systems, the complete text of the GNU General
-Public License can be found in `/usr/share/common-licenses/GPL-2'.
+On Debian systems, the complete text of the GNU General Public License
+can be found in `/usr/share/common-licenses/GPL-2'.
+
+The  Debian specific  changes are  copyright (c)  1996-2005  Martin F.
+Krafft, copyright (c) 2006 Thomas Schoepf, and copyright (c) 2006-2009
+Arnaud  Fontaine, and  distributed  under the  terms  of the  Artistic
+License.  On  Debian systems,  the full license  text may be  found in
+`/usr/share/common-licenses/Artistic'.
