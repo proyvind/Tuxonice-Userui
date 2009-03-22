@@ -77,10 +77,14 @@ static int update_cursor_pos(void)
  */
 static void update_help(int update_all)
 {
-	const char intro_text[] = "%-18s    R: %s reboot after suspend ";
 	char buf[200];
-	snprintf(buf, 200, intro_text, 
-			(can_use_escape) ? "Esc: Abort suspend / resume" : "",
+
+	if (resuming)
+		snprintf(buf, 200, "%-18s",
+			(can_use_escape) ? "Esc: Abort resume" : "");
+	else
+		snprintf(buf, 200, "%-18s    R: %s reboot after suspend ",
+			(can_use_escape) ? "Esc: Abort suspend" : "",
 			(suspend_action & (1 << SUSPEND_REBOOT)) ?  "Disable":"Enable");
 	move_cursor_to(video_num_columns - strlen(buf), video_num_lines);
 	printf("%s", buf);
