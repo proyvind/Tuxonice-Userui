@@ -194,7 +194,10 @@ static void userui_usplash_update_progress(__uint32_t value, __uint32_t maximum,
 	    return;
     }
 
-    draw_progressbar(percent);
+    if (resuming)
+       draw_progressbar(percent);
+    else
+       draw_progressbar(-percent);
     old_percent = percent;
 }
 
