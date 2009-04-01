@@ -2,7 +2,7 @@
 
 [ -z "$1" ] && echo "Usage: $0 <version number>" && exit
 
-FULLNAME=suspend2-userui-$1
+FULLNAME=tuxonice-userui-$1
 
 [ -e $FULLNAME -o -e $FULLNAME.tar.gz ] && echo "Already exists!" && exit
 
