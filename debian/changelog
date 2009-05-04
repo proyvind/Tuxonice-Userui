@@ -1,3 +1,12 @@
+tuxonice-userui (1.0-1) unstable; urgency=low
+
+  * New upstream release.
+    + Get rid of the patch as it has been applied upstream.
+  * debian/control:
+    + Update Standards-Version to 3.8.1. No changes needed.
+
+ -- Arnaud Fontaine <arnau@debian.org>  Mon, 04 May 2009 14:41:31 +0100
+
 tuxonice-userui (0.7.3-1) unstable; urgency=low
 
   * New upstream release. Closes: #512302.

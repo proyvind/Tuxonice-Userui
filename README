@@ -5,7 +5,7 @@ be done.
 
 To get things going, you'll need the following:
 
- - A TuxOnIce enabled kernel with suspend_userui enabled either as a
+ - A TuxOnIce enabled kernel with tuxonice_userui enabled either as a
    kernel module or compiled into the kernel. Versions since 2.1.9 or
    thereabouts have it compiled in unconditionally, so you need not worry about
    selecting it.
@@ -15,12 +15,12 @@ To get things going, you'll need the following:
    this is not required.
 
  - The userspace UI sources. These are available from the download page at
-   http://www.TuxOnIce.net/downloads/ under the "Userspace UI" section. You can
+   http://www.tuxonice.net/downloads/ under the "Userspace UI" section. You can
    also get bleeding edge code from the subversion repository:
-     svn checkout http://svn.TuxOnIce.net/TuxOnIce-userui/trunk TuxOnIce-userui
+     svn checkout http://svn.tuxonice.net/tuxonice-userui/trunk tuxonice-userui
 
  - For TuxOnIceui_fbsplash - a suitable fbsplash theme. See
-   http://wiki.TuxOnIce.net/UserUI/Themes to grab one you like.
+   http://wiki.tuxonice.net/UserUI/Themes to grab one you like.
 
 Steps:
 
@@ -46,10 +46,10 @@ Steps:
 5. [This step for fbsplash only]
    Download your favourite fbsplash theme (see
    http://wiki.tuxonice.net/UserUI/Themes). Extract the tarball into
-   /etc/splash, and create a symlink called /etc/splash/TuxOnIce to point to
+   /etc/splash, and create a symlink called /etc/splash/tuxonice to point to
    your preferred theme. For example:
 
-        /etc/splash# ln -s debian-black-suspend2 TuxOnIce
+        /etc/splash# ln -s debian-black-suspend2 tuxonice
 
    would set your theme to debian-black-suspend2.
 
