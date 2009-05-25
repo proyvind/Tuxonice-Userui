@@ -2,6 +2,7 @@
  * userui_text.c - Text mode userspace user interface module.
  *
  * Copyright (C) 2005, Bernard Blackham <bernard@blackham.com.au>
+ * Copyright (C) 2006-2009, Nigel Cunningham <nigel@tuxonice.net>
  *
  * Based on the suspend_text module from Suspend2, written by
  * Nigel Cunningham <nigel@nigel.tuxonice.net>

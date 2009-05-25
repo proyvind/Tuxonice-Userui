@@ -2,6 +2,7 @@
  * userui_usplash_core.c - usplash userspace user interface module.
  *
  * Copyright (C) 2005-2007, Bernard Blackham <bernard@blackham.com.au>
+ * Copyright (C) 2008-2009, Nigel Cunningham <nigel@tuxonice.net>
  * 
  * This file is subject to the terms and conditions of the GNU General Public
  * License v2.  See the file COPYING in the main directory of this archive for
