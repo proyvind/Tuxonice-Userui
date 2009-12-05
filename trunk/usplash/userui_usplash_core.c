@@ -33,6 +33,10 @@ static int userui_usplash_xres = 0;
 static int userui_usplash_yres = 0;
 static int userui_usplash_verbose = 1;
 
+#ifndef fade_logo
+static void fade_logo(on, step) { }
+#endif
+
 static void read_usplash_conf() {
     char s[1024];
     FILE *f;
@@ -139,6 +143,7 @@ static void userui_usplash_prepare() {
     clear_screen();
     clear_progressbar();
     clear_text();
+    fade_logo(1, 10);
 
     usplash_ready = 1;
 }
@@ -147,6 +152,7 @@ static void userui_usplash_cleanup() {
     if (!usplash_ready)
 	return;
 
+    fade_logo(1, 10);
     usplash_done();
     usplash_restore_console();
 }
