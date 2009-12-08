@@ -34,7 +34,7 @@ static int userui_usplash_yres = 0;
 static int userui_usplash_verbose = 1;
 
 #ifndef fade_logo
-static void fade_logo(on, step) { }
+void fade_logo(on, step) { }
 #endif
 
 static void read_usplash_conf() {

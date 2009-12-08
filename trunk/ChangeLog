@@ -2,6 +2,9 @@ unreleased
   - Add support for newer versions of libusplash, which implement and require
     the use of a new fade_logo function. Without this addition, Karmic users
     don't see anything while we're hibernating.
+  - Make the backwards compatible fade_logo definition non-static, to avoid
+    the static declaration of 'fade'logo' follows non-static declaration
+    message Whoopie reported (thanks!).
 
 1.0 (1 April 2009)
   - Small changes in preparation for the 1.0 release, coinciding with
