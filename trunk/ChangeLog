@@ -5,6 +5,7 @@ unreleased
   - Make the backwards compatible fade_logo definition non-static, to avoid
     the static declaration of 'fade'logo' follows non-static declaration
     message Whoopie reported (thanks!).
+  - Update userui.h to make the kernel code.
 
 1.0 (1 April 2009)
   - Small changes in preparation for the 1.0 release, coinciding with
