@@ -276,17 +276,15 @@ void text_update_progress(__uint32_t value, __uint32_t maximum, char *msg)
 
 	/* Update bar */
 	if (draw_progress_bar) {
+		int i;
 		/* Clear bar if at start */
-		if (!barposn) {
-			move_cursor_to(video_num_columns / 4 + 1, (video_num_lines / 3) + 1);
-			for (; barposn < barwidth; barposn++)
-				printf(" ");
-			barposn = 0;
-		}
-		move_cursor_to(video_num_columns / 4 + 1 + barposn, (video_num_lines / 3) + 1);
+		move_cursor_to(video_num_columns / 4 + 1, (video_num_lines / 3) + 1);
 
-		for (; barposn < newbarposn; barposn++)
+		for (i = 0; i < barposn; i++)
 			printf("-");
+
+		for (; i < barwidth; i++)
+			printf(" ");
 	}
 
 	/* Print string in progress bar on loglevel 1 */
