@@ -28,7 +28,7 @@
 
 /* We essentially cut and paste the suspend_text plugin */
 
-static int barwidth = 0, barposn = -1, newbarposn = 0;
+static int barwidth = 0, barposn = -1;
 static int draw_progress_bar = 1;
 
 /* We remember the last header that was (or could have been) displayed for
@@ -103,7 +103,7 @@ static void update_help(int update_all)
 
 static void text_prepare_status_real(int printalways, int clearbar, int level, const char *msg)
 {
-	int y;
+	int y, i;
 
 	if (msg) {
 		strncpy(lastheader, msg, 512);
@@ -136,7 +136,7 @@ static void text_prepare_status_real(int printalways, int clearbar, int level, c
 	move_cursor_to(0, y);
 
 	/* Clear old message */
-	for (barposn = 0; barposn < video_num_columns; barposn++) 
+	for (i = 0; i < video_num_columns; i++) 
 		printf(" ");
 
 	move_cursor_to((video_num_columns - lastheader_message_len) / 2, y);
@@ -157,10 +157,12 @@ static void text_prepare_status_real(int printalways, int clearbar, int level, c
 			move_cursor_to(video_num_columns / 4 + 1, y);
 
 			/* Clear bar */
-			for (barposn = 0; barposn < barwidth; barposn++)
+			for (i = 0; i < barwidth; i++)
 				printf(" ");
 
 			move_cursor_to(video_num_columns / 4 + 1, y);
+
+			barposn = 0;
 		}
 	}
 
@@ -171,8 +173,6 @@ static void text_prepare_status_real(int printalways, int clearbar, int level, c
 	move_cursor_to(cur_x, cur_y);
 	
 	hide_cursor();
-
-	barposn = 0;
 }
 
 static void text_prepare_status(int printalways, int clearbar, int level, const char *fmt, ...)
@@ -196,8 +196,6 @@ static void text_prepare_status(int printalways, int clearbar, int level, const 
 
 static void text_loglevel_change()
 {
-	barposn = 0;
-
 	/* Only reset the display if we're switching between nice display
 	 * and displaying debugging output */
 	
@@ -261,14 +259,11 @@ void text_update_progress(__uint32_t value, __uint32_t maximum, char *msg)
 	if (bitshift > 0) {
 		__uint32_t temp_maximum = maximum >> bitshift;
 		__uint32_t temp_value = value >> bitshift;
-		newbarposn = (__uint32_t) (temp_value * barwidth / temp_maximum);
+		barposn = (__uint32_t) (temp_value * barwidth / temp_maximum);
 	} else
-		newbarposn = (__uint32_t) (value * barwidth / maximum);
+		barposn = (__uint32_t) (value * barwidth / maximum);
 	
-	if (newbarposn < barposn)
-		barposn = 0;
-
-	next_update = ((newbarposn + 1) * maximum / barwidth) + 1;
+	next_update = ((barposn + 1) * maximum / barwidth) + 1;
 
 	if ((console_loglevel >= SUSPEND_ERROR) || (!draw_progress_bar))
 		return /* next_update */;
@@ -300,7 +295,6 @@ void text_update_progress(__uint32_t value, __uint32_t maximum, char *msg)
 	if (cur_x != -1)
 		move_cursor_to(cur_x, cur_y);
 	
-	barposn = newbarposn;
 	hide_cursor();
 	
 	/* return next_update; */
