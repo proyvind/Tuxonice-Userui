@@ -86,7 +86,7 @@ static void update_help(int update_all)
 	else
 		snprintf(buf, 200, "%-22s    R: %s reboot after hibernating ",
 			(can_use_escape) ? "Esc: Abort hibernating" : "",
-			(suspend_action & (1 << SUSPEND_REBOOT)) ?  "Disable":"Enable");
+			(suspend_action & (1 << SUSPEND_REBOOT)) ?  "Disable":" Enable");
 	move_cursor_to(video_num_columns - strlen(buf), video_num_lines);
 	printf("%s", buf);
 }
