@@ -240,8 +240,11 @@ static void text_loglevel_change()
 void text_update_progress(__uint32_t value, __uint32_t maximum, char *msg)
 {
 	__uint32_t next_update = 0;
-	int bitshift = generic_fls(maximum) - 16;
-	int message_len = 0;
+	int bitshift = generic_fls(maximum) - 16, i;
+	int msg_len = msg ? strlen(msg) : 0;
+	int msg_start = (video_num_columns - msg_len - 2) / 2 -
+		(video_num_columns / 4 + 1);
+	char bar_char = '-';
 
 	if (!maximum)
 		return /* maximum */;
@@ -275,24 +278,23 @@ void text_update_progress(__uint32_t value, __uint32_t maximum, char *msg)
 		update_cursor_pos();
 
 	/* Update bar */
-	if (draw_progress_bar) {
-		int i;
-		/* Clear bar if at start */
-		move_cursor_to(video_num_columns / 4 + 1, (video_num_lines / 3) + 1);
-
-		for (i = 0; i < barposn; i++)
-			printf("-");
-
-		for (; i < barwidth; i++)
-			printf(" ");
-	}
-
-	/* Print string in progress bar on loglevel 1 */
-	if (msg && strlen(msg) && (console_loglevel)) {
-		message_len = strlen(msg);
-		move_cursor_to((video_num_columns - message_len) / 2,
+	if (msg_start < 0) {
+		move_cursor_to((video_num_columns - msg_len) / 2,
 				(video_num_lines / 3) + 1);
 		printf(" %s ", msg);
+	} else {
+		move_cursor_to(video_num_columns / 4 + 1, (video_num_lines / 3) + 1);
+		for (i = 0; i < barwidth; i++) {
+			if (i == barposn)
+				bar_char = ' ';
+			if (i == msg_start && msg_len && console_loglevel) {
+				printf(" %s ", msg);
+				i += msg_len + 2;
+				if (i >= barposn)
+					bar_char = ' ';
+			} else
+				printf("%c", bar_char);
+		}
 	}
 
 	if (cur_x != -1)
