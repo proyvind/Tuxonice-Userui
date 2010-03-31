@@ -1,7 +1,0 @@
-- Rename package to suspend2-userui
-- Fix jerkiness of fbanim
-- Fix memory usage - either use it, or get rid of it.
-- Explicitly unblank screen
-- Release!
-- Support non-qwerty keymaps.
-- Set console loglevel ourselves.
