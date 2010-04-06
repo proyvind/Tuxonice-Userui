@@ -42,6 +42,12 @@ typedef struct {
 	u8 r, g, b;
 } __attribute__ ((packed)) rgbcolor;
 
+#if 0
+#undef png_sig_cmp
+static int (*png_sig_cmp) PNGARG((png_bytep sig, png_size_t start,
+	png_size_t num_to_check));
+#endif
+
 /* This function converts a truecolor image to whatever format the 
  * framebuffer uses */
 void truecolor2fb (truecolor* data, u8* out, int len, int y, u8 alpha)
@@ -67,7 +73,7 @@ void truecolor2fb (truecolor* data, u8* out, int len, int y, u8 alpha)
 
 #ifdef CONFIG_PNG
 #define PALETTE_COLORS 240
-int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *height, u8 want_alpha)
+int load_png(char *filename, u8 **data, struct fb_cmap *cmap, unsigned int *width, unsigned int *height, u8 want_alpha)
 {
 	png_structp 	png_ptr;
 	png_infop 	info_ptr, end_info;
@@ -220,13 +226,14 @@ failed:
 
 int is_png(char *filename)
 {
-	char header[8];
+	unsigned char header[8];
 	FILE *fp = fopen(filename,"r");
+	int result;
 	
 	if (!fp)
 		return -1;
 
-	fread(header, 1, 8, fp);
+	result = fread(header, 1, 8, fp);
 	fclose(fp);
 	
 	return !png_sig_cmp(header, 0, 8);

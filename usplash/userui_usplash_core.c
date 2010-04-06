@@ -33,6 +33,20 @@ static int userui_usplash_xres = 0;
 static int userui_usplash_yres = 0;
 static int userui_usplash_verbose = 1;
 
+#if 0
+#include <dlfcn.h>
+
+static void *dl_handle;
+static int (*usplash_setup) (int xres, int yres, int verbose);
+static void (*usplash_restore_console) (void);
+static void (*usplash_done) (void);
+static void (*draw_progressbar) (int percentage);
+static void (*clear_screen) (void);
+static void (*clear_progressbar) (void);
+static void (*clear_text) (void);
+static void (*draw_text) (const char *text, size_t len);
+#endif
+
 #ifndef fade_logo
 void fade_logo(on, step) { }
 #endif
@@ -247,6 +261,8 @@ static int usplash_option_handler(char c)
 static char *usplash_cmdline_options()
 {
     return 
+"\n"
+"  USPLASH:\n"
 "  -x <x-resolution>, --xres <x-resolution>\n"
 "     Specifies the X resolution in pixels.\n"
 "  -y <y-resolution>, --yres <y-resolution>\n"
@@ -262,8 +278,31 @@ static struct option userui_usplash_longopts[] = {
     {NULL, 0, 0, 0},
 };
 
-static struct userui_ops userui_usplash_ops = {
+#if 0
+static int userui_usplash_load(void)
+{
+	dl_handle = dlopen("libusplash.so", RTLD_NOW);
+	if (!dl_handle) {
+		fputs(dlerror(), stderr);
+		return 1;
+	}
+
+	get_dlsym(usplash_setup);
+	get_dlsym(usplash_restore_console);
+	get_dlsym(usplash_done);
+	get_dlsym(draw_progressbar);
+	get_dlsym(clear_screen);
+	get_dlsym(clear_progressbar);
+	get_dlsym(clear_text);
+	get_dlsym(draw_text);
+
+	return 0;
+};
+#endif
+
+struct userui_ops userui_usplash_ops = {
     .name = "usplash",
+    //.load = userui_usplash_load,
     .prepare = userui_usplash_prepare,
     .cleanup = userui_usplash_cleanup,
     .message = userui_usplash_message,
@@ -278,5 +317,3 @@ static struct userui_ops userui_usplash_ops = {
     .option_handler = usplash_option_handler,
     .cmdline_options = usplash_cmdline_options,
 };
-
-struct userui_ops *userui_ops = &userui_usplash_ops;

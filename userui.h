@@ -5,11 +5,13 @@
 #include <sys/types.h>
 #include "suspend_userui.h"
 
-#define USERUI_VERSION "1.0.0"
+#define USERUI_VERSION "1.1.0"
 
 struct userui_ops {
 	char *name;
+	int (*load) ();
 	void (*prepare) ();
+	void (*unprepare) ();
 	void (*cleanup) ();
 	void (*message) (__uint32_t type, __uint32_t level,
 			__uint32_t normally_logged, char *text);
@@ -26,6 +28,11 @@ struct userui_ops {
 	char *(*cmdline_options) ();
 };
 
+extern struct userui_ops userui_text_ops;
+extern struct userui_ops userui_usplash_ops;
+extern struct userui_ops userui_fbsplash_ops;
+
+#define NUM_UIS 3
 
 int send_message(int type, void* buf, int len);
 int common_keypress_handler(int key);
@@ -123,5 +130,17 @@ static __inline__ int generic_fls(int x)
  * Work around random glibc bugs where getpid() caches an invalid pid.
  */
 #define xgetpid() syscall(SYS_getpid)
+
+extern char lastheader[512];
+extern int video_num_lines, video_num_columns;
+
+#define get_dlsym(SYMBOL) { \
+	char *error; \
+	SYMBOL = dlsym(dl_handle, "SYMBOL"); \
+	if ((error = dlerror())) { \
+		fprintf(stderr, "%s\n", error); \
+		return 1; \
+	} \
+}
 
 #endif /* _USERUI_H_ */
