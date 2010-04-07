@@ -371,7 +371,9 @@ static void handle_params(int argc, char **argv) {
 		{"test", 0, 0, 't'},
 		{"channel", 1, 0, 'c'},
 		{"fbsplash", 0, 0, 'f'},
+#ifdef USE_USPLASH
 		{"usplash", 0, 0, 'u'},
+#endif
 		{NULL, 0, 0, 0},
 	};
 
@@ -435,8 +437,10 @@ static void handle_params(int argc, char **argv) {
 "     Specifying -t once will give an demo of this module.\n"
 "     Specifying -t twice will make the demo run as fast as it can.\n"
 "     (useful for performance testing).\n"
+#ifdef USE_USPLASH
 "  -u\n"
 "     Use usersplash interface by default.\n"
+#endif
 "  -f\n"
 "     Use fbsplash interface by default.\n",
 					argv[0]);
@@ -998,7 +1002,7 @@ int main(int argc, char **argv) {
 	int result = 0;
 	int i;
 
-	userui_ops[0] = &userui_usplash_ops;
+	userui_ops[0] = USPLASH_OPS;
 	userui_ops[1] = &userui_fbsplash_ops;
 	userui_ops[2] = &userui_text_ops;
 	active_ops = &userui_text_ops;
@@ -1019,7 +1023,7 @@ int main(int argc, char **argv) {
 
 	/* Initialise all that we can, use the last */
 	for (i = 0; i < NUM_UIS; i++) {
-		if (userui_ops[i]->load)
+		if (userui_ops[i] && userui_ops[i]->load)
 			result = userui_ops[i]->load();
 		if (result) {
 			if (test_run)

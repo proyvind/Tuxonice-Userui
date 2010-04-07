@@ -1,4 +1,9 @@
-unreleased
+1.1-rc2 (7 April 2010)
+  - Make usplash support optional, enabled by "USE_USPLASH=1 make"
+
+1.1-rc1 (6 April 2010)
+  - Single binary support with command-line options for starting with
+    fbsplash or usplash support.
   - Add support for newer versions of libusplash, which implement and require
     the use of a new fade_logo function. Without this addition, Karmic users
     don't see anything while we're hibernating.

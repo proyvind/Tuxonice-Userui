@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include "suspend_userui.h"
 
-#define USERUI_VERSION "1.1.0"
+#define USERUI_VERSION "1.1-rc2"
 
 struct userui_ops {
 	char *name;
@@ -29,8 +29,13 @@ struct userui_ops {
 };
 
 extern struct userui_ops userui_text_ops;
-extern struct userui_ops userui_usplash_ops;
 extern struct userui_ops userui_fbsplash_ops;
+#ifdef USE_USPLASH
+extern struct userui_ops userui_usplash_ops;
+#define USPLASH_OPS (&userui_usplash_ops)
+#else
+#define USPLASH_OPS NULL
+#endif
 
 #define NUM_UIS 3
 
