@@ -189,7 +189,11 @@ void printk(char *msg, ...)
 	va_start(args, msg);
 	len = vsnprintf(buf, sizeof(buf), msg, args);
 	va_end(args);
-	send_message(USERUI_MSG_PRINTK, buf, len + 1);
+
+	if (test_run)
+		fprintf(stderr, "%s", buf);
+	else
+		send_message(USERUI_MSG_PRINTK, buf, len + 1);
 }
 
 static void toggle_reboot() {

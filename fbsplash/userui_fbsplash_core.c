@@ -118,12 +118,12 @@ static int fbsplash_load() {
 
 	/* Kick start our TTF library */
 	if (TTF_Init() < 0) {
-		fprintf(stderr, "Couldn't initialise TTF.\n");
+		printk("Couldn't initialise TTF.\n");
 	}
 
 	/* Find out the FB size */
 	if (get_fb_settings(0)) {
-		fprintf(stderr, "Couldn't get fb settings.\n");
+		printk("Couldn't get fb settings.\n");
 		return 1;
 	}
 
@@ -135,9 +135,10 @@ static int fbsplash_load() {
 		arg_theme = DEFAULT_THEME;
 	config_file = get_cfg_file(arg_theme);
 	if (!config_file) {
-		fprintf(stderr, "Couldn't load config file %s.\n", arg_theme);
+		printk("Couldn't load config file %s.\n", arg_theme);
 		return 1;
-	}
+	} else
+		printk("Using configuration file %s.\n", config_file);
 
 	parse_cfg(config_file);
 
@@ -148,7 +149,7 @@ static int fbsplash_load() {
 
 	fb_fd = open_fb();
 	if (fb_fd == -1) {
-		fprintf(stderr, "Couldn't open framebuffer device.\n");
+		printk("Couldn't open framebuffer device.\n");
 		return 1;
 	}
 
@@ -171,7 +172,7 @@ static int fbsplash_load() {
 		base_image_size = silent_img.width * silent_img.height * (silent_img.depth >> 3);
 		base_image = malloc(base_image_size);
 		if (!base_image) {
-			fprintf(stderr, "Couldn't get enough memory for framebuffer image.\n");
+			printk("Couldn't get enough memory for framebuffer image.\n");
 			return 1;
 		}
 		memcpy(base_image, (void*)silent_img.data, base_image_size);
@@ -182,7 +183,7 @@ static int fbsplash_load() {
 	if (frame_buffer == MAP_FAILED)
 		frame_buffer = NULL;
 
-	fprintf(stderr, "Framebuffer support initialised successfully.\n");
+	printk("Framebuffer support initialised successfully.\n");
 	return 0;
 }
 
