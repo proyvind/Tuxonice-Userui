@@ -7,8 +7,7 @@ Build-Depends: cdbs (>= 0.4.23-1.1),
                libmng-dev (>= 1.0.5),
                libfreetype6-dev,
                libpng12-dev,
-               libusplash-dev [!ia64],
-Standards-Version: 3.8.1
+Standards-Version: 3.9.2
 Homepage: http://www.tuxonice.net/userui
 
 Package: tuxonice-userui

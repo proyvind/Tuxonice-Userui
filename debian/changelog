@@ -1,3 +1,14 @@
+tuxonice-userui (1.0-2) unstable; urgency=low
+
+  * Disable usplash following usplash removal (#593702). Closes: #593708.
+  * Switch source format to 3.0 (quilt).
+  * debian/control:
+    + Update Standards-Version to 3.9.2. No changes needed.
+  * debian/lintian-overrides:
+    + Change overridden tag from embedded-zlib to embedded-library.
+
+ -- Arnaud Fontaine <arnau@debian.org>  Sat, 05 Nov 2011 17:41:35 +0900
+
 tuxonice-userui (1.0-1) unstable; urgency=low
 
   * New upstream release.

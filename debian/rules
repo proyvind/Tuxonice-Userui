@@ -4,12 +4,7 @@
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/makefile.mk
 
-# usplash is not available on ia64
-ifeq ($(DEB_HOST_ARCH_CPU),ia64)
 DEB_MAKE_BUILD_TARGET := tuxoniceui_text tuxoniceui_fbsplash
-else
-DEB_MAKE_BUILD_TARGET := tuxoniceui_text tuxoniceui_fbsplash tuxoniceui_usplash
-endif
 
 binary-post-install/tuxonice-userui::
 	install -m 755 -t $(CURDIR)/debian/tuxonice-userui/usr/lib/tuxonice-userui/ \
