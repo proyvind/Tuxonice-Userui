@@ -29,7 +29,14 @@ struct userui_ops {
 };
 
 extern struct userui_ops userui_text_ops;
+
+#ifdef USE_FBSPLASH
 extern struct userui_ops userui_fbsplash_ops;
+#define FBSPLASH_OPS (&userui_fbsplash_ops)
+#else
+#define FBSPLASH_OPS NULL
+#endif
+
 #ifdef USE_USPLASH
 extern struct userui_ops userui_usplash_ops;
 #define USPLASH_OPS (&userui_usplash_ops)

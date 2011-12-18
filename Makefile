@@ -9,8 +9,11 @@ OBJECTS = userui_core.o userui_text.o
 LIBS =
 
 # FBSPLASH
+ifdef USE_FBSPLASH
 OBJECTS += fbsplash fbsplash/userui_fbsplash.o
 LIBS += -lmng -lpng -ljpeg -lz -lfreetype -llcms -lm fbsplash/userui_fbsplash.o
+CFLAGS += -DUSE_FBSPLASH
+endif
 
 # USPLASH
 ifdef USE_USPLASH

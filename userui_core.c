@@ -1006,9 +1006,9 @@ int main(int argc, char **argv) {
 	int result = 0;
 	int i;
 
-	userui_ops[0] = USPLASH_OPS;
-	userui_ops[1] = &userui_fbsplash_ops;
-	userui_ops[2] = &userui_text_ops;
+  userui_ops[0] = &userui_text_ops;
+	userui_ops[1] = USPLASH_OPS;
+	userui_ops[2] = FBSPLASH_OPS;
 	active_ops = &userui_text_ops;
 
 	handle_params(argc, argv);
@@ -1025,7 +1025,8 @@ int main(int argc, char **argv) {
 
 	prepare_console();
 
-	/* Initialise all that we can, use the last */
+	/* Initialise all that we can, use the first */
+  active_ops = NULL;
 	for (i = 0; i < NUM_UIS; i++) {
 		if (userui_ops[i] && userui_ops[i]->load)
 			result = userui_ops[i]->load();
@@ -1034,9 +1035,9 @@ int main(int argc, char **argv) {
 				fprintf(stderr, "Failed to initialise %s module.\n", userui_ops[i]->name);
 			else
 				printk("Failed to initialise %s module.\n", userui_ops[i]->name);
-			if (active_ops == userui_ops[i]);
-				active_ops = userui_ops[NUM_UIS - 1];
-		}
+		} else
+      if (!active_ops)
+        active_ops = userui_ops[i];
 	}
 
 	if (active_ops->prepare)
