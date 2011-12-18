@@ -92,29 +92,8 @@ out:
 }
 
 static int fbsplash_load() {
-	struct winsize winsz;
-	struct termios new_termios;
-
 	fb_fd = -1;
 	last_pos = 0;
-	lastloglevel = SUSPEND_ERROR; /* start in verbose mode */
-
- 	setvbuf(stdout, NULL, _IONBF, 0);
-
-	/* Turn off canonical mode */
-	ioctl(STDOUT_FILENO, TCGETS, (long)&termios);
-	new_termios = termios;
-	new_termios.c_lflag &= ~ICANON;
-	ioctl(STDOUT_FILENO, TCSETSF, (long)&new_termios);
-
-	/* Find out the screen size */
-	video_num_lines = 24;
-	video_num_columns = 80;
-	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz) != -1 &&
-			winsz.ws_row > 0 && winsz.ws_col > 0) {
-		video_num_lines = winsz.ws_row;
-		video_num_columns = winsz.ws_col;
-	}
 
 	/* Kick start our TTF library */
 	if (TTF_Init() < 0) {

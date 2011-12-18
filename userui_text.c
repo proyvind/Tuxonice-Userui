@@ -308,18 +308,41 @@ static void text_message(__uint32_t section, __uint32_t level,
 
 static int text_load()
 {
-	/* Calculate progress bar width. Note that whether the
-	 * splash screen is on might have changed (this might be
-	 * the first call in a new cycle), so we can't take it
-	 * for granted that the width is the same as last time
-	 * we came in here */
-	barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
+  struct winsize winsz;
+  struct termios new_termios;
 
-	/* Open /dev/vcsa0 so we can find out the cursor position when we need to */
-	vcsa_fd = open("/dev/vcsa0", O_RDONLY);
-	/* if it errors, don't worry. we'll check later */
+  lastloglevel = SUSPEND_ERROR; /* start in verbose mode */
 
-	return 0;
+  setvbuf(stdout, NULL, _IONBF, 0);
+
+  /* Turn off canonical mode */
+  ioctl(STDOUT_FILENO, TCGETS, (long)&termios);
+  new_termios = termios;
+  new_termios.c_lflag &= ~ICANON;
+  ioctl(STDOUT_FILENO, TCSETSF, (long)&new_termios);
+
+  /* Find out the screen size */
+  video_num_lines = 24;
+  video_num_columns = 80;
+  if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz) != -1 &&
+      winsz.ws_row > 0 && winsz.ws_col > 0) {
+    video_num_lines = winsz.ws_row;
+    video_num_columns = winsz.ws_col;
+    printk("Console is %dx%d.\n", video_num_lines, video_num_columns);
+  }
+
+  /* Calculate progress bar width. Note that whether the
+   * splash screen is on might have changed (this might be
+   * the first call in a new cycle), so we can't take it
+   * for granted that the width is the same as last time
+   * we came in here */
+  barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
+
+  /* Open /dev/vcsa0 so we can find out the cursor position when we need to */
+  vcsa_fd = open("/dev/vcsa0", O_RDONLY);
+  /* if it errors, don't worry. we'll check later */
+
+  return 0;
 }
 
 static void text_prepare()
