@@ -146,7 +146,7 @@ void get_console_loglevel() {
 	fseek(printk_f, 0, SEEK_SET);
 	result = fscanf(printk_f, "%d", &console_loglevel);
 
-  /* Should nevern happen - just making the compiler happy */
+  /* Should never happen - just making the compiler happy */
   if (result < 1)
     do { } while(0);
 }
@@ -508,7 +508,7 @@ static void get_info() {
 	FILE *f = fopen("/sys/power/tuxonice/version", "r");
 	if (f) {
 	    result = fgets(software_suspend_version, sizeof(software_suspend_version), f);
-      if (result)
+      if (result < 0)
         memcpy(software_suspend_version, "UnknownX", 9);
 	    fclose(f);
 	    software_suspend_version[sizeof(software_suspend_version)-1] = '\0';
