@@ -1,4 +1,4 @@
-CFLAGS := -Wall -O3 -g
+CFLAGS := -Wall -O3
 DESTDIR :=
 PREFIX := /usr/local
 INSTDIR := $(DESTDIR)$(PREFIX)/sbin
@@ -10,8 +10,9 @@ LIBS =
 
 # FBSPLASH
 ifdef USE_FBSPLASH
-OBJECTS += fbsplash fbsplash/userui_fbsplash.o
-LIBS += -lmng -lpng -ljpeg -lz -lfreetype -llcms -lm fbsplash/userui_fbsplash.o
+OBJECTS += fbsplash
+LIBS += -lmng -lpng12 -ljpeg -lz -lfreetype -llcms -lm
+LIB_TARGETS = fbsplash/userui_fbsplash.o
 CFLAGS += -DUSE_FBSPLASH
 endif
 
@@ -31,7 +32,7 @@ usplash:
 	make -C $@
 
 tuxoniceui: $(OBJECTS)
-	$(CC) $(CFLAGS) userui_core.o userui_text.o $(LIBS) -o tuxoniceui
+	$(CC) userui_core.o userui_text.o $(LIB_TARGETS) $(LIBS) -o tuxoniceui
 
 clean:
 	$(RM) *.o $(TARGETS) fbsplash/*.o usplash/*.o tuxoniceui
