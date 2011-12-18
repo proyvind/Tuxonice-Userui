@@ -145,6 +145,10 @@ void get_console_loglevel() {
 		return;
 	fseek(printk_f, 0, SEEK_SET);
 	result = fscanf(printk_f, "%d", &console_loglevel);
+
+  /* Should nevern happen - just making the compiler happy */
+  if (result < 1)
+    do { } while(0);
 }
 
 int send_message(int type, void* buf, int len) {
@@ -504,6 +508,8 @@ static void get_info() {
 	FILE *f = fopen("/sys/power/tuxonice/version", "r");
 	if (f) {
 	    result = fgets(software_suspend_version, sizeof(software_suspend_version), f);
+      if (result)
+        memcpy(software_suspend_version, "UnknownX", 9);
 	    fclose(f);
 	    software_suspend_version[sizeof(software_suspend_version)-1] = '\0';
 	    software_suspend_version[strlen(software_suspend_version)-1] = '\0';
@@ -512,6 +518,9 @@ static void get_info() {
 	f = fopen("/sys/power/tuxonice/user_interface/enable_escape", "r");
 	if (f) {
 	    result2 = fscanf(f, "%d", &can_use_escape);
+      /* Make compiler happy */
+      if (result2 < 1)
+        do { } while(0);
 	    fclose(f);
 	}
 
@@ -599,6 +608,10 @@ static void restore_console() {
 	ioctl(console_fd, KDSKBMODE, K_XLATE);
 	ioctl(console_fd, KDSETMODE, KD_TEXT);
 	result = write(1, "\033[?25h\033[?0c", 11);
+
+  /* Make compiler happy */
+  if (result)
+    do { } while(0);
 
 	if (saved_console_loglevel >= 0) {
 		console_loglevel = saved_console_loglevel;
@@ -848,6 +861,8 @@ static void get_nofreeze() {
 			bail_err("fetch_message() EOF");
 
 		msg = NLMSG_DATA(nlh);
+    if (msg)
+      do { } while(0);
 
 		switch (nlh->nlmsg_type) {
 			case USERUI_MSG_NOFREEZE_ACK:
