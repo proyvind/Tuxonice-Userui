@@ -11,7 +11,7 @@ LIBS =
 # FBSPLASH
 ifdef USE_FBSPLASH
 OBJECTS += fbsplash
-LIBS += -lmng -lpng12 -ljpeg -lz -lfreetype -llcms -lm
+LIBS += -lmng -lpng -ljpeg -lz -lfreetype -llcms -lm
 LIB_TARGETS = fbsplash/userui_fbsplash.o
 CFLAGS += -DUSE_FBSPLASH
 endif
