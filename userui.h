@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include "suspend_userui.h"
 
-#define USERUI_VERSION "1.1-rc2"
+#define USERUI_VERSION "1.1"
 
 struct userui_ops {
 	char *name;
