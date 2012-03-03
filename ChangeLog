@@ -1,3 +1,31 @@
+1.1 (11 February 2012)
+  - Make it easier to see what's going on with framebuffer support by sending
+    messages through to the kernel, which will put them in dmesg (when not
+    running in test mode).
+  - Fix Text mode userui so that it works when fbsplash isn't compiled in,
+	  by moving initialisation code that should have been in the text ui to it.
+  - Don't assume fbsplash support is always compiled in (require USE_FBSPLASH,
+	  as we do with USE_USPLASH).
+  - Fix various harmless compiler warnings.
+  - Fix the building of fbsplash support on Ubuntu Oneiric.
+  - Fix a couple of typos in previous commits.
+  - Apply fixes from Bug 479 (don't use libpng internals).
+  - Tag new release.
+
+1.1-rc2 (7 April 2010)
+  - Make usplash support optional, enabled by "USE_USPLASH=1 make"
+
+1.1-rc1 (6 April 2010)
+  - Single binary support with command-line options for starting with
+    fbsplash or usplash support.
+  - Add support for newer versions of libusplash, which implement and require
+    the use of a new fade_logo function. Without this addition, Karmic users
+    don't see anything while we're hibernating.
+  - Make the backwards compatible fade_logo definition non-static, to avoid
+    the static declaration of 'fade'logo' follows non-static declaration
+    message Whoopie reported (thanks!).
+  - Update userui.h to match the kernel code.
+
 1.0 (1 April 2009)
   - Small changes in preparation for the 1.0 release, coinciding with
     TuxOnIce 3.0 and version 2.0 of the hibernate script.

@@ -5,11 +5,13 @@
 #include <sys/types.h>
 #include "suspend_userui.h"
 
-#define USERUI_VERSION "1.0.0"
+#define USERUI_VERSION "1.1"
 
 struct userui_ops {
 	char *name;
+	int (*load) ();
 	void (*prepare) ();
+	void (*unprepare) ();
 	void (*cleanup) ();
 	void (*message) (__uint32_t type, __uint32_t level,
 			__uint32_t normally_logged, char *text);
@@ -26,6 +28,23 @@ struct userui_ops {
 	char *(*cmdline_options) ();
 };
 
+extern struct userui_ops userui_text_ops;
+
+#ifdef USE_FBSPLASH
+extern struct userui_ops userui_fbsplash_ops;
+#define FBSPLASH_OPS (&userui_fbsplash_ops)
+#else
+#define FBSPLASH_OPS NULL
+#endif
+
+#ifdef USE_USPLASH
+extern struct userui_ops userui_usplash_ops;
+#define USPLASH_OPS (&userui_usplash_ops)
+#else
+#define USPLASH_OPS NULL
+#endif
+
+#define NUM_UIS 3
 
 int send_message(int type, void* buf, int len);
 int common_keypress_handler(int key);
@@ -54,40 +73,35 @@ extern volatile int resuming;
 enum {
 	SUSPEND_REBOOT,
 	SUSPEND_PAUSE,
-	SUSPEND_SLOW,
-	SUSPEND_NOPAGESET2,
 	SUSPEND_LOGALL,
 	SUSPEND_CAN_CANCEL,
 	SUSPEND_KEEP_IMAGE,
 	SUSPEND_FREEZER_TEST,
-	SUSPEND_FREEZER_TEST_SHOWALL,
 	SUSPEND_SINGLESTEP,
 	SUSPEND_PAUSE_NEAR_PAGESET_END,
-	SUSPEND_USE_ACPI_S4,
-	SUSPEND_KEEP_METADATA,
 	SUSPEND_TEST_FILTER_SPEED,
-	SUSPEND_FREEZE_TIMERS,
-	SUSPEND_DISABLE_SYSDEV_SUPPORT,
-	SUSPEND_VGA_POST
+	SUSPEND_TEST_BIO,
+	SUSPEND_NOPAGESET2,
+	SUSPEND_IGNORE_ROOTFS,
+	SUSPEND_REPLACE_SWSUSP,
+	SUSPEND_PAGESET2_FULL,
+	SUSPEND_ABORT_ON_RESAVE_NEEDED,
+	SUSPEND_NO_MULTITHREADED_IO,
+	SUSPEND_NO_DIRECT_LOAD,
+	SUSPEND_LATE_CPU_HUTPLUG,
+	SUSPEND_GET_MAX_MEM_ALLOCD,
+	SUSPEND_NO_FLUSHER_THREAD,
+	SUSPEND_NO_PS2_IF_NEEDED
 };
 
 /* Debug sections  - if debugging compiled in */
 enum {
 	SUSPEND_ANY_SECTION,
-	SUSPEND_FREEZER,
 	SUSPEND_EAT_MEMORY,
-	SUSPEND_PAGESETS,
 	SUSPEND_IO,
-	SUSPEND_BMAP,
 	SUSPEND_HEADER,
 	SUSPEND_WRITER,
 	SUSPEND_MEMORY,
-	SUSPEND_EXTENTS,
-	SUSPEND_SPINLOCKS,
-	SUSPEND_MEM_POOL,
-	SUSPEND_RANGE_PARANOIA,
-	SUSPEND_NOSAVE,
-	SUSPEND_INTEGRITY
 };
 
 /* excerpts from include/linux/bitops.h */
@@ -128,5 +142,17 @@ static __inline__ int generic_fls(int x)
  * Work around random glibc bugs where getpid() caches an invalid pid.
  */
 #define xgetpid() syscall(SYS_getpid)
+
+extern char lastheader[512];
+extern int video_num_lines, video_num_columns;
+
+#define get_dlsym(SYMBOL) { \
+	char *error; \
+	SYMBOL = dlsym(dl_handle, "SYMBOL"); \
+	if ((error = dlerror())) { \
+		fprintf(stderr, "%s\n", error); \
+		return 1; \
+	} \
+}
 
 #endif /* _USERUI_H_ */

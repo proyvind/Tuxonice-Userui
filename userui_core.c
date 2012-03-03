@@ -2,6 +2,7 @@
  * userui_core.c - Core of all userspace user interfaces.
  *
  * Copyright (C) 2005, Bernard Blackham <bernard@blackham.com.au>
+ * Copyright (C) 2006-2009, Nigel Cunningham <nigel@tuxonice.net>
  * 
  * This file is subject to the terms and conditions of the GNU General Public
  * License v2.  See the file COPYING in the main directory of this archive for
@@ -55,6 +56,11 @@ static __uint32_t debugging_enabled = 0;
 static __uint32_t powerdown_method = 0;
 static int console_fd = -1;
 
+/* We remember the last header that was (or could have been) displayed for
+ * use during log level switches */
+char lastheader[512];
+int video_num_lines, video_num_columns;
+
 char software_suspend_version[32];
 int can_use_escape = 0;
 
@@ -66,7 +72,28 @@ volatile __uint32_t suspend_debug = 0;
 
 volatile int resuming = 0;
 
-extern struct userui_ops *userui_ops;
+struct userui_ops *active_ops;
+static struct userui_ops *userui_ops[NUM_UIS];
+static int next_ops = 0;
+
+static void switch_active_ops(int to)
+{
+	if (active_ops == userui_ops[to] ||
+	    !active_ops->unprepare)
+		return;
+
+	active_ops->unprepare();
+	active_ops = userui_ops[to];
+	active_ops->prepare();
+}
+
+static void might_switch_ops(void)
+{
+	if (next_ops) {
+		switch_active_ops(next_ops - 1);
+		next_ops = 0;
+	}
+}
 
 static int netlink_socket_num = 0;
 
@@ -108,14 +135,20 @@ void set_console_loglevel(int exiting) {
 	send_message(USERUI_MSG_SET_LOGLEVEL, (void *) &console_loglevel, sizeof(console_loglevel));
 
 	if (!exiting)
-		userui_ops->log_level_change();
+		active_ops->log_level_change();
 }
 
 void get_console_loglevel() {
+	int result;
+
 	if (!printk_f)
 		return;
 	fseek(printk_f, 0, SEEK_SET);
-	fscanf(printk_f, "%d", &console_loglevel);
+	result = fscanf(printk_f, "%d", &console_loglevel);
+
+  /* Should never happen - just making the compiler happy */
+  if (result < 1)
+    do { } while(0);
 }
 
 int send_message(int type, void* buf, int len) {
@@ -160,13 +193,17 @@ void printk(char *msg, ...)
 	va_start(args, msg);
 	len = vsnprintf(buf, sizeof(buf), msg, args);
 	va_end(args);
-	send_message(USERUI_MSG_PRINTK, buf, len + 1);
+
+	if (test_run)
+		fprintf(stderr, "%s", buf);
+	else
+		send_message(USERUI_MSG_PRINTK, buf, len + 1);
 }
 
 static void toggle_reboot() {
 	suspend_action ^= (1 << SUSPEND_REBOOT);
 	send_message(USERUI_MSG_SET_STATE, (int*)&suspend_action, sizeof(suspend_action));
-	userui_ops->message(0, SUSPEND_UI_MSG, 1, 
+	active_ops->message(0, SUSPEND_UI_MSG, 1, 
 			(suspend_action & (1 << SUSPEND_REBOOT) ?
 				 "Rebooting enabled." :
 				 "Rebooting disabled."));
@@ -189,7 +226,7 @@ static void toggle_debug_state(key) {
 	sprintf(message, "%s messages %s", descriptions[bit],
 			(suspend_debug & (1 << bit)) ?
 			"enabled" : "disabled");
-	userui_ops->message(0, SUSPEND_UI_MSG, 1, message);
+	active_ops->message(0, SUSPEND_UI_MSG, 1, message);
 }
 
 static void toggle_poweroff(void) {
@@ -222,7 +259,7 @@ static void toggle_poweroff(void) {
 	send_message(USERUI_MSG_SET_POWERDOWN_METHOD, (int*)&powerdown_method,
 			sizeof(powerdown_method));
 
-	userui_ops->message(0, SUSPEND_UI_MSG, 1, message);
+	active_ops->message(0, SUSPEND_UI_MSG, 1, message);
 }
 
 static void toggle_pause() {
@@ -231,7 +268,7 @@ static void toggle_pause() {
 
 	suspend_action ^= (1 << SUSPEND_PAUSE);
 	send_message(USERUI_MSG_SET_STATE, (int*)&suspend_action, sizeof(suspend_action));
-	userui_ops->message(0, SUSPEND_UI_MSG, 1, 
+	active_ops->message(0, SUSPEND_UI_MSG, 1, 
 			(suspend_action & (1 << SUSPEND_PAUSE) ?
 				 "Pause between steps enabled." :
 				 "Pause between steps disabled."));
@@ -243,7 +280,7 @@ static void toggle_singlestep() {
 
 	suspend_action ^= (1 << SUSPEND_SINGLESTEP);
 	send_message(USERUI_MSG_SET_STATE, (int*)&suspend_action, sizeof(suspend_action));
-	userui_ops->message(0, SUSPEND_UI_MSG, 1, 
+	active_ops->message(0, SUSPEND_UI_MSG, 1, 
 			(suspend_action & (1 << SUSPEND_SINGLESTEP) ?
 				 "Single stepping enabled." :
 				 "Single stepping disabled."));
@@ -258,7 +295,7 @@ static void toggle_log_all() {
 	/* Log this message always */
 	send_message(USERUI_MSG_SET_STATE, (int*)&temp, sizeof(temp));
 	suspend_action ^= (1 << SUSPEND_LOGALL);
-	userui_ops->message(0, SUSPEND_UI_MSG, 1, 
+	active_ops->message(0, SUSPEND_UI_MSG, 1, 
 			(suspend_action & (1 << SUSPEND_LOGALL) ?
 				 "Logging everything enabled." :
 				 "Logging everything disabled."));
@@ -269,7 +306,8 @@ static void notify_space_pressed() {
 	send_message(USERUI_MSG_SPACE, NULL, 0);
 }
 
-int common_keypress_handler(int key) {
+int common_keypress_handler(int key)
+{
 	switch (key) {
 		case 0x01: /* Escape */
 			request_abort_suspend();
@@ -319,51 +357,70 @@ int common_keypress_handler(int key) {
 		case 0x58: /* F12 */
 			toggle_debug_state(key);
 			break;
-		default:
+		case 0x2D: /* X: Text */
+			next_ops = 3;
+			break;
+		case 0x21: /* F: Fbsplash */
+			next_ops = 2;
+			break;
+		case 0x16: /* U: Usplash */
+			next_ops = 1;
+			break;
+		default: 
 			return 0;
 	}
 	return 1;
 }
 
 static void handle_params(int argc, char **argv) {
-	static char global_optstring[] = "htc:";
+	static char global_optstring[] = "htc:fu";
 	static struct option global_longopts[] = {
 		{"help", 0, 0, 'h'},
 		{"test", 0, 0, 't'},
 		{"channel", 1, 0, 'c'},
+		{"fbsplash", 0, 0, 'f'},
+#ifdef USE_USPLASH
+		{"usplash", 0, 0, 'u'},
+#endif
 		{NULL, 0, 0, 0},
 	};
 
 	int len;
 	char *optstring, *s1, *s2;
 	struct option *longopts, *o1, *o2;
-	int c;
+	int c, i;
 
 	/* Create optstring */
 	len = sizeof(global_optstring)-1;
-	if (userui_ops->optstring)
-		len += strlen(userui_ops->optstring);
+	for (i = 0; i < NUM_UIS; i++)
+		if (userui_ops[i] && userui_ops[i]->optstring)
+			len += strlen(userui_ops[i]->optstring);
 	len++; /* NULL terminator */
 
 	s1 = optstring = (char*)malloc(len);
 	for (s2 = global_optstring; (*s1++ = *s2++); );
-	if (userui_ops->optstring)
-		for (s1--, s2 = userui_ops->optstring; (*s1++ = *s2++););
+	for (i = 0; i < NUM_UIS; i++)
+		if (userui_ops[i] && userui_ops[i]->optstring)
+			for (s1--, s2 = userui_ops[i]->optstring; (*s1++ = *s2++););
 
 	/* Create longopts */
 	len = sizeof(global_longopts)/sizeof(global_longopts[0])-1;
-	if (userui_ops->longopts) {
-		o1 = userui_ops->longopts;
-		while ((o1++)->name) len++;
+	for (i = 0; i < NUM_UIS; i++) {
+		if (userui_ops[i] && userui_ops[i]->longopts) {
+			o1 = userui_ops[i]->longopts;
+			while ((o1++)->name) len++;
+		}
 	}
 	len++; /* NULL terminator */
 
 	o1 = longopts = (struct option*)malloc(len * sizeof(struct option));
 	for (o2 = global_longopts; o2->name; o1++, o2++)
 		memcpy(o1, o2, sizeof(*o1));
-	if (userui_ops->longopts)
-		for (o2 = userui_ops->longopts; o2->name; o1++, o2++)
-			memcpy(o1, o2, sizeof(*o1));
+	for (i = 0; i < NUM_UIS; i++) {
+		if (userui_ops[i] && userui_ops[i]->longopts)
+			for (o2 = userui_ops[i]->longopts; o2->name; o1++, o2++)
+				memcpy(o1, o2, sizeof(*o1));
+	}
 	memset(o1, 0, sizeof(*o1));
 
 	while (1) {
@@ -388,16 +445,40 @@ static void handle_params(int argc, char **argv) {
 "     Specifying -t once will give an demo of this module.\n"
 "     Specifying -t twice will make the demo run as fast as it can.\n"
 "     (useful for performance testing).\n"
-"%s"
-"\n"
-"TuxOnIce UserUI version %s (%s module)\n",
-					argv[0],
-					(userui_ops->cmdline_options)?userui_ops->cmdline_options():"",
-					USERUI_VERSION, userui_ops->name);
+#ifdef USE_USPLASH
+"  -u\n"
+"     Use usersplash interface by default.\n"
+#endif
+"  -f\n"
+"     Use fbsplash interface by default.\n",
+					argv[0]);
+				for (i = 0; i < NUM_UIS; i++)
+					if (userui_ops[i] && userui_ops[i]->cmdline_options)
+						fprintf(stderr, "%s", userui_ops[i]->cmdline_options());
+				fprintf(stderr, "\nTuxOnIce UserUI version %s (modules:",
+					USERUI_VERSION);
+				for (i = 0; i < NUM_UIS; i++)
+					if (userui_ops[i])
+						fprintf(stderr, "%s%s", userui_ops[i]->name, (i + 1) == NUM_UIS ? "" : " ");
+				fprintf(stderr, ")\n");
 				exit(1);
+			case 'u':
+				if (userui_ops[0])
+					active_ops = userui_ops[0];
+				break;
+			case 'f':
+				if (userui_ops[1])
+					active_ops = userui_ops[1];
+				break;
+			case 'x':
+				if (userui_ops[2])
+					active_ops = userui_ops[2];
+				break;
 			default:
-				if (userui_ops->option_handler) {
-					userui_ops->option_handler(c);
+				for (i = 0; i < NUM_UIS; i++) {
+					if (userui_ops[i] && userui_ops[i]->option_handler) {
+						userui_ops[i]->option_handler(c);
+					}
 				}
 		}
 
@@ -422,9 +503,13 @@ static void lock_memory() {
 }
 
 static void get_info() {
+	char *result;
+	int result2;
 	FILE *f = fopen("/sys/power/tuxonice/version", "r");
 	if (f) {
-	    fgets(software_suspend_version, sizeof(software_suspend_version), f);
+	    result = fgets(software_suspend_version, sizeof(software_suspend_version), f);
+      if (result < 0)
+        memcpy(software_suspend_version, "UnknownX", 9);
 	    fclose(f);
 	    software_suspend_version[sizeof(software_suspend_version)-1] = '\0';
 	    software_suspend_version[strlen(software_suspend_version)-1] = '\0';
@@ -432,7 +517,10 @@ static void get_info() {
 
 	f = fopen("/sys/power/tuxonice/user_interface/enable_escape", "r");
 	if (f) {
-	    fscanf(f, "%d", &can_use_escape);
+	    result2 = fscanf(f, "%d", &can_use_escape);
+      /* Make compiler happy */
+      if (result2 < 1)
+        do { } while(0);
 	    fclose(f);
 	}
 
@@ -516,9 +604,14 @@ static void enforce_lifesavers() {
 }
 
 static void restore_console() {
+	int result;
 	ioctl(console_fd, KDSKBMODE, K_XLATE);
 	ioctl(console_fd, KDSETMODE, KD_TEXT);
-	write(1, "\033[?25h\033[?0c", 11);
+	result = write(1, "\033[?25h\033[?0c", 11);
+
+  /* Make compiler happy */
+  if (result)
+    do { } while(0);
 
 	if (saved_console_loglevel >= 0) {
 		console_loglevel = saved_console_loglevel;
@@ -526,7 +619,7 @@ static void restore_console() {
 	}
 
 	if (need_cleanup) {
-		userui_ops->cleanup();
+		active_ops->cleanup();
 		need_cleanup = 0;
 	}
 
@@ -587,7 +680,7 @@ static void keypress_signal_handler(int sig) {
 					a = ascii_to_raw(a);
 				next_is_escaped = 0;
 				if (running)
-				    userui_ops->keypress((a << 8)|b);
+				    active_ops->keypress((a << 8)|b);
 			}
 		} else {
 			if (read(STDIN_FILENO, &a, 1) <= 0)
@@ -600,8 +693,8 @@ static void keypress_signal_handler(int sig) {
 					continue;
 				}
 				if (running)
-				    userui_ops->keypress((a << 8)|b);
-				userui_ops->keypress(a);
+				    active_ops->keypress((a << 8)|b);
+				active_ops->keypress(a);
 			}
 		}
 	}
@@ -638,9 +731,9 @@ static void open_console() {
 
 	if (dup2(console_fd, STDIN_FILENO) == -1)
 		bail_err("dup2(fd, STDIN_FILENO)");
-	if (dup2(console_fd, STDOUT_FILENO) == -1)
+	if (!test_run && dup2(console_fd, STDOUT_FILENO) == -1)
 		bail_err("dup2(fd, STDOUT_FILENO)");
-	if (dup2(console_fd, STDERR_FILENO) == -1)
+	if (!test_run && dup2(console_fd, STDERR_FILENO) == -1)
 		bail_err("dup2(fd, STDERR_FILENO)");
 }
 
@@ -768,6 +861,8 @@ static void get_nofreeze() {
 			bail_err("fetch_message() EOF");
 
 		msg = NLMSG_DATA(nlh);
+    if (msg)
+      do { } while(0);
 
 		switch (nlh->nlmsg_type) {
 			case USERUI_MSG_NOFREEZE_ACK:
@@ -785,23 +880,41 @@ static void unblank_screen() {
 }
 
 static void message_loop() {
-	static char buf1[4096];
-	struct nlmsghdr *nlh;
+	static char buf1[4096], buf2[4096];
+	struct nlmsghdr *nlh, *nlh2 = NULL;
+	int skipped = 0;
 
 	while (1) {
 		struct userui_msg_params *msg;
 
-		if (!(nlh = fetch_message(buf1, sizeof(buf1), 0)))
-			return; /* EOF */
+		if (nlh2) {
+			nlh = nlh2;
+			nlh2 = NULL;
+			memcpy(&buf1, &buf2, 4096);
+			memset(&buf2, 0, 4096);
+		} else
+			if (!(nlh = fetch_message(buf1, sizeof(buf1), 0)))
+				return; /* EOF */
+
+		//nlh2 = fetch_message(buf2, sizeof(buf2), 1);
 
 		msg = NLMSG_DATA(nlh);
 
+		/* If there are two or more messages waiting and the current
+		   message type is the same as the type of the next message,
+		   skip this one. */
+		if (nlh2 && nlh->nlmsg_type == nlh2->nlmsg_type && (++skipped < 5))
+			continue;
+
+		skipped = 0;
+		might_switch_ops();
+
 		switch (nlh->nlmsg_type) {
 			case USERUI_MSG_MESSAGE:
-				userui_ops->message(msg->a, msg->b, msg->c, msg->text);
+				active_ops->message(msg->a, msg->b, msg->c, msg->text);
 				break;
 			case USERUI_MSG_PROGRESS:
-				userui_ops->update_progress(msg->a, msg->b, msg->text);
+				active_ops->update_progress(msg->a, msg->b, msg->text);
 				break;
 			case USERUI_MSG_GET_STATE:
 				suspend_action = *(__uint32_t*)NLMSG_DATA(nlh);
@@ -820,7 +933,7 @@ static void message_loop() {
 				powerdown_method = *(__uint32_t *)NLMSG_DATA(nlh);
 				break;
 			case USERUI_MSG_CLEANUP:
-				userui_ops->cleanup();
+				active_ops->cleanup();
 				send_message(USERUI_MSG_CLEANUP, NULL, 0);
 				close(nlsock);
 				exit(0);
@@ -831,7 +944,7 @@ static void message_loop() {
 				send_message(USERUI_MSG_GET_POWERDOWN_METHOD, NULL, 0);
 				resuming = 1;
 				unblank_screen();
-				userui_ops->redraw();
+				active_ops->redraw();
 				break;
 			case NLMSG_ERROR:
 				report_nl_error(nlh);
@@ -845,7 +958,7 @@ static void message_loop() {
 
 		if (need_loglevel_change) {
 			need_loglevel_change = 0;
-			userui_ops->log_level_change();
+			active_ops->log_level_change();
 		}
 	}
 }
@@ -858,28 +971,33 @@ static void do_test_run() {
 	 * If test_run >= 2, go as fast as we can (for performance timings).
 	 */
 
-	userui_ops->log_level_change();
-	userui_ops->message(0, 0, 1, "Freezing processes ...");
+	might_switch_ops();
+	active_ops->log_level_change();
+	might_switch_ops();
+	active_ops->message(0, 0, 1, "Freezing processes ...");
 	if (test_run == 1)
 		usleep(200*1000);
-	userui_ops->message(0, 0, 1, "Preparing image ...");
+	might_switch_ops();
+	active_ops->message(0, 0, 1, "Preparing image ...");
 	if (test_run == 1)
 		usleep(200*1000);
-	userui_ops->message(0, 0, 1, "Writing caches ...");
+	might_switch_ops();
+	active_ops->message(0, 0, 1, "Writing caches ...");
 
 	for (i = 0; i <= max; i+=2) {
 		char buf[128];
 		snprintf(buf, 128, "%d/%d MB", i, max);
-		userui_ops->update_progress(i, max, buf);
+		might_switch_ops();
+		active_ops->update_progress(i, max, buf);
 
 		if (i == 2*max/3) {
-			userui_ops->message(0, 0, 0, "Doing atomic copy ...");
+			active_ops->message(0, 0, 0, "Doing atomic copy ...");
 			if (test_run == 1)
 				usleep(800*1000);
-			userui_ops->redraw();
+			active_ops->redraw();
 		}
 		if (i == 2 + 2*max/3) {
-			userui_ops->message(0, 0, 0, "Writing kernel data ...");
+			active_ops->message(0, 0, 0, "Writing kernel data ...");
 			if (test_run == 1)
 				usleep(800*1000);
 		}
@@ -888,18 +1006,26 @@ static void do_test_run() {
 
 		if (need_loglevel_change) {
 			need_loglevel_change = 0;
-			userui_ops->log_level_change();
+			active_ops->log_level_change();
 		}
 	}
 
 	if (test_run == 1)
 		usleep(400*1000);
 
-	userui_ops->cleanup();
+	active_ops->cleanup();
 	need_cleanup = 0;
 }
 
 int main(int argc, char **argv) {
+	int result = 0;
+	int i;
+
+  userui_ops[0] = &userui_text_ops;
+	userui_ops[1] = USPLASH_OPS;
+	userui_ops[2] = FBSPLASH_OPS;
+	active_ops = &userui_text_ops;
+
 	handle_params(argc, argv);
 	setup_signal_handlers();
 	open_console();
@@ -914,17 +1040,33 @@ int main(int argc, char **argv) {
 
 	prepare_console();
 
-	userui_ops->prepare();
+	/* Initialise all that we can, use the first */
+  active_ops = NULL;
+	for (i = 0; i < NUM_UIS; i++) {
+		if (userui_ops[i] && userui_ops[i]->load)
+			result = userui_ops[i]->load();
+		if (result) {
+			if (test_run)
+				fprintf(stderr, "Failed to initialise %s module.\n", userui_ops[i]->name);
+			else
+				printk("Failed to initialise %s module.\n", userui_ops[i]->name);
+		} else
+      if (!active_ops)
+        active_ops = userui_ops[i];
+	}
+
+	if (active_ops->prepare)
+		active_ops->prepare();
 
 	register_keypress_handler();
 
 	need_cleanup = 1;
 	running = 1;
 
-	nice(1);
+	result = nice(1);
 
-	if (userui_ops->memory_required)
-		reserve_memory(userui_ops->memory_required());
+	if (active_ops->memory_required)
+		reserve_memory(active_ops->memory_required());
 	else
 		reserve_memory(4*1024*1024); /* say 4MB */
 

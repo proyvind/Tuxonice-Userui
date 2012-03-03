@@ -30,11 +30,9 @@
 
 int fb_fd, fbsplash_fd = -1, no_silent_image = 0;
 char *progress_text;
-static char lastmessage[512];
 static char rendermessage[512];
 static int lastloglevel;
 static unsigned long cur_value, cur_maximum, last_pos;
-static int video_num_lines, video_num_columns;
 static void *base_image;
 static char *frame_buffer;
 static int base_image_size;
@@ -42,22 +40,24 @@ static struct termios termios;
 
 static void fbsplash_log_level_change();
 
-static inline void clear_display() { write(1, "\033c", 2); }
+static inline void clear_display() { int result; result = write(1, "\033c", 2); }
 static inline void move_cursor_to(int c, int r) { printf("\033[%d;%dH", r, c); }
 static void hide_cursor() {
+	int result;
 	ioctl(STDOUT_FILENO, KDSETMODE, KD_GRAPHICS);
-	write(1, "\033[?25l\033[?1c", 11);
+	result = write(1, "\033[?25l\033[?1c", 11);
 }
 static void show_cursor() {
+	int result;
 	ioctl(STDOUT_FILENO, KDSETMODE, KD_TEXT);
-	write(1, "\033[?25h\033[?0c", 11);
+	result = write(1, "\033[?25h\033[?0c", 11);
 }
 
 static void reset_silent_img() {
 	if (!base_image || !silent_img.data)
 		return;
 	memcpy((void*)silent_img.data, base_image, base_image_size);
-	strncpy(rendermessage, lastmessage, 512);
+	strncpy(rendermessage, lastheader, 512);
 	render_objs((u8*)silent_img.data, NULL, 's', FB_SPLASH_IO_ORIG_USER, 0);
 	rendermessage[0] = '\0';
 }
@@ -91,33 +91,20 @@ out:
 	return vt;
 }
 
-static void fbsplash_prepare() {
-	struct winsize winsz;
-	struct termios new_termios;
-
+static int fbsplash_load() {
 	fb_fd = -1;
 	last_pos = 0;
-	lastloglevel = SUSPEND_ERROR; /* start in verbose mode */
-
-	/* Turn off canonical mode */
-	ioctl(STDOUT_FILENO, TCGETS, (long)&termios);
-	new_termios = termios;
-	new_termios.c_lflag &= ~ICANON;
-	ioctl(STDOUT_FILENO, TCSETSF, (long)&new_termios);
-
-	/* Find out the screen size */
-	ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz);
-	video_num_lines = winsz.ws_row;
-	video_num_columns = winsz.ws_col;
 
 	/* Kick start our TTF library */
 	if (TTF_Init() < 0) {
-		fprintf(stderr, "Couldn't initialise TTF.\n");
+		printk("Couldn't initialise TTF.\n");
 	}
 
 	/* Find out the FB size */
-	if (get_fb_settings(0))
-		return;
+	if (get_fb_settings(0)) {
+		printk("Couldn't get fb settings.\n");
+		return 1;
+	}
 
 	arg_vc = get_active_vt();
 	arg_mode = 's';
@@ -126,8 +113,11 @@ static void fbsplash_prepare() {
 	if (arg_theme == NULL)
 		arg_theme = DEFAULT_THEME;
 	config_file = get_cfg_file(arg_theme);
-	if (!config_file)
-		return;
+	if (!config_file) {
+		printk("Couldn't load config file %s.\n", arg_theme);
+		return 1;
+	} else
+		printk("Using configuration file %s.\n", config_file);
 
 	parse_cfg(config_file);
 
@@ -137,8 +127,10 @@ static void fbsplash_prepare() {
 	boot_message = rendermessage;
 
 	fb_fd = open_fb();
-	if (fb_fd == -1)
-		return;
+	if (fb_fd == -1) {
+		printk("Couldn't open framebuffer device.\n");
+		return 1;
+	}
 
 	if (fb_fix.visual == FB_VISUAL_DIRECTCOLOR)
 		set_directcolor_cmap(fb_fd);
@@ -159,29 +151,33 @@ static void fbsplash_prepare() {
 		base_image_size = silent_img.width * silent_img.height * (silent_img.depth >> 3);
 		base_image = malloc(base_image_size);
 		if (!base_image) {
-			fprintf(stderr, "Couldn't get enough memory for framebuffer image.\n");
-			return;
+			printk("Couldn't get enough memory for framebuffer image.\n");
+			return 1;
 		}
 		memcpy(base_image, (void*)silent_img.data, base_image_size);
 	}
 
 	frame_buffer = mmap(NULL, fb_fix.line_length * fb_var.yres,
 			PROT_READ | PROT_WRITE, MAP_SHARED, fb_fd, 0);
-	if (frame_buffer == MAP_FAILED) {
+	if (frame_buffer == MAP_FAILED)
 		frame_buffer = NULL;
-	}
 
-	move_cursor_to(0,0);
-	clear_display();
-
-	fbsplash_log_level_change();
+	printk("Framebuffer support initialised successfully.\n");
+	return 0;
 }
 
-static void fbsplash_cleanup() {
-	cmd_setstate(0, FB_SPLASH_IO_ORIG_USER);
+static void fbsplash_unprepare() {
+	clear_display();
 	show_cursor();
+}
+
+static void fbsplash_cleanup()
+{
+	clear_display();
+	cmd_setstate(0, FB_SPLASH_IO_ORIG_USER);
 
 	ioctl(STDOUT_FILENO, TCSETSF, (long)&termios);
+	show_cursor();
 
 	free((void*)silent_img.data);
 	silent_img.data = NULL;
@@ -233,8 +229,9 @@ static void update_fb_img() {
 		}
 	} else if (fb_fd != -1) {
 		for (y = 0; y < fb_var.yres; y++) {
+			int result;
 			lseek(fb_fd, y * fb_fix.line_length, SEEK_SET);
-			write(fb_fd, silent_img.data + (y * img_line_length), img_line_length);
+			result = write(fb_fd, silent_img.data + (y * img_line_length), img_line_length);
 		}
 	}
 }
@@ -248,7 +245,7 @@ static void fbsplash_update_silent_message() {
 }
 
 static void fbsplash_message(u32 type, u32 level, u32 normally_logged, char *msg) {
-	strncpy(lastmessage, msg, 512);
+	strncpy(lastheader, msg, 512);
 	if (console_loglevel >= SUSPEND_ERROR) {
 		if (!(suspend_action & (1 << SUSPEND_LOGALL)) || level == SUSPEND_UI_MSG)
 			printf("\n** %s\n", msg);
@@ -258,7 +255,7 @@ static void fbsplash_message(u32 type, u32 level, u32 normally_logged, char *msg
 
 static void fbsplash_redraw() {
 	if (console_loglevel >= SUSPEND_ERROR) {
-		printf("\n** %s\n", lastmessage);
+		printf("\n** %s\n", lastheader);
 		return;
 	}
 
@@ -326,7 +323,7 @@ static void fbsplash_log_level_change() {
 		printf("\nSwitched to console loglevel %d.\n", console_loglevel);
 
 		if (lastloglevel < SUSPEND_ERROR)
-			printf("\n** %s\n", lastmessage);
+			printf("\n** %s\n", lastheader);
 	
 	} else if (lastloglevel >= SUSPEND_ERROR) {
 		hide_cursor();
@@ -371,8 +368,10 @@ static int fbsplash_option_handler(char c)
 static char *fbsplash_cmdline_options()
 {
 	return 
+"\n"
+"  FBSPLASH:\n"
 "  -T <theme name>, --theme <theme name>\n"
-"     Selects a given theme from " THEME_DIR " (default: "DEFAULT_THEME")\n";
+"     Selects a given theme from " THEME_DIR " (default: "DEFAULT_THEME") for fbsplash support.\n";
 }
 
 static struct option userui_fbsplash_longopts[] = {
@@ -380,9 +379,20 @@ static struct option userui_fbsplash_longopts[] = {
 	{NULL, 0, 0, 0},
 };
 
-static struct userui_ops userui_fbsplash_ops = {
+static void fbsplash_prepare()
+{
+	move_cursor_to(0,0);
+	clear_display();
+	hide_cursor();
+
+	fbsplash_redraw();
+}
+
+struct userui_ops userui_fbsplash_ops = {
 	.name = "fbsplash",
+	.load = fbsplash_load,
 	.prepare = fbsplash_prepare,
+	.unprepare = fbsplash_unprepare,
 	.cleanup = fbsplash_cleanup,
 	.message = fbsplash_message,
 	.update_progress = fbsplash_update_progress,
@@ -397,5 +407,3 @@ static struct userui_ops userui_fbsplash_ops = {
 	.option_handler = fbsplash_option_handler,
 	.cmdline_options = fbsplash_cmdline_options,
 };
-
-struct userui_ops *userui_ops = &userui_fbsplash_ops;
