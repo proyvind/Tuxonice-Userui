@@ -5,14 +5,16 @@
 #include <sys/types.h>
 #include "suspend_userui.h"
 
-#define USERUI_VERSION "0.7.1"
+#define USERUI_VERSION "0.7.3"
 
 struct userui_ops {
 	char *name;
 	void (*prepare) ();
 	void (*cleanup) ();
-	void (*message) (unsigned long type, unsigned long level, int normally_logged, char *text);
-	void (*update_progress) (unsigned long value, unsigned long maximum, char *text);
+	void (*message) (__uint32_t type, __uint32_t level,
+			__uint32_t normally_logged, char *text);
+	void (*update_progress) (__uint32_t value, __uint32_t maximum,
+			char *text);
 	void (*log_level_change) ();
 	void (*redraw) ();
 	void (*keypress) (int key);
@@ -32,9 +34,9 @@ void printk(char *msg, ...);
 
 extern char software_suspend_version[32];
 extern int can_use_escape;
-extern volatile int console_loglevel;
-extern volatile int suspend_action;
-extern volatile int suspend_debug;
+extern volatile __uint32_t console_loglevel;
+extern volatile __uint32_t suspend_action;
+extern volatile __uint32_t suspend_debug;
 extern volatile int resuming;
 
 /* excerpts from include/linux/suspend2.h : */

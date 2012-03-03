@@ -1,7 +1,7 @@
 #ifndef _SUSPEND_USERUI_H_
 #define _SUSPEND_USERUI_H_
 
-#define SUSPEND_USERUI_INTERFACE_VERSION 7
+#define SUSPEND_USERUI_INTERFACE_VERSION 8
 
 enum {
 	USERUI_MSG_BASE = 0x10,
@@ -35,7 +35,7 @@ enum {
 };
 
 struct userui_msg_params {
-	unsigned long a, b, c, d;
+	__uint32_t a, b, c, d;
 	char text[255];
 };
 

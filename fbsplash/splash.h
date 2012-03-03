@@ -29,7 +29,7 @@
 
 #define DEFAULT_MESSAGE "Initializing the kernel..."
 #define DEFAULT_FONT 	"luxisri.ttf"
-#define DEFAULT_THEME	"suspend2"
+#define DEFAULT_THEME	"tuxonice"
 #define TTF_DEFAULT	THEME_DIR "/" DEFAULT_FONT
 
 /* Settings that shouldn't be changed */
