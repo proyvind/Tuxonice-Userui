@@ -309,7 +309,7 @@ static void fbsplash_update_progress(u32 value, u32 maximum, char *msg) {
 		progress_text = msg;
 
 render:
-	render_objs((u8*)silent_img.data, NULL, 's', FB_SPLASH_IO_ORIG_USER, 1);
+	render_objs((u8*)silent_img.data, NULL, 's', FB_SPLASH_IO_ORIG_USER, 0);
 	update_fb_img();
 
 	progress_text = NULL;

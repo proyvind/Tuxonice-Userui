@@ -1,3 +1,7 @@
+1.0 (1 April 2009)
+  - Small changes in preparation for the 1.0 release, coinciding with
+    TuxOnIce 3.0 and version 2.0 of the hibernate script.
+
 0.7.3 (8 January 2008)
   - Fix version number. Nigel failed to update userui.h.
   - s@/sys/power/suspend2@/sys/power/tuxonice@ in userui_core.c, as directed

@@ -1,0 +1,27 @@
+Index: tuxonice-userui-0.7.3/userui_text.c
+===================================================================
+--- tuxonice-userui-0.7.3.orig/userui_text.c	2009-01-20 12:05:09.000000000 +0000
++++ tuxonice-userui-0.7.3/userui_text.c	2009-01-20 12:08:52.000000000 +0000
+@@ -77,11 +77,17 @@
+  */
+ static void update_help(int update_all)
+ {
+-	const char intro_text[] = "%-18s    R: %s reboot after suspend ";
+-	move_cursor_to(video_num_columns - sizeof(intro_text) - 16, video_num_lines);
+-	printf(intro_text, 
+-			(can_use_escape) ? "Esc: Abort suspend / resume" : "",
++	char intro_text[64];
++
++	if (resuming)
++		sprintf(intro_text, "%s", (can_use_escape) ? "Esc: Abort resume " : "");
++	else
++		sprintf(intro_text, "%sR: %s reboot after suspend ",
++			(can_use_escape) ? "Esc: Abort suspend    " : "",
+ 			(suspend_action & (1 << SUSPEND_REBOOT)) ?  "Disable":"Enable");
++
++	move_cursor_to(video_num_columns - strlen(intro_text), video_num_lines);
++	printf(intro_text);
+ }
+ 
+ /* text_prepare_status
+

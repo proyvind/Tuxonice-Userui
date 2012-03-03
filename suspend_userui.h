@@ -3,6 +3,10 @@
 
 #define SUSPEND_USERUI_INTERFACE_VERSION 8
 
+#ifdef __KLIBC__
+#define __uint32_t __u32
+#endif
+
 enum {
 	USERUI_MSG_BASE = 0x10,
 

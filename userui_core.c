@@ -430,7 +430,7 @@ static void get_info() {
 	    software_suspend_version[strlen(software_suspend_version)-1] = '\0';
 	}
 
-	f = fopen("/sys/power/tuxonice/enable_escape", "r");
+	f = fopen("/sys/power/tuxonice/user_interface/enable_escape", "r");
 	if (f) {
 	    fscanf(f, "%d", &can_use_escape);
 	    fclose(f);

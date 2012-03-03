@@ -4,7 +4,7 @@
  * Copyright (C) 2005, Bernard Blackham <bernard@blackham.com.au>
  *
  * Based on the suspend_text module from Suspend2, written by
- * Nigel Cunningham <nigel@nigel.suspend2.net>
+ * Nigel Cunningham <nigel@nigel.tuxonice.net>
  * 
  * This file is subject to the terms and conditions of the GNU General Public
  * License v2.  See the file COPYING in the main directory of this archive for
@@ -77,11 +77,17 @@ static int update_cursor_pos(void)
  */
 static void update_help(int update_all)
 {
-	const char intro_text[] = "%-18s    R: %s reboot after suspend ";
-	move_cursor_to(video_num_columns - sizeof(intro_text) - 16, video_num_lines);
-	printf(intro_text, 
-			(can_use_escape) ? "Esc: Abort suspend / resume" : "",
+	char buf[200];
+
+	if (resuming)
+		snprintf(buf, 200, "%-22s",
+			(can_use_escape) ? "Esc: Abort resume" : "");
+	else
+		snprintf(buf, 200, "%-22s    R: %s reboot after hibernating ",
+			(can_use_escape) ? "Esc: Abort hibernating" : "",
 			(suspend_action & (1 << SUSPEND_REBOOT)) ?  "Disable":"Enable");
+	move_cursor_to(video_num_columns - strlen(buf), video_num_lines);
+	printf("%s", buf);
 }
 
 /* text_prepare_status
