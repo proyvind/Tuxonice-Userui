@@ -94,19 +94,19 @@ int get_fb_settings(int fb_num)
 		if (fb == -1)
 #endif
 		{
-			printerr("Failed to open " PATH_DEV "/fb%d or " PATH_DEV 
+			printk("Failed to open " PATH_DEV "/fb%d or " PATH_DEV 
 				 "/fb%d for reading.\n", fb_num, fb_num);
 			return 1;
 		}
 	}
 		
 	if (ioctl(fb,FBIOGET_VSCREENINFO,&fb_var) == -1) {
-		printerr("Failed to get fb_var info.\n");
+		printk("Failed to get fb_var info.\n");
 		return 2;
 	}
 
 	if (ioctl(fb,FBIOGET_FSCREENINFO,&fb_fix) == -1) {
-		printerr("Failed to get fb_fix info.\n");
+		printk("Failed to get fb_fix info.\n");
 		return 3;
 	}
 
@@ -190,7 +190,7 @@ int do_getpic(unsigned char origin, unsigned char do_cmds, char mode)
 int do_config(unsigned char origin)
 {
 	if (!config_file) {
-		printerr("No config file.\n");
+		printk("No config file.\n");
 		return -1;
 	}
 		
@@ -215,12 +215,14 @@ int do_config(unsigned char origin)
 
 void vt_cursor_disable(int fd)
 {
-	write(fd, "\e[?25l\e[?1c",11);
+	int result;
+	result = write(fd, "\e[?25l\e[?1c",11);
 }
 
 void vt_cursor_enable(int fd)
 {
-	write(fd, "\e[?25h\e[?0c",11);
+	int result;
+	result = write(fd, "\e[?25h\e[?0c",11);
 }
 
 int open_fb()
@@ -232,7 +234,7 @@ int open_fb()
 	if ((c = open(dev, O_RDWR)) == -1) {
 		sprintf(dev, PATH_DEV "/fb/%d", arg_fb);
 		if ((c = open(dev, O_RDWR)) == -1) {
-			printerr("Failed to open " PATH_DEV "/fb%d or " 
+			printk("Failed to open " PATH_DEV "/fb%d or " 
 			         PATH_DEV "/fb/%d.\n", arg_fb, arg_fb);
 			return -1;
 		}
@@ -250,7 +252,7 @@ int open_tty(int tty)
 	if ((c = open(dev, O_RDWR)) == -1) {
 		sprintf(dev, PATH_DEV "/vc/%d", tty);
 		if ((c = open(dev, O_RDWR)) == -1) {
-			printerr("Failed to open " PATH_DEV "/tty%d or " 
+			printk("Failed to open " PATH_DEV "/tty%d or " 
 				 PATH_DEV "/vc/%d\n", tty, tty);
 			return 0;
 		}

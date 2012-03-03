@@ -2,6 +2,7 @@
  * userui_usplash_core.c - usplash userspace user interface module.
  *
  * Copyright (C) 2005-2007, Bernard Blackham <bernard@blackham.com.au>
+ * Copyright (C) 2008-2009, Nigel Cunningham <nigel@tuxonice.net>
  * 
  * This file is subject to the terms and conditions of the GNU General Public
  * License v2.  See the file COPYING in the main directory of this archive for
@@ -31,6 +32,24 @@ static int usplash_ready = 0;
 static int userui_usplash_xres = 0;
 static int userui_usplash_yres = 0;
 static int userui_usplash_verbose = 1;
+
+#if 0
+#include <dlfcn.h>
+
+static void *dl_handle;
+static int (*usplash_setup) (int xres, int yres, int verbose);
+static void (*usplash_restore_console) (void);
+static void (*usplash_done) (void);
+static void (*draw_progressbar) (int percentage);
+static void (*clear_screen) (void);
+static void (*clear_progressbar) (void);
+static void (*clear_text) (void);
+static void (*draw_text) (const char *text, size_t len);
+#endif
+
+#ifndef fade_logo
+void fade_logo(on, step) { }
+#endif
 
 static void read_usplash_conf() {
     char s[1024];
@@ -138,6 +157,7 @@ static void userui_usplash_prepare() {
     clear_screen();
     clear_progressbar();
     clear_text();
+    fade_logo(1, 10);
 
     usplash_ready = 1;
 }
@@ -146,6 +166,7 @@ static void userui_usplash_cleanup() {
     if (!usplash_ready)
 	return;
 
+    fade_logo(1, 10);
     usplash_done();
     usplash_restore_console();
 }
@@ -240,6 +261,8 @@ static int usplash_option_handler(char c)
 static char *usplash_cmdline_options()
 {
     return 
+"\n"
+"  USPLASH:\n"
 "  -x <x-resolution>, --xres <x-resolution>\n"
 "     Specifies the X resolution in pixels.\n"
 "  -y <y-resolution>, --yres <y-resolution>\n"
@@ -255,8 +278,31 @@ static struct option userui_usplash_longopts[] = {
     {NULL, 0, 0, 0},
 };
 
-static struct userui_ops userui_usplash_ops = {
+#if 0
+static int userui_usplash_load(void)
+{
+	dl_handle = dlopen("libusplash.so", RTLD_NOW);
+	if (!dl_handle) {
+		fputs(dlerror(), stderr);
+		return 1;
+	}
+
+	get_dlsym(usplash_setup);
+	get_dlsym(usplash_restore_console);
+	get_dlsym(usplash_done);
+	get_dlsym(draw_progressbar);
+	get_dlsym(clear_screen);
+	get_dlsym(clear_progressbar);
+	get_dlsym(clear_text);
+	get_dlsym(draw_text);
+
+	return 0;
+};
+#endif
+
+struct userui_ops userui_usplash_ops = {
     .name = "usplash",
+    //.load = userui_usplash_load,
     .prepare = userui_usplash_prepare,
     .cleanup = userui_usplash_cleanup,
     .message = userui_usplash_message,
@@ -271,5 +317,3 @@ static struct userui_ops userui_usplash_ops = {
     .option_handler = usplash_option_handler,
     .cmdline_options = usplash_cmdline_options,
 };
-
-struct userui_ops *userui_ops = &userui_usplash_ops;

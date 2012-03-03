@@ -299,4 +299,6 @@ extern u8 fb_rlen, fb_glen, fb_blen;
 extern int fb_fd, fbsplash_fd;
 extern char *progress_text;
 
+/* Added for use in dynamically loaded functions */
+//void (*png_sig_cmp)(png_bytep sig, png_size_t start, png_size_t num_to_check);
 #endif /* __SPLASH_H__ */

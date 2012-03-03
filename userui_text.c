@@ -2,6 +2,7 @@
  * userui_text.c - Text mode userspace user interface module.
  *
  * Copyright (C) 2005, Bernard Blackham <bernard@blackham.com.au>
+ * Copyright (C) 2006-2009, Nigel Cunningham <nigel@tuxonice.net>
  *
  * Based on the suspend_text module from Suspend2, written by
  * Nigel Cunningham <nigel@nigel.tuxonice.net>
@@ -27,32 +28,28 @@
 
 /* We essentially cut and paste the suspend_text plugin */
 
-static int barwidth = 0, barposn = -1, newbarposn = 0;
+static int barwidth = 0, barposn = -1;
 static int draw_progress_bar = 1;
-
-/* We remember the last header that was (or could have been) displayed for
- * use during log level switches */
-static char lastheader[512];
-static int lastheader_message_len = 0;
 
 static struct termios termios;
 static int lastloglevel = -1;
-static int video_num_lines, video_num_columns, cur_x = -1, cur_y = -1;
+static int cur_x = -1, cur_y = -1;
 
 static int vcsa_fd = -1;
 
-static inline void clear_display() { write(1, "\033[2J", 4); }
-static inline void reset_display() { write(1, "\033c", 2); }
-static inline void clear_to_eol() { write(1, "\033K", 2); }
-static inline void hide_cursor() { write(1, "\033[?25l\033[?1c", 11); }
-static inline void show_cursor() { write(1, "\033[?25h\033[?0c", 11); }
+static inline void clear_display() { int result; result  = write(1, "\033[2J", 4); }
+static inline void reset_display() { int result; result  = write(1, "\033c", 2); }
+static inline void clear_to_eol() { int result; result  = write(1, "\033K", 2); }
+static inline void hide_cursor() { int result; result  = write(1, "\033[?25l\033[?1c", 11); }
+static inline void show_cursor() { int result; result  = write(1, "\033[?25h\033[?0c", 11); }
 static inline void move_cursor_to(int c, int r) { printf("\033[%d;%dH", r, c); }
 
 static void flush_scrollback()
 {
 	int i;
+	int result;
 	for (i = 0; i <= video_num_lines; i++)
-		write(1, "\n", 1);
+		result = write(1, "\n", 1);
 }
 
 static int update_cursor_pos(void)
@@ -85,7 +82,7 @@ static void update_help(int update_all)
 	else
 		snprintf(buf, 200, "%-22s    R: %s reboot after hibernating ",
 			(can_use_escape) ? "Esc: Abort hibernating" : "",
-			(suspend_action & (1 << SUSPEND_REBOOT)) ?  "Disable":"Enable");
+			(suspend_action & (1 << SUSPEND_REBOOT)) ?  "Disable":" Enable");
 	move_cursor_to(video_num_columns - strlen(buf), video_num_lines);
 	printf("%s", buf);
 }
@@ -102,12 +99,10 @@ static void update_help(int update_all)
 
 static void text_prepare_status_real(int printalways, int clearbar, int level, const char *msg)
 {
-	int y;
+	int y, i;
 
-	if (msg) {
+	if (msg)
 		strncpy(lastheader, msg, 512);
-		lastheader_message_len = strlen(lastheader);
-	}
 
 	if (console_loglevel >= SUSPEND_ERROR) {
 		if (!(suspend_action & (1 << SUSPEND_LOGALL)) || level == SUSPEND_UI_MSG)
@@ -135,10 +130,10 @@ static void text_prepare_status_real(int printalways, int clearbar, int level, c
 	move_cursor_to(0, y);
 
 	/* Clear old message */
-	for (barposn = 0; barposn < video_num_columns; barposn++) 
+	for (i = 0; i < video_num_columns; i++) 
 		printf(" ");
 
-	move_cursor_to((video_num_columns - lastheader_message_len) / 2, y);
+	move_cursor_to((video_num_columns - strlen(lastheader)) / 2, y);
 	printf("%s", lastheader);
 	
 	if (draw_progress_bar) {
@@ -156,10 +151,12 @@ static void text_prepare_status_real(int printalways, int clearbar, int level, c
 			move_cursor_to(video_num_columns / 4 + 1, y);
 
 			/* Clear bar */
-			for (barposn = 0; barposn < barwidth; barposn++)
+			for (i = 0; i < barwidth; i++)
 				printf(" ");
 
 			move_cursor_to(video_num_columns / 4 + 1, y);
+
+			barposn = 0;
 		}
 	}
 
@@ -170,8 +167,6 @@ static void text_prepare_status_real(int printalways, int clearbar, int level, c
 	move_cursor_to(cur_x, cur_y);
 	
 	hide_cursor();
-
-	barposn = 0;
 }
 
 static void text_prepare_status(int printalways, int clearbar, int level, const char *fmt, ...)
@@ -195,8 +190,6 @@ static void text_prepare_status(int printalways, int clearbar, int level, const 
 
 static void text_loglevel_change()
 {
-	barposn = 0;
-
 	/* Only reset the display if we're switching between nice display
 	 * and displaying debugging output */
 	
@@ -239,8 +232,11 @@ static void text_loglevel_change()
 void text_update_progress(__uint32_t value, __uint32_t maximum, char *msg)
 {
 	__uint32_t next_update = 0;
-	int bitshift = generic_fls(maximum) - 16;
-	int message_len = 0;
+	int bitshift = generic_fls(maximum) - 16, i;
+	int msg_len = msg ? strlen(msg) : 0;
+	int msg_start = (video_num_columns - msg_len - 2) / 2 -
+		(video_num_columns / 4 + 1);
+	char bar_char = '-';
 
 	if (!maximum)
 		return /* maximum */;
@@ -257,14 +253,11 @@ void text_update_progress(__uint32_t value, __uint32_t maximum, char *msg)
 	if (bitshift > 0) {
 		__uint32_t temp_maximum = maximum >> bitshift;
 		__uint32_t temp_value = value >> bitshift;
-		newbarposn = (__uint32_t) (temp_value * barwidth / temp_maximum);
+		barposn = (__uint32_t) (temp_value * barwidth / temp_maximum);
 	} else
-		newbarposn = (__uint32_t) (value * barwidth / maximum);
+		barposn = (__uint32_t) (value * barwidth / maximum);
 	
-	if (newbarposn < barposn)
-		barposn = 0;
-
-	next_update = ((newbarposn + 1) * maximum / barwidth) + 1;
+	next_update = ((barposn + 1) * maximum / barwidth) + 1;
 
 	if ((console_loglevel >= SUSPEND_ERROR) || (!draw_progress_bar))
 		return /* next_update */;
@@ -274,32 +267,28 @@ void text_update_progress(__uint32_t value, __uint32_t maximum, char *msg)
 		update_cursor_pos();
 
 	/* Update bar */
-	if (draw_progress_bar) {
-		/* Clear bar if at start */
-		if (!barposn) {
-			move_cursor_to(video_num_columns / 4 + 1, (video_num_lines / 3) + 1);
-			for (; barposn < barwidth; barposn++)
-				printf(" ");
-			barposn = 0;
-		}
-		move_cursor_to(video_num_columns / 4 + 1 + barposn, (video_num_lines / 3) + 1);
-
-		for (; barposn < newbarposn; barposn++)
-			printf("-");
-	}
-
-	/* Print string in progress bar on loglevel 1 */
-	if (msg && strlen(msg) && (console_loglevel)) {
-		message_len = strlen(msg);
-		move_cursor_to((video_num_columns - message_len) / 2,
+	if (msg_start < 0) {
+		move_cursor_to((video_num_columns - msg_len) / 2,
 				(video_num_lines / 3) + 1);
 		printf(" %s ", msg);
+	} else {
+		move_cursor_to(video_num_columns / 4 + 1, (video_num_lines / 3) + 1);
+		for (i = 0; i < barwidth; i++) {
+			if (i == barposn)
+				bar_char = ' ';
+			if (i == msg_start && msg_len && console_loglevel) {
+				printf(" %s ", msg);
+				i += msg_len + 2;
+				if (i >= barposn)
+					bar_char = ' ';
+			} else
+				printf("%c", bar_char);
+		}
 	}
 
 	if (cur_x != -1)
 		move_cursor_to(cur_x, cur_y);
 	
-	barposn = newbarposn;
 	hide_cursor();
 	
 	/* return next_update; */
@@ -317,54 +306,69 @@ static void text_message(__uint32_t section, __uint32_t level,
 	text_prepare_status_real(1, 0, level, msg);
 }
 
-static void text_prepare() {
-	struct winsize winsz;
-	struct termios new_termios;
-	/* chvt here? */
+static int text_load()
+{
+  struct winsize winsz;
+  struct termios new_termios;
 
-	setvbuf(stdout, NULL, _IONBF, 0);
+  lastloglevel = SUSPEND_ERROR; /* start in verbose mode */
 
-	/* Turn off canonical mode */
-	ioctl(STDOUT_FILENO, TCGETS, (long)&termios);
-	new_termios = termios;
-	new_termios.c_lflag &= ~ICANON;
-	ioctl(STDOUT_FILENO, TCSETSF, (long)&new_termios);
+  setvbuf(stdout, NULL, _IONBF, 0);
 
-	/* Find out the screen size */
-	video_num_lines = 24;
-	video_num_columns = 80;
-	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz) != -1 &&
-			winsz.ws_row > 0 && winsz.ws_col > 0) {
-		video_num_lines = winsz.ws_row;
-		video_num_columns = winsz.ws_col;
-	}
+  /* Turn off canonical mode */
+  ioctl(STDOUT_FILENO, TCGETS, (long)&termios);
+  new_termios = termios;
+  new_termios.c_lflag &= ~ICANON;
+  ioctl(STDOUT_FILENO, TCSETSF, (long)&new_termios);
 
-	/* Calculate progress bar width. Note that whether the
-	 * splash screen is on might have changed (this might be
-	 * the first call in a new cycle), so we can't take it
-	 * for granted that the width is the same as last time
-	 * we came in here */
-	barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
+  /* Find out the screen size */
+  video_num_lines = 24;
+  video_num_columns = 80;
+  if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz) != -1 &&
+      winsz.ws_row > 0 && winsz.ws_col > 0) {
+    video_num_lines = winsz.ws_row;
+    video_num_columns = winsz.ws_col;
+    printk("Console is %dx%d.\n", video_num_lines, video_num_columns);
+  }
 
-	/* Open /dev/vcsa0 so we can find out the cursor position when we need to */
-	vcsa_fd = open("/dev/vcsa0", O_RDONLY);
-	/* if it errors, don't worry. we'll check later */
+  /* Calculate progress bar width. Note that whether the
+   * splash screen is on might have changed (this might be
+   * the first call in a new cycle), so we can't take it
+   * for granted that the width is the same as last time
+   * we came in here */
+  barwidth = (video_num_columns - 2 * (video_num_columns / 4) - 2);
 
+  /* Open /dev/vcsa0 so we can find out the cursor position when we need to */
+  vcsa_fd = open("/dev/vcsa0", O_RDONLY);
+  /* if it errors, don't worry. we'll check later */
+
+  return 0;
+}
+
+static void text_prepare()
+{
 	clear_display();
 
+	lastloglevel = -1;
 	text_loglevel_change();
+}
+
+static void text_unprepare()
+{
+	clear_display();
+	move_cursor_to(0, 0);
 }
 
 static void text_cleanup()
 {
+	text_unprepare();
+	show_cursor();
+
 	if (vcsa_fd >= 0)
 		close(vcsa_fd);
 
 	ioctl(STDOUT_FILENO, TCSETSF, (long)&termios);
 
-	show_cursor();
-	clear_display();
-	move_cursor_to(0, 0);
 	/* chvt back? */
 }
 
@@ -384,9 +388,11 @@ static void text_keypress(int key)
 	}
 }
 
-static struct userui_ops userui_text_ops = {
+struct userui_ops userui_text_ops = {
 	.name = "text",
+	.load = text_load,
 	.prepare = text_prepare,
+	.unprepare = text_unprepare,
 	.cleanup = text_cleanup,
 	.message = text_message,
 	.update_progress = text_update_progress,
@@ -394,5 +400,3 @@ static struct userui_ops userui_text_ops = {
 	.redraw = text_redraw,
 	.keypress = text_keypress,
 };
-
-struct userui_ops *userui_ops = &userui_text_ops;

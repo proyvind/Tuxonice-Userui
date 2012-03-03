@@ -257,7 +257,7 @@ char *get_program_output(char *prg, unsigned char origin)
 	if (!buf)
 		return NULL;
 
-        pipe(pfds);
+        i = pipe(pfds);
 	pid = fork();
 	buf[0] = 0;
 	
@@ -268,7 +268,7 @@ char *get_program_output(char *prg, unsigned char origin)
 			 * with a deadlock. */
 			close(1);
 		}
-		dup(pfds[1]);
+		i = dup(pfds[1]);
 	 	close(pfds[0]);
 		execlp("sh", "sh", "-c", prg, NULL);
 	} else {

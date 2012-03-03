@@ -42,6 +42,12 @@ typedef struct {
 	u8 r, g, b;
 } __attribute__ ((packed)) rgbcolor;
 
+#if 0
+#undef png_sig_cmp
+static int (*png_sig_cmp) PNGARG((png_bytep sig, png_size_t start,
+	png_size_t num_to_check));
+#endif
+
 /* This function converts a truecolor image to whatever format the 
  * framebuffer uses */
 void truecolor2fb (truecolor* data, u8* out, int len, int y, u8 alpha)
@@ -67,7 +73,7 @@ void truecolor2fb (truecolor* data, u8* out, int len, int y, u8 alpha)
 
 #ifdef CONFIG_PNG
 #define PALETTE_COLORS 240
-int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *height, u8 want_alpha)
+int load_png(char *filename, u8 **data, struct fb_cmap *cmap, unsigned int *width, unsigned int *height, u8 want_alpha)
 {
 	png_structp 	png_ptr;
 	png_infop 	info_ptr, end_info;
@@ -85,7 +91,7 @@ int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *h
 	fp = fopen(filename,"r");
 	if (!fp)
 	{
-		printerr("Could not open file %s.\n", filename);
+		printk("Could not open file %s.\n", filename);
 		return -1;
 	}
 	
@@ -94,7 +100,7 @@ int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *h
 	if (!info_ptr)
 	{
 		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
-		printerr("Could not allocate PNG info struct. Out of memory?\n");
+		printk("Could not allocate PNG info struct. Out of memory?\n");
 		return -1;
 	}
 
@@ -102,7 +108,7 @@ int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *h
 	if (!end_info)
 	{
 		png_destroy_read_struct(&png_ptr, (png_infopp)&info_ptr, (png_infopp)NULL);
-		printerr("Could not read file %s. Corrupt PNG header?\n", filename);
+		printk("Could not read file %s. Corrupt PNG header?\n", filename);
 		return -1;
 	}
 
@@ -112,30 +118,30 @@ int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *h
 	png_init_io(png_ptr, fp);
 	png_read_info(png_ptr, info_ptr);
 
-	if (cmap && info_ptr->color_type != PNG_COLOR_TYPE_PALETTE) {
-		printerr("Could not read file %s. Not a palette-based image.\n", filename);
+	if (cmap && png_get_color_type(png_ptr, info_ptr) != PNG_COLOR_TYPE_PALETTE) {
+		printk("Could not read file %s. Not a palette-based image.\n", filename);
 		goto failed;
 	}
 
-	if (info_ptr->color_type == PNG_COLOR_TYPE_GRAY ||
-	    info_ptr->color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+	if (png_get_color_type(png_ptr, info_ptr) == PNG_COLOR_TYPE_GRAY ||
+	    png_get_color_type(png_ptr, info_ptr) == PNG_COLOR_TYPE_GRAY_ALPHA)
 		png_set_gray_to_rgb(png_ptr);
 
-	if (info_ptr->bit_depth == 16)
+	if (png_get_bit_depth(png_ptr, info_ptr) == 16)
 		png_set_strip_16(png_ptr);
 
-	if (!want_alpha && info_ptr->color_type & PNG_COLOR_MASK_ALPHA)
+	if (!want_alpha && png_get_color_type(png_ptr, info_ptr) & PNG_COLOR_MASK_ALPHA)
 		png_set_strip_alpha(png_ptr);
 
 #ifndef TARGET_KERNEL	
-	if (!(info_ptr->color_type & PNG_COLOR_MASK_ALPHA) & want_alpha) {
+	if (!(png_get_color_type(png_ptr, info_ptr) & PNG_COLOR_MASK_ALPHA) & want_alpha) {
 		png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
 	}
 #endif
 	png_read_update_info(png_ptr, info_ptr);
 
-	if (!cmap && info_ptr->color_type != PNG_COLOR_TYPE_RGB && info_ptr->color_type != PNG_COLOR_TYPE_RGBA) {
-		printerr("Could not read file %s. Not an RGB image.\n", filename);
+	if (!cmap && png_get_color_type(png_ptr, info_ptr) != PNG_COLOR_TYPE_RGB && png_get_color_type(png_ptr, info_ptr) != PNG_COLOR_TYPE_RGBA) {
+		printk("Could not read file %s. Not an RGB image.\n", filename);
 		goto failed;
 	}
 
@@ -143,39 +149,39 @@ int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *h
 		png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette);
 	
 		if (num_palette > cmap->len) {
-			printerr("Could not read file %s. Too many colours in image (%d > %d).\n", filename, num_palette, cmap->len);
+			printk("Could not read file %s. Too many colours in image (%d > %d).\n", filename, num_palette, cmap->len);
 			goto failed;
 		}
 	}
 
 	rowbytes = png_get_rowbytes(png_ptr, info_ptr);	
 
-	if ((width && *width && info_ptr->width != *width) || (height && *height && info_ptr->height != *height)) {
-		printerr("Image size mismatch: %s.\n", filename);
+	if ((width && *width && png_get_image_width(png_ptr, info_ptr) != *width) || (height && *height && png_get_image_height(png_ptr, info_ptr) != *height)) {
+		printk("Image size mismatch: %s.\n", filename);
 		goto failed;
 	} else {
-		*width = info_ptr->width;
-		*height = info_ptr->height;
+		*width = png_get_image_width(png_ptr, info_ptr);
+		*height = png_get_image_height(png_ptr, info_ptr);
 	}
 
 	*data = malloc(fb_var.xres * fb_var.yres * bytespp);
 	if (!*data) {
-		printerr("Failed to allocate memory for image: %s.\n", filename);
+		printk("Failed to allocate memory for image: %s.\n", filename);
 		goto failed;
 	}
 	
 	buf = malloc(rowbytes);	
 	if (!buf) {
-		printerr("Failed to allocate memory for image line buffer.\n");
+		printk("Failed to allocate memory for image line buffer.\n");
 		free(*data);
 		goto failed;
 	}
 	
-	for (i = 0; i < info_ptr->height; i++) {
+	for (i = 0; i < png_get_image_height(png_ptr, info_ptr); i++) {
 		if (cmap) {
-			row_pointer = *data + info_ptr->width * i;
+			row_pointer = *data + png_get_image_width(png_ptr, info_ptr) * i;
 		} else if (want_alpha) {
-			row_pointer = *data + info_ptr->width * i * 4;
+			row_pointer = *data + png_get_image_width(png_ptr, info_ptr) * i * 4;
 		} else {
 			row_pointer = buf;
 		}
@@ -184,7 +190,7 @@ int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *h
 		
 		if (cmap) {
 			int h = 256 - cmap->len;
-			t = *data + info_ptr->width * i;
+			t = *data + png_get_image_width(png_ptr, info_ptr) * i;
 
 			if (h) {
 				/* Move the colors up by 'h' offset. This is used because fbcon
@@ -196,7 +202,7 @@ int load_png(char *filename, u8 **data, struct fb_cmap *cmap, int *width, int *h
 		
 		/* We only need to convert the image if we the alpha channel is not required */	
 		} else if (!want_alpha) {
-			truecolor2fb((truecolor*)buf, *data + info_ptr->width * bytespp * i, info_ptr->width, i, 0);
+			truecolor2fb((truecolor*)buf, *data + png_get_image_width(png_ptr, info_ptr) * bytespp * i, png_get_image_width(png_ptr, info_ptr), i, 0);
 		}
 	}
 
@@ -220,13 +226,14 @@ failed:
 
 int is_png(char *filename)
 {
-	char header[8];
+	unsigned char header[8];
 	FILE *fp = fopen(filename,"r");
+	int result;
 	
 	if (!fp)
 		return -1;
 
-	fread(header, 1, 8, fp);
+	result = fread(header, 1, 8, fp);
 	fclose(fp);
 	
 	return !png_sig_cmp(header, 0, 8);
@@ -246,7 +253,7 @@ int load_jpeg(char *filename, u8 **data, int *width, int *height)
 	jpeg_create_decompress(&cinfo);
 	
 	if ((injpeg = fopen(filename,"r")) == NULL) {
-		printerr("Can't open file %s!\n", filename);
+		printk("Can't open file %s!\n", filename);
 		return -1;	
 	}
 
@@ -255,7 +262,7 @@ int load_jpeg(char *filename, u8 **data, int *width, int *height)
 	jpeg_start_decompress(&cinfo);
 
 	if ((width && cinfo.output_width != *width) || (height && cinfo.output_height != *height)) {
-		printerr("Image size mismatch: %s.\n", filename);
+		printk("Image size mismatch: %s.\n", filename);
 		return -2;
 	} else {
 		*width = cinfo.output_width;
@@ -264,13 +271,13 @@ int load_jpeg(char *filename, u8 **data, int *width, int *height)
 	
 	buf = malloc(cinfo.output_width * cinfo.output_components * sizeof(char));
 	if (!buf) {
-		printerr("Failed to allocate JPEG decompression buffer.\n");
+		printk("Failed to allocate JPEG decompression buffer.\n");
 		return -1;
 	}
 
 	*data = malloc(cinfo.output_width * cinfo.output_height * bytespp);
 	if (!*data) {
-		printerr("Failed to allocate memory for image: %s.\n", filename);
+		printk("Failed to allocate memory for image: %s.\n", filename);
 		return -4;
 	}
 	
@@ -303,13 +310,13 @@ int load_bg_images(char mode)
 		pic = (mode == 'v') ? cf_pic256 : cf_silentpic256;
 		
 		if (!pic) {
-			printerr("No 8bpp %s picture specified in the theme config.\n", (mode == 'v') ? "verbose" : "silent" );
+			printk("No 8bpp %s picture specified in the theme config.\n", (mode == 'v') ? "verbose" : "silent" );
 			return -1;
 		}
 
 #ifdef CONFIG_PNG
 		if (!is_png(pic)) {
-			printerr("Unrecognized format of the verbose 8bpp background image.\n");
+			printk("Unrecognized format of the verbose 8bpp background image.\n");
 			return -1;	
 		}
 
@@ -327,7 +334,7 @@ int load_bg_images(char mode)
 		img->cmap.red = malloc(i * 3 * 2);
 	
 		if (!img->cmap.red) {
-			printerr("Failed to allocate memory for the image palette.\n");
+			printk("Failed to allocate memory for the image palette.\n");
 			return -4;
 		}
 					
@@ -336,11 +343,11 @@ int load_bg_images(char mode)
 		img->cmap.len = i;
 		
 		if (load_png(pic, (u8**)&img->data, &img->cmap, &img->width, &img->height, 0)) {
-			printerr("Failed to load PNG file %s.\n", pic);
+			printk("Failed to load PNG file %s.\n", pic);
 			return -1;
 		}	
 #else
-		printerr("This version of splashutils has been compiled without support for 8bpp modes.\n");
+		printk("This version of splashutils has been compiled without support for 8bpp modes.\n");
 		return -1;
 #endif
 	/* Deal with 15, 16, 24 and 32bpp modes */
@@ -349,7 +356,7 @@ int load_bg_images(char mode)
 
 		if (!pic) {
 			if (mode == 's') /* only complain about the silent pic */
-				printerr("No silent picture specified in the theme config.\n");
+				printk("No silent picture specified in the theme config.\n");
 			return -1;
 		}
 		
@@ -363,7 +370,7 @@ int load_bg_images(char mode)
 		}
 		
 		if (i) {
-			printerr("Failed to load image %s.\n", pic);
+			printk("Failed to load image %s.\n", pic);
 			return -1;
 		}
 	}
@@ -377,7 +384,7 @@ int load_images(char mode)
 	item *i;
 	
 	if (!config_file) {
-		printerr("No config file specified.\n");
+		printk("No config file specified.\n");
 		return -1;
 	}
 	
@@ -395,12 +402,12 @@ int load_images(char mode)
 			ii->w = ii->h = 0;
 			
 			if (!is_png(ii->filename)) {
-				printerr("Icon %s is not a PNG file.\n", ii->filename);
+				printk("Icon %s is not a PNG file.\n", ii->filename);
 				continue;
 			}
 			
 			if (load_png(ii->filename, &ii->picbuf, NULL, &ii->w, &ii->h, 1)) {
-				printerr("Failed to load icon %s.\n", ii->filename);
+				printk("Failed to load icon %s.\n", ii->filename);
 				ii->picbuf = NULL;
 				ii->w = ii->h = 0;
 				continue;
