@@ -1,3 +1,16 @@
+tuxonice-userui (1.1-1) UNRELEASED; urgency=low
+
+  * New upstream version.
+  * Adopt the package (Closes: #647875).
+  * Replace CDBS with dh(1), bump debian/compat to 9, update Build-Depends
+    accordingly.
+  * Drop obsolete shlibs.local.
+  * Drop lintian-overrides as the binary is now linked dynamically.
+  * Change Priority to optional.
+  * Do not directly link against libz and liblcms.
+
+ -- Andrey Rahmatullin <wrar@wrar.name>  Mon, 05 Mar 2012 00:58:18 +0600
+
 tuxonice-userui (1.0-2) unstable; urgency=low
 
   * Disable usplash following usplash removal (#593702). Closes: #593708.
