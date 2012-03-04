@@ -8,6 +8,8 @@ Build-Depends: debhelper (>= 9~),
                libpng12-dev,
 Standards-Version: 3.9.2
 Homepage: http://www.tuxonice.net/userui
+Vcs-Git: git://git.debian.org/collab-maint/tuxonice-userui.git
+Vcs-Browser: http://git.debian.org/?p=collab-maint/tuxonice-userui.git;a=summary
 
 Package: tuxonice-userui
 Architecture: i386 ia64 powerpc ppc64 amd64

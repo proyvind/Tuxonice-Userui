@@ -8,6 +8,7 @@ tuxonice-userui (1.1-1) UNRELEASED; urgency=low
   * Drop lintian-overrides as the binary is now linked dynamically.
   * Change Priority to optional.
   * Do not directly link against libz and liblcms.
+  * Add Vcs-* fields.
 
  -- Andrey Rahmatullin <wrar@wrar.name>  Mon, 05 Mar 2012 00:58:18 +0600
 
