@@ -1,5 +1,5 @@
 Source: tuxonice-userui
-Priority: extra
+Priority: optional
 Section: misc
 Maintainer: Andrey Rahmatullin <wrar@wrar.name>
 Build-Depends: debhelper (>= 9~),
