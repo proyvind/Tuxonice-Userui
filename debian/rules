@@ -1,14 +1,15 @@
 #!/usr/bin/make -f
 # -*- mode: makefile; coding: utf-8 -*-
 
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/makefile.mk
+%:
+	dh $@
 
-DEB_MAKE_BUILD_TARGET := tuxoniceui_text tuxoniceui_fbsplash
+override_dh_auto_build:
+	dh_auto_build -- USE_FBSPLASH=1
 
-binary-post-install/tuxonice-userui::
+override_dh_auto_install:
 	install -m 755 -t $(CURDIR)/debian/tuxonice-userui/usr/lib/tuxonice-userui/ \
-		 $(DEB_MAKE_BUILD_TARGET)
+		tuxoniceui
 
 	install -m 755 debian/initramfs.hook \
 		$(CURDIR)/debian/tuxonice-userui/usr/share/initramfs-tools/hooks/tuxonice_userui
