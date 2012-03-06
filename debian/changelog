@@ -9,8 +9,9 @@ tuxonice-userui (1.1-1) UNRELEASED; urgency=low
   * Change Priority to optional.
   * Do not directly link against libz and liblcms.
   * Add Vcs-* fields.
+  * Replace libpng12-dev build dependency with libpng-dev (Closes: #662527).
 
- -- Andrey Rahmatullin <wrar@wrar.name>  Mon, 05 Mar 2012 00:58:18 +0600
+ -- Andrey Rahmatullin <wrar@wrar.name>  Tue, 06 Mar 2012 23:00:21 +0600
 
 tuxonice-userui (1.0-2) unstable; urgency=low
 

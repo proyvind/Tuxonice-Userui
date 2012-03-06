@@ -5,7 +5,7 @@ Maintainer: Andrey Rahmatullin <wrar@wrar.name>
 Build-Depends: debhelper (>= 9~),
                libmng-dev (>= 1.0.5),
                libfreetype6-dev,
-               libpng12-dev,
+               libpng-dev,
 Standards-Version: 3.9.2
 Homepage: http://www.tuxonice.net/userui
 Vcs-Git: git://git.debian.org/collab-maint/tuxonice-userui.git
