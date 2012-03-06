@@ -1,6 +1,6 @@
 tuxonice-userui (1.1-1) UNRELEASED; urgency=low
 
-  * New upstream version.
+  * New upstream version (Closes: #648125).
   * Adopt the package (Closes: #647875).
   * Replace CDBS with dh(1), bump debian/compat to 9, update Build-Depends
     accordingly.
@@ -10,8 +10,9 @@ tuxonice-userui (1.1-1) UNRELEASED; urgency=low
   * Do not directly link against libz and liblcms.
   * Add Vcs-* fields.
   * Replace libpng12-dev build dependency with libpng-dev (Closes: #662527).
+  * 
 
- -- Andrey Rahmatullin <wrar@wrar.name>  Tue, 06 Mar 2012 23:00:21 +0600
+ -- Andrey Rahmatullin <wrar@wrar.name>  Tue, 06 Mar 2012 23:57:36 +0600
 
 tuxonice-userui (1.0-2) unstable; urgency=low
 
