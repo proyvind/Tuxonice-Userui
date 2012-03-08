@@ -17,7 +17,6 @@ tuxonice-userui (1.1-1) unstable; urgency=low
     (Closes: #660332).
   * Fix debian/watch.
   * Convert debian/copyright to the machine-readable format.
-  * 
 
  -- Andrey Rahmatullin <wrar@wrar.name>  Fri, 09 Mar 2012 00:03:09 +0600
 
