@@ -2,7 +2,9 @@
 
 set -e
 
-update-initramfs -u
+if [ -x /usr/sbin/update-initramfs ]; then
+    update-initramfs -u
+fi
 
 #DEBHELPER#
 

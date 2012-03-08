@@ -12,8 +12,10 @@ tuxonice-userui (1.1-1) UNRELEASED; urgency=low
   * Initramfs hook: do not check whether the loaded kernel supports ToI and
     whether the kernel being processed has tuxonice_userui as a module; always
     install the binary into initramfs instead (Closes: #574604).
+  * Call update-initramfs in maintainer scripts only if it's available
+    (Closes: #660332).
 
- -- Andrey Rahmatullin <wrar@wrar.name>  Wed, 07 Mar 2012 00:48:04 +0600
+ -- Andrey Rahmatullin <wrar@wrar.name>  Wed, 07 Mar 2012 01:07:35 +0600
 
 tuxonice-userui (1.0-2) unstable; urgency=low
 

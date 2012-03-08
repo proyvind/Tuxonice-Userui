@@ -3,7 +3,9 @@
 set -e
 
 if [ "$1" = "configure" ]; then
-    update-initramfs -u
+    if [ -x /usr/sbin/update-initramfs ]; then
+        update-initramfs -u
+    fi
 fi
 
 #DEBHELPER#
