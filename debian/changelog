@@ -15,8 +15,9 @@ tuxonice-userui (1.1-1) UNRELEASED; urgency=low
   * Call update-initramfs in maintainer scripts only if it's available
     (Closes: #660332).
   * Fix debian/watch.
+  * Convert debian/copyright to the machine-readable format.
 
- -- Andrey Rahmatullin <wrar@wrar.name>  Thu, 08 Mar 2012 22:27:22 +0600
+ -- Andrey Rahmatullin <wrar@wrar.name>  Thu, 08 Mar 2012 23:14:06 +0600
 
 tuxonice-userui (1.0-2) unstable; urgency=low
 
