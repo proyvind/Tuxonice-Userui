@@ -1,3 +1,18 @@
+tuxonice-userui (1.1-1) unstable; urgency=low
+
+  Fbsplash support has been disabled.
+
+  There is one binary now, called /usr/lib/tuxonice-userui/tuxoniceui, so you
+  should update your scripts.
+
+  tuxonice-userui binary is now included in initramfs even for kernels that do
+  not support TuxOnIce.
+
+  The binary is now linked dynamically so libc.so.6 will be pulled into
+  initramfs.
+
+ -- Andrey Rahmatullin <wrar@wrar.name>  Thu, 08 Mar 2012 18:00:27 +0600
+
 tuxonice-userui (0.7.3-1) unstable; urgency=low
 
   * Add ramdisk  support, which means you can  now include tuxonice-userui
