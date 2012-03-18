@@ -2,7 +2,10 @@ Source: tuxonice-userui
 Priority: optional
 Section: misc
 Maintainer: Andrey Rahmatullin <wrar@wrar.name>
-Build-Depends: debhelper (>= 9~)
+Build-Depends: debhelper (>= 9~),
+               libmng-dev (>= 1.0.5),
+               libfreetype6-dev,
+               libpng-dev,
 Standards-Version: 3.9.3
 Homepage: http://www.tuxonice.net/userui
 Vcs-Git: git://git.debian.org/collab-maint/tuxonice-userui.git
