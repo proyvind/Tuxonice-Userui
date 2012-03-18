@@ -1,6 +1,6 @@
-tuxonice-userui (1.1-1) unstable; urgency=low
+tuxonice-userui (1.1-1) UNRELEASED; urgency=low
 
-  * New upstream version.
+  * New upstream version (Closes: #648125).
   * Adopt the package (Closes: #647875).
   * Update Standards-Version to 3.9.3 (no change needed).
   * Add Vcs-* fields.
@@ -9,7 +9,7 @@ tuxonice-userui (1.1-1) unstable; urgency=low
   * Drop obsolete shlibs.local.
   * Drop lintian-overrides as the binary is now linked dynamically.
   * Change Priority to optional.
-  * Disable fbsplash support (Closes: #648125, #662527).
+  * Replace libpng12-dev build dependency with libpng-dev (Closes: #662527).
   * Initramfs hook: do not check whether the loaded kernel supports ToI and
     whether the kernel being processed has tuxonice_userui as a module; always
     install the binary into initramfs instead (Closes: #574604).
@@ -18,7 +18,7 @@ tuxonice-userui (1.1-1) unstable; urgency=low
   * Fix debian/watch.
   * Convert debian/copyright to the machine-readable format.
 
- -- Andrey Rahmatullin <wrar@wrar.name>  Fri, 09 Mar 2012 00:03:09 +0600
+ -- Andrey Rahmatullin <wrar@wrar.name>  Sun, 18 Mar 2012 16:17:25 +0600
 
 tuxonice-userui (1.0-2) unstable; urgency=low
 

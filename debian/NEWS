@@ -1,17 +1,16 @@
 tuxonice-userui (1.1-1) unstable; urgency=low
 
-  Fbsplash support has been disabled.
-
-  There is one binary now, called /usr/lib/tuxonice-userui/tuxoniceui, so you
-  should update your scripts.
+  There is one binary now, called /usr/lib/tuxonice-userui/tuxoniceui (using
+  the text mode by default and the fbsplash mode with -f command line
+  parameter), so you should update your scripts.
 
   tuxonice-userui binary is now included in initramfs even for kernels that do
   not support TuxOnIce.
 
-  The binary is now linked dynamically so libc.so.6 will be pulled into
-  initramfs.
+  The binary is now linked dynamically so libc.so.6 and other dependencies
+  will be pulled into initramfs.
 
- -- Andrey Rahmatullin <wrar@wrar.name>  Thu, 08 Mar 2012 18:00:27 +0600
+ -- Andrey Rahmatullin <wrar@wrar.name>  Sun, 18 Mar 2012 16:17:55 +0600
 
 tuxonice-userui (0.7.3-1) unstable; urgency=low
 
