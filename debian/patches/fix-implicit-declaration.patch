@@ -1,0 +1,41 @@
+Description: Fix "warning: implicit declaration of function ‘printk’"
+Author: Andrey Rahmatullin <wrar@wrar.name>
+Bug: https://github.com/NigelCunningham/Tuxonice-Userui/issues/2
+Last-Update: 2012-04-02
+
+diff --git a/fbsplash/common.c b/fbsplash/common.c
+index c828f78..c3eec48 100644
+--- a/fbsplash/common.c
++++ b/fbsplash/common.c
+@@ -26,6 +26,7 @@
+ #include <sys/vt.h>
+ #include <linux/kd.h>
+ 
++#include "../userui.h"
+ #include "splash.h"
+ 
+ struct fb_var_screeninfo   fb_var;
+diff --git a/fbsplash/image.c b/fbsplash/image.c
+index 982a1c2..936727e 100644
+--- a/fbsplash/image.c
++++ b/fbsplash/image.c
+@@ -33,6 +33,7 @@
+   #include <jpeglib.h>
+ #endif
+ 
++#include "../userui.h"
+ #include "splash.h"
+ 
+ struct fb_image verbose_img;
+diff --git a/fbsplash/parse.c b/fbsplash/parse.c
+index 2324c69..3577dc8 100644
+--- a/fbsplash/parse.c
++++ b/fbsplash/parse.c
+@@ -19,6 +19,7 @@
+ #include <linux/fb.h>
+ #include <sys/stat.h>
+ #include <ctype.h>
++#include "../userui.h"
+ #include "splash.h"
+ 
+ struct config_opt {

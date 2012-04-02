@@ -1,1 +1,2 @@
 trim-libs.patch
+fix-implicit-declaration.patch

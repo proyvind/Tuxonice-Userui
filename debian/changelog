@@ -17,8 +17,9 @@ tuxonice-userui (1.1-1) UNRELEASED; urgency=low
     (Closes: #660332).
   * Fix debian/watch.
   * Convert debian/copyright to the machine-readable format.
+  * Fix "implicit declaration of printk" warning.
 
- -- Andrey Rahmatullin <wrar@wrar.name>  Sun, 18 Mar 2012 16:17:25 +0600
+ -- Andrey Rahmatullin <wrar@wrar.name>  Mon, 02 Apr 2012 22:47:20 +0600
 
 tuxonice-userui (1.0-2) unstable; urgency=low
 
