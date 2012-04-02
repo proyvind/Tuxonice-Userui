@@ -1,0 +1,20 @@
+Description: Fix alignment warning about progress_text by removing the redundant definition
+ userui_fbsplash.o link command yields "/usr/bin/ld: Warning: alignment 8 of
+ symbol `progress_text' in common.o is smaller than 16 in
+ userui_fbsplash_core.o" while progress_text should be defined only in common.c.
+Author: Andrey Rahmatullin <wrar@wrar.name>
+Bug: https://github.com/NigelCunningham/Tuxonice-Userui/issues/1
+Last-Update: 2012-04-02
+
+diff --git a/fbsplash/userui_fbsplash_core.c b/fbsplash/userui_fbsplash_core.c
+index 63be820..3315122 100644
+--- a/fbsplash/userui_fbsplash_core.c
++++ b/fbsplash/userui_fbsplash_core.c
+@@ -29,7 +29,6 @@
+ #include "../userui.h"
+ 
+ int fb_fd, fbsplash_fd = -1, no_silent_image = 0;
+-char *progress_text;
+ static char rendermessage[512];
+ static int lastloglevel;
+ static unsigned long cur_value, cur_maximum, last_pos;

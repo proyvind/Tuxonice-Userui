@@ -18,8 +18,9 @@ tuxonice-userui (1.1-1) UNRELEASED; urgency=low
   * Fix debian/watch.
   * Convert debian/copyright to the machine-readable format.
   * Fix "implicit declaration of printk" warning.
+  * Fix "symbol alignments of progress_text differ" warning.
 
- -- Andrey Rahmatullin <wrar@wrar.name>  Mon, 02 Apr 2012 22:47:20 +0600
+ -- Andrey Rahmatullin <wrar@wrar.name>  Mon, 02 Apr 2012 23:04:34 +0600
 
 tuxonice-userui (1.0-2) unstable; urgency=low
 
