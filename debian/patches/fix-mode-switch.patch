@@ -1,0 +1,66 @@
+Description: Fix userui mode switching via command line and key presses.
+Bug: https://github.com/NigelCunningham/Tuxonice-Userui/issues/4
+Author: Дамјан Георгиевски <gdamjan@gmail.com>
+Last-Update: 2012-04-22
+
+diff --git a/userui_core.c b/userui_core.c
+index 632ecd3..a7908da 100644
+--- a/userui_core.c
++++ b/userui_core.c
+@@ -358,13 +358,13 @@ int common_keypress_handler(int key)
+ 			toggle_debug_state(key);
+ 			break;
+ 		case 0x2D: /* X: Text */
+-			next_ops = 3;
++			next_ops = 1;
+ 			break;
+ 		case 0x21: /* F: Fbsplash */
+ 			next_ops = 2;
+ 			break;
+ 		case 0x16: /* U: Usplash */
+-			next_ops = 1;
++			next_ops = 3;
+ 			break;
+ 		default: 
+ 			return 0;
+@@ -463,16 +463,16 @@ static void handle_params(int argc, char **argv) {
+ 				fprintf(stderr, ")\n");
+ 				exit(1);
+ 			case 'u':
+-				if (userui_ops[0])
+-					active_ops = userui_ops[0];
++				if (userui_ops[2])
++					active_ops = userui_ops[2];
+ 				break;
+ 			case 'f':
+ 				if (userui_ops[1])
+ 					active_ops = userui_ops[1];
+ 				break;
+ 			case 'x':
+-				if (userui_ops[2])
+-					active_ops = userui_ops[2];
++				if (userui_ops[0])
++					active_ops = userui_ops[0];
+ 				break;
+ 			default:
+ 				for (i = 0; i < NUM_UIS; i++) {
+@@ -1022,8 +1022,8 @@ int main(int argc, char **argv) {
+ 	int i;
+ 
+   userui_ops[0] = &userui_text_ops;
+-	userui_ops[1] = USPLASH_OPS;
+-	userui_ops[2] = FBSPLASH_OPS;
++	userui_ops[1] = FBSPLASH_OPS;
++	userui_ops[2] = USPLASH_OPS;
+ 	active_ops = &userui_text_ops;
+ 
+ 	handle_params(argc, argv);
+@@ -1041,7 +1041,7 @@ int main(int argc, char **argv) {
+ 	prepare_console();
+ 
+ 	/* Initialise all that we can, use the first */
+-  active_ops = NULL;
++//  active_ops = NULL;
+ 	for (i = 0; i < NUM_UIS; i++) {
+ 		if (userui_ops[i] && userui_ops[i]->load)
+ 			result = userui_ops[i]->load();
