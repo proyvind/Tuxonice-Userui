@@ -1,0 +1,14 @@
+Description: Build the main code with -g
+Author: Andrey Rahmatullin <wrar@wrar.name>
+Last-Update: 2012-04-22
+
+diff --git a/Makefile b/Makefile
+index 553a9ff..f6bf0c5 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,4 +1,4 @@
+-CFLAGS := -Wall -O3
++CFLAGS := -Wall -O3 -g
+ DESTDIR :=
+ PREFIX := /usr/local
+ INSTDIR := $(DESTDIR)$(PREFIX)/sbin

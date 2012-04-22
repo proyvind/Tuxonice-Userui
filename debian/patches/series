@@ -1,3 +1,4 @@
 trim-libs.patch
 fix-implicit-declaration.patch
 fix-duplicate-symbol-definition.patch
+build-with-debug.patch
