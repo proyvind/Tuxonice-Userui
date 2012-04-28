@@ -22,7 +22,7 @@ tuxonice-userui (1.1-1) unstable; urgency=low
   * Build all code with -g to help with debugging.
   * Fix mode switching which is broken in 1.1.
 
- -- Andrey Rahmatullin <wrar@wrar.name>  Sun, 22 Apr 2012 21:54:40 +0600
+ -- Andrey Rahmatullin <wrar@wrar.name>  Sat, 28 Apr 2012 16:44:00 +0600
 
 tuxonice-userui (1.0-2) unstable; urgency=low
 
