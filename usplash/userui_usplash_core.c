@@ -47,9 +47,11 @@ static void (*clear_text) (void);
 static void (*draw_text) (const char *text, size_t len);
 #endif
 
+/*
 #ifndef fade_logo
 void fade_logo(on, step) { }
 #endif
+*/
 
 static void read_usplash_conf() {
     char s[1024];

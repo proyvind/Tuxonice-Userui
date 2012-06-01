@@ -1,0 +1,67 @@
+diff -ruN tuxonice-userui/fbsplash/userui_fbsplash_core.c tuxonice-userui-updated/fbsplash/userui_fbsplash_core.c
+--- tuxonice-userui/fbsplash/userui_fbsplash_core.c	2010-09-13 07:12:55.000000000 +1000
++++ tuxonice-userui-updated/fbsplash/userui_fbsplash_core.c	2011-12-18 09:40:51.657170137 +1100
+@@ -92,29 +92,8 @@
+ }
+ 
+ static int fbsplash_load() {
+-	struct winsize winsz;
+-	struct termios new_termios;
+-
+ 	fb_fd = -1;
+ 	last_pos = 0;
+-	lastloglevel = SUSPEND_ERROR; /* start in verbose mode */
+-
+- 	setvbuf(stdout, NULL, _IONBF, 0);
+-
+-	/* Turn off canonical mode */
+-	ioctl(STDOUT_FILENO, TCGETS, (long)&termios);
+-	new_termios = termios;
+-	new_termios.c_lflag &= ~ICANON;
+-	ioctl(STDOUT_FILENO, TCSETSF, (long)&new_termios);
+-
+-	/* Find out the screen size */
+-	video_num_lines = 24;
+-	video_num_columns = 80;
+-	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz) != -1 &&
+-			winsz.ws_row > 0 && winsz.ws_col > 0) {
+-		video_num_lines = winsz.ws_row;
+-		video_num_columns = winsz.ws_col;
+-	}
+ 
+ 	/* Kick start our TTF library */
+ 	if (TTF_Init() < 0) {
+diff -ruN tuxonice-userui/userui_text.c tuxonice-userui-updated/userui_text.c
+--- tuxonice-userui/userui_text.c	2010-09-13 07:12:55.000000000 +1000
++++ tuxonice-userui-updated/userui_text.c	2011-12-18 09:41:20.323681505 +1100
+@@ -308,6 +308,29 @@
+ 
+ static int text_load()
+ {
++	struct winsize winsz;
++	struct termios new_termios;
++
++	lastloglevel = SUSPEND_ERROR; /* start in verbose mode */
++
++ 	setvbuf(stdout, NULL, _IONBF, 0);
++
++	/* Turn off canonical mode */
++	ioctl(STDOUT_FILENO, TCGETS, (long)&termios);
++	new_termios = termios;
++	new_termios.c_lflag &= ~ICANON;
++	ioctl(STDOUT_FILENO, TCSETSF, (long)&new_termios);
++
++	/* Find out the screen size */
++	video_num_lines = 24;
++	video_num_columns = 80;
++	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz) != -1 &&
++			winsz.ws_row > 0 && winsz.ws_col > 0) {
++		video_num_lines = winsz.ws_row;
++		video_num_columns = winsz.ws_col;
++    printk("Console is %dx%d.\n", video_num_lines, video_num_columns);
++	}
++
+ 	/* Calculate progress bar width. Note that whether the
+ 	 * splash screen is on might have changed (this might be
+ 	 * the first call in a new cycle), so we can't take it
+Binary files tuxonice-userui/userui_text.o and tuxonice-userui-updated/userui_text.o differ
