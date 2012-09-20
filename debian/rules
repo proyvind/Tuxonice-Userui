@@ -8,9 +8,6 @@ override_dh_auto_build:
 	dh_auto_build -- USE_FBSPLASH=1
 
 override_dh_auto_install:
-	install -m 755 -t $(CURDIR)/debian/tuxonice-userui/usr/lib/tuxonice-userui/ \
-		tuxoniceui
-
 	install -m 755 debian/initramfs.hook \
 		$(CURDIR)/debian/tuxonice-userui/usr/share/initramfs-tools/hooks/tuxonice_userui
 
