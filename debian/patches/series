@@ -1,6 +1,6 @@
 trim-libs.patch
 fix-implicit-declaration.patch
 fix-duplicate-symbol-definition.patch
-build-with-debug.patch
 fix-mode-switch.patch
 fix-module-load-logic.patch
+honor-build-flags.patch

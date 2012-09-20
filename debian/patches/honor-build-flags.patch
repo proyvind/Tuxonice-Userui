@@ -1,0 +1,33 @@
+Description: Honor CFLAGS and LDFLAGS from the environment
+Author: Andrey Rahmatullin <wrar@wrar.name>
+Last-Update: 2012-09-21
+
+diff --git a/Makefile b/Makefile
+index 553a9ff..e38f350 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,4 +1,4 @@
+-CFLAGS := -Wall -O3
++CFLAGS += -Wall -O3
+ DESTDIR :=
+ PREFIX := /usr/local
+ INSTDIR := $(DESTDIR)$(PREFIX)/sbin
+@@ -32,7 +32,7 @@ usplash:
+ 	make -C $@
+ 
+ tuxoniceui: $(OBJECTS)
+-	$(CC) userui_core.o userui_text.o $(LIB_TARGETS) $(LIBS) -o tuxoniceui
++	$(CC) $(LDFLAGS) userui_core.o userui_text.o $(LIB_TARGETS) $(LIBS) -o tuxoniceui
+ 
+ clean:
+ 	$(RM) *.o $(TARGETS) fbsplash/*.o usplash/*.o tuxoniceui
+diff --git a/fbsplash/Makefile b/fbsplash/Makefile
+index 1f48a08..bc2c4e0 100644
+--- a/fbsplash/Makefile
++++ b/fbsplash/Makefile
+@@ -1,4 +1,4 @@
+-CFLAGS := -Wall -O3 -g
++CFLAGS += -Wall -O3 -g
+ INCLUDES = -I/usr/include/freetype2/ -I.
+ 
+ TARGET = userui_fbsplash.o
