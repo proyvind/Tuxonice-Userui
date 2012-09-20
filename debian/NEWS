@@ -1,3 +1,11 @@
+tuxonice-userui (1.1-2~exp1) experimental; urgency=low
+
+  A hook for pm-utils has been added, pm-hibernate will now pass the userui
+  program name from /etc/pm/config.d/tuxonice-userui to the kernel before
+  hibernation.
+
+ -- Andrey Rahmatullin <wrar@wrar.name>  Fri, 21 Sep 2012 03:38:43 +0600
+
 tuxonice-userui (1.1-1) unstable; urgency=low
 
   There is one binary now, called /usr/lib/tuxonice-userui/tuxoniceui (using
