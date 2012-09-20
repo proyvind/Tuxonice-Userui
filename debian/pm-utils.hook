@@ -1,0 +1,18 @@
+#!/bin/sh
+# Pass the TuxOnIce userui program name to the kernel
+
+. "${PM_FUNCTIONS}"
+
+SYSFS_PATH="/sys/power/tuxonice/user_interface/program"
+
+[ ! -f "$SYSFS_PATH" ] && return $NA
+
+[ -z "$TUXONICE_USERUI_PROGRAM" ] && return $NA
+
+case $1 in
+    hibernate)
+        echo "$TUXONICE_USERUI_PROGRAM" > $SYSFS_PATH
+        ;;
+    *) exit $NA
+        ;;
+esac

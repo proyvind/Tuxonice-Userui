@@ -13,3 +13,9 @@ override_dh_auto_install:
 
 	install -m 755 debian/initramfs.hook \
 		$(CURDIR)/debian/tuxonice-userui/usr/share/initramfs-tools/hooks/tuxonice_userui
+
+	install -m 755 debian/pm-utils.hook \
+		$(CURDIR)/debian/tuxonice-userui/usr/lib/pm-utils/sleep.d/20tuxonice-userui
+	
+	install -m 644 debian/pm-utils.config \
+		$(CURDIR)/debian/tuxonice-userui/etc/pm/config.d/tuxonice-userui

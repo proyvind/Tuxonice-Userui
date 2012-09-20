@@ -1,2 +1,4 @@
 usr/lib/tuxonice-userui/
 usr/share/initramfs-tools/hooks/
+usr/lib/pm-utils/sleep.d/
+etc/pm/config.d/
