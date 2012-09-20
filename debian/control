@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 9~),
                libmng-dev (>= 1.0.5),
                libfreetype6-dev,
                libpng-dev,
-Standards-Version: 3.9.3
+Standards-Version: 3.9.4
 Homepage: https://github.com/NigelCunningham/Tuxonice-Userui
 Vcs-Git: git://git.debian.org/collab-maint/tuxonice-userui.git
 Vcs-Browser: http://git.debian.org/?p=collab-maint/tuxonice-userui.git;a=summary
