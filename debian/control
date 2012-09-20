@@ -14,7 +14,7 @@ Vcs-Browser: http://git.debian.org/?p=collab-maint/tuxonice-userui.git;a=summary
 Package: tuxonice-userui
 Architecture: i386 ia64 powerpc ppc64 amd64
 Depends: ${shlibs:Depends}, ${misc:Depends}, initramfs-tools
-Recommends: hibernate
+Recommends: hibernate | pm-utils
 Description: user-space interfaces for TuxOnIce
  TuxOnIce is an alternative implementation to suspend a Linux machine
  by writing its state to memory for later resuming. A kernel patch for
