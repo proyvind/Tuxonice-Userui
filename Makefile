@@ -11,7 +11,7 @@ LIBS =
 # FBSPLASH
 ifdef USE_FBSPLASH
 OBJECTS += fbsplash
-LIBS += -lmng -lpng -ljpeg -lz -lfreetype -llcms -lm
+LIBS += -lmng -lpng -ljpeg -lfreetype -lm
 LIB_TARGETS = fbsplash/userui_fbsplash.o
 CFLAGS += -DUSE_FBSPLASH
 endif
@@ -23,6 +23,13 @@ LIBS += -lusplash usplash/userui_usplash.o
 CFLAGS += -DUSE_USPLASH
 endif
 
+#PLYMOUTH
+ifdef USE_PLYMOUTH
+OBJECTS += plymouth
+LIBS += -lplymouth plymouth/plymouth.o
+CFLAGS += -DUSE_PLYMOUTH
+endif
+
 default: tuxoniceui
 
 fbsplash:
@@ -31,11 +38,14 @@ fbsplash:
 usplash:
 	make -C $@
 
+plymouth:
+	make -C $@
+
 tuxoniceui: $(OBJECTS)
 	$(CC) userui_core.o userui_text.o $(LIB_TARGETS) $(LIBS) -o tuxoniceui
 
 clean:
-	$(RM) *.o $(TARGETS) fbsplash/*.o usplash/*.o tuxoniceui
+	$(RM) *.o $(TARGETS) fbsplash/*.o usplash/*.o plymouth/*.o tuxoniceui
 
 $(INSTDIR)/%: %
 	strip $<
@@ -43,4 +53,4 @@ $(INSTDIR)/%: %
 
 install: tuxoniceui $(INSTDIR)/tuxoniceui
 
-.PHONY: all clean install fbsplash usplash
+.PHONY: all clean install fbsplash usplash plymouth
