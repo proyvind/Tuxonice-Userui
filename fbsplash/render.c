@@ -293,9 +293,9 @@ char *get_program_output(char *prg, unsigned char origin)
 char *eval_text(char *txt)
 {
 	char *p, *t, *ret, *d;
-	int len, i, subst_len, need_subst;
+	int len, subst_len, need_subst;
 
-	i = len = strlen(txt);
+	len = strlen(txt);
 	p = txt;
 
 	subst_len = progress_text?strlen(progress_text):0;

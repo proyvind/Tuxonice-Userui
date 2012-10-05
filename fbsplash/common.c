@@ -26,7 +26,9 @@
 #include <sys/vt.h>
 #include <linux/kd.h>
 
+#include "../userui.h"
 #include "splash.h"
+#include "../userui.h"
 
 struct fb_var_screeninfo   fb_var;
 struct fb_fix_screeninfo   fb_fix;
@@ -94,7 +96,7 @@ int get_fb_settings(int fb_num)
 		if (fb == -1)
 #endif
 		{
-			printk("Failed to open " PATH_DEV "/fb%d or " PATH_DEV 
+			printf("Failed to open " PATH_DEV "/fb%d or " PATH_DEV 
 				 "/fb%d for reading.\n", fb_num, fb_num);
 			return 1;
 		}
@@ -215,14 +217,12 @@ int do_config(unsigned char origin)
 
 void vt_cursor_disable(int fd)
 {
-	int result;
-	result = write(fd, "\e[?25l\e[?1c",11);
+	write(fd, "\e[?25l\e[?1c",11);
 }
 
 void vt_cursor_enable(int fd)
 {
-	int result;
-	result = write(fd, "\e[?25h\e[?0c",11);
+	write(fd, "\e[?25h\e[?0c",11);
 }
 
 int open_fb()

@@ -37,19 +37,18 @@ static int cur_x = -1, cur_y = -1;
 
 static int vcsa_fd = -1;
 
-static inline void clear_display() { int result; result  = write(1, "\033[2J", 4); }
-static inline void reset_display() { int result; result  = write(1, "\033c", 2); }
-static inline void clear_to_eol() { int result; result  = write(1, "\033K", 2); }
-static inline void hide_cursor() { int result; result  = write(1, "\033[?25l\033[?1c", 11); }
-static inline void show_cursor() { int result; result  = write(1, "\033[?25h\033[?0c", 11); }
+static inline void clear_display() { write(1, "\033[2J", 4); }
+static inline void reset_display() { write(1, "\033c", 2); }
+static inline void clear_to_eol() { write(1, "\033K", 2); }
+static inline void hide_cursor() { write(1, "\033[?25l\033[?1c", 11); }
+static inline void show_cursor() { write(1, "\033[?25h\033[?0c", 11); }
 static inline void move_cursor_to(int c, int r) { printf("\033[%d;%dH", r, c); }
 
 static void flush_scrollback()
 {
 	int i;
-	int result;
 	for (i = 0; i <= video_num_lines; i++)
-		result = write(1, "\n", 1);
+		write(1, "\n", 1);
 }
 
 static int update_cursor_pos(void)
@@ -231,7 +230,6 @@ static void text_loglevel_change()
  */
 void text_update_progress(__uint32_t value, __uint32_t maximum, char *msg)
 {
-	__uint32_t next_update = 0;
 	int bitshift = generic_fls(maximum) - 16, i;
 	int msg_len = msg ? strlen(msg) : 0;
 	int msg_start = (video_num_columns - msg_len - 2) / 2 -
@@ -257,10 +255,8 @@ void text_update_progress(__uint32_t value, __uint32_t maximum, char *msg)
 	} else
 		barposn = (__uint32_t) (value * barwidth / maximum);
 	
-	next_update = ((barposn + 1) * maximum / barwidth) + 1;
-
 	if ((console_loglevel >= SUSPEND_ERROR) || (!draw_progress_bar))
-		return /* next_update */;
+		return;
 
 	/* Remember where the cursor was */
 	if (cur_x != -1)
@@ -290,8 +286,6 @@ void text_update_progress(__uint32_t value, __uint32_t maximum, char *msg)
 		move_cursor_to(cur_x, cur_y);
 	
 	hide_cursor();
-	
-	/* return next_update; */
 }
 
 static void text_message(__uint32_t section, __uint32_t level,

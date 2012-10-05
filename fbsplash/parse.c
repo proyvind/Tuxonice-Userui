@@ -19,7 +19,9 @@
 #include <linux/fb.h>
 #include <sys/stat.h>
 #include <ctype.h>
+#include "../userui.h"
 #include "splash.h"
+#include "../userui.h"
 
 struct config_opt {
 	char *name;

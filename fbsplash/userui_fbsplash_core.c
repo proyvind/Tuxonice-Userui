@@ -40,17 +40,15 @@ static struct termios termios;
 
 static void fbsplash_log_level_change();
 
-static inline void clear_display() { int result; result = write(1, "\033c", 2); }
+static inline void clear_display() { write(1, "\033c", 2); }
 static inline void move_cursor_to(int c, int r) { printf("\033[%d;%dH", r, c); }
 static void hide_cursor() {
-	int result;
 	ioctl(STDOUT_FILENO, KDSETMODE, KD_GRAPHICS);
-	result = write(1, "\033[?25l\033[?1c", 11);
+	write(1, "\033[?25l\033[?1c", 11);
 }
 static void show_cursor() {
-	int result;
 	ioctl(STDOUT_FILENO, KDSETMODE, KD_TEXT);
-	result = write(1, "\033[?25h\033[?0c", 11);
+	write(1, "\033[?25h\033[?0c", 11);
 }
 
 static void reset_silent_img() {
@@ -229,9 +227,8 @@ static void update_fb_img() {
 		}
 	} else if (fb_fd != -1) {
 		for (y = 0; y < fb_var.yres; y++) {
-			int result;
 			lseek(fb_fd, y * fb_fix.line_length, SEEK_SET);
-			result = write(fb_fd, silent_img.data + (y * img_line_length), img_line_length);
+			write(fb_fd, silent_img.data + (y * img_line_length), img_line_length);
 		}
 	}
 }

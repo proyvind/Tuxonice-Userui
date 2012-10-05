@@ -18,6 +18,7 @@
 #include <linux/fb.h>
 
 #include "config.h"
+#include "../userui.h"
 
 #ifdef CONFIG_PNG
 #ifdef TARGET_KERNEL
@@ -33,6 +34,7 @@
   #include <jpeglib.h>
 #endif
 
+#include "../userui.h"
 #include "splash.h"
 
 struct fb_image verbose_img;
@@ -134,7 +136,7 @@ int load_png(char *filename, u8 **data, struct fb_cmap *cmap, unsigned int *widt
 		png_set_strip_alpha(png_ptr);
 
 #ifndef TARGET_KERNEL	
-	if (!(png_get_color_type(png_ptr, info_ptr) & PNG_COLOR_MASK_ALPHA) & want_alpha) {
+	if (!((png_get_color_type(png_ptr, info_ptr) & PNG_COLOR_MASK_ALPHA) & want_alpha)) {
 		png_set_add_alpha(png_ptr, 0xff, PNG_FILLER_AFTER);
 	}
 #endif
@@ -228,19 +230,18 @@ int is_png(char *filename)
 {
 	unsigned char header[8];
 	FILE *fp = fopen(filename,"r");
-	int result;
 	
 	if (!fp)
 		return -1;
 
-	result = fread(header, 1, 8, fp);
+	fread(header, 1, 8, fp);
 	fclose(fp);
 	
 	return !png_sig_cmp(header, 0, 8);
 }
 #endif /* PNG */
 
-int load_jpeg(char *filename, u8 **data, int *width, int *height)
+int load_jpeg(char *filename, u8 **data, __u32 *width, __u32 *height)
 {
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
