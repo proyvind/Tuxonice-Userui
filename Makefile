@@ -1,4 +1,4 @@
-CFLAGS := -Wall -O3
+CFLAGS += -Wall -O3
 DESTDIR :=
 PREFIX := /usr/local
 INSTDIR := $(DESTDIR)$(PREFIX)/sbin
@@ -42,7 +42,7 @@ plymouth:
 	make -C $@
 
 tuxoniceui: $(OBJECTS)
-	$(CC) userui_core.o userui_text.o $(LIB_TARGETS) $(LIBS) -o tuxoniceui
+	$(CC) $(LDFLAGS) userui_core.o userui_text.o $(LIB_TARGETS) $(LIBS) -o tuxoniceui
 
 clean:
 	$(RM) *.o $(TARGETS) fbsplash/*.o usplash/*.o plymouth/*.o tuxoniceui

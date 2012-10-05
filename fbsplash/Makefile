@@ -1,4 +1,4 @@
-CFLAGS := -Wall -O3 -g
+CFLAGS += -Wall -O3 -g
 INCLUDES = -I/usr/include/freetype2/ -I.
 
 TARGET = userui_fbsplash.o
