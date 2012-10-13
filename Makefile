@@ -49,7 +49,7 @@ clean:
 
 $(INSTDIR)/%: %
 	strip $<
-	install -m 755 -o root -g root $< $@
+	install -D -m 755 -o root -g root $< $@
 
 install: tuxoniceui $(INSTDIR)/tuxoniceui
 
