@@ -48,8 +48,7 @@ clean:
 	$(RM) *.o $(TARGETS) fbsplash/*.o usplash/*.o plymouth/*.o tuxoniceui
 
 $(INSTDIR)/%: %
-	strip $<
-	install -D -m 755 -o root -g root $< $@
+	install -m755 $< -D $@
 
 install: tuxoniceui $(INSTDIR)/tuxoniceui
 
