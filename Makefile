@@ -1,3 +1,5 @@
+NAME = tuxonice-userui
+VERSION = 1.1.1
 CFLAGS += -Wall -O3
 DESTDIR :=
 PREFIX := /usr/local
@@ -51,5 +53,10 @@ $(INSTDIR)/%: %
 	install -m755 $< -D $@
 
 install: tuxoniceui $(INSTDIR)/tuxoniceui
+
+dist:
+	git archive --prefix $(NAME)-$(VERSION)/ master | xz -v > $(NAME)-$(VERSION).tar.xz
+	git tag v$(VERSION)
+	$(info $(NAME)-$(VERSION).tar.xz is ready)
 
 .PHONY: all clean install fbsplash usplash plymouth
