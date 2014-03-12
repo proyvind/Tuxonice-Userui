@@ -659,10 +659,10 @@ void parse_box(char *t)
 	if (cbox->y2 >= fb_var.yres)
 		cbox->y2 = fb_var.yres-1;
 
-#define zero_color(cl) *(u32*)(&cl) = 0;
+#define zero_color(cl) cl = (struct color){0,0,0,0};
 #define is_zero_color(cl) (*(u32*)(&cl) == 0)
-#define assign_color(c1, c2) *(u32*)(&c1) = *(u32*)(&c2);
-	
+#define assign_color(c1, c2) c1 = c2;
+
 	zero_color(cbox->c_ul);
 	zero_color(cbox->c_ur);
 	zero_color(cbox->c_ll);
