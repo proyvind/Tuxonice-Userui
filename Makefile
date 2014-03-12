@@ -1,5 +1,6 @@
 NAME = tuxonice-userui
 VERSION = 1.1.1
+CC = gcc
 CFLAGS += -Wall -O3
 DESTDIR :=
 PREFIX := /usr/local
