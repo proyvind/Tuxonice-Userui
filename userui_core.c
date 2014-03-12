@@ -782,15 +782,19 @@ static void register_keypress_handler() {
 }
 
 static void open_netlink() {
-	struct sockaddr_nl sanl;
+	union {
+		struct sockaddr_nl nl;
+		struct sockaddr generic;
+	} sanl;
+
 
 	nlsock = socket(PF_NETLINK, SOCK_DGRAM, netlink_socket_num);
 	if (nlsock < 0)
 		bail_err("socket");
 
-	memset(&sanl, 0, sizeof(sanl));
-	sanl.nl_family = AF_NETLINK;
-	if (bind(nlsock, (struct sockaddr *)&sanl, sizeof(sanl)) == -1)
+	memset(&sanl.nl, 0, sizeof(sanl.nl));
+	sanl.nl.nl_family = AF_NETLINK;
+	if (bind(nlsock, &sanl.generic, sizeof(sanl.nl)) == -1)
 		bail_err("bind");
 }
 
