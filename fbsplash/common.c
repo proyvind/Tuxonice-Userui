@@ -42,7 +42,6 @@ int arg_vc = 0;
 char arg_mode = 'v';
 char *arg_theme = NULL;
 u16 arg_progress = 0;
-char *progress_text = NULL;
 u8 arg_kdmode = KD_TEXT;
 
 #ifndef TARGET_KERNEL
