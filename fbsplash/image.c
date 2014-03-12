@@ -75,7 +75,7 @@ void truecolor2fb (truecolor* data, u8* out, int len, int y, u8 alpha)
 
 #ifdef CONFIG_PNG
 #define PALETTE_COLORS 240
-int load_png(char *filename, u8 **data, struct fb_cmap *cmap, unsigned int *width, unsigned int *height, u8 want_alpha)
+int load_png(char *filename, u8 **data, struct fb_cmap *cmap, u32 *width, u32 *height, u8 want_alpha)
 {
 	png_structp 	png_ptr;
 	png_infop 	info_ptr, end_info;

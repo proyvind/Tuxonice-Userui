@@ -77,7 +77,7 @@ enum ESVC { e_display, e_svc_inact_start, e_svc_inact_stop, e_svc_start,
 
 typedef struct {
 	char *filename;
-	int w, h;
+	u32 w, h;
 	u8 *picbuf;
 } icon_img;
 
